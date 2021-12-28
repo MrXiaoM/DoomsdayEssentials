@@ -1,0 +1,126 @@
+# 末日社团基础插件 配置文件
+
+# 语言文件
+lang-file: 'lang-zh.yml'
+
+# 功能 - 自我攻击剑需要的lore
+self-attack-lore:
+  - '§0§a自我攻击'
+  - '§0§4§1§aSELF ATTACK'
+
+# 公告列表
+notice:
+- ''
+
+# 冷知识列表
+tips:
+- ''
+
+# mcbbs 顶贴奖励
+mcbbs:
+  thread-id: '1201273'
+
+# 修理/清洗附魔所需金钱
+repair-cost: 300.0
+clear-ench-cost: 300.0
+bind-cost: 300.0
+
+bot:
+  seen-key: '/seen'
+  exchange-key: '#兑换'
+
+# PVP 场地领地名
+pvp-res:
+- '主城.pvp:pvp'
+- '主城.pvp_:pvp_'
+chat:
+  game:
+    to-game: '&7[&b聊天转发&7]&f<&e%name%&f>&7: &f%msg%'
+    to-group: '[聊天转发]<%name%>: %msg%'
+  group:
+    to-game: '&7[&e聊天转发&8(/g 回复)&7] &e%name%&8(%qq%) &7>> &f%msg%'
+  format: '[&c%mypapi_party%&f] %udtitle_title%%player_name%%udtitle_suffix%&7 >>> &f{message}'
+  formal-local: '&7[&c附近&7][&c%mypapi_party%&f] %udtitle_title%%player_name%%udtitle_suffix%&7 > &f{message}'
+  enable-local: true
+  default-local: false
+  switch-symbol: ':'
+  local-range: 100
+  # 私聊发送方的信息模板
+  msg-from: '&7[&c私聊&7] &6[&c你 &6-> &c%to%&6]&f %msg%'
+  # 私聊接收方的信息模板 
+  msg-to: '&7[&c私聊&7] &6[&c%from% &6-> &c你&6]&f %msg%'
+
+  
+# tp请求超时时间 (秒)
+tp-timeout: 120
+
+# 传送前等待时间 (秒)
+# 拥有权限 doomteam.teleport.cooldown.bypass 可免除等待
+teleport-wait-time: 3
+
+# 能使用绑定功能的物品的lore
+bind-lore:
+  - '0,§[§]§e神器'
+
+# 活塞推动方块黑名单 (请全程大写且带_)
+pision-extend-black-blocks:
+  - PUMPKIN
+  - MELON
+  - CHEST
+  - TRAPPED_CHEST
+  - SUGAR_CANE
+
+# 白名单玩家名字规则
+name:
+  ##正则表达式
+  regex: 'a-zA-Z0-9_'
+  ##名字最小长度
+  min_length: 3
+  ##名字最长长度
+  max_length: 16
+# 无白名单进服提示
+join_tip:
+  - "&a&l请先加入Q群: 951534513"
+  - "&f&l在群内发送 申请白名单 您的游戏名字"
+  - "&f&l即可进入服务器"
+# 申请白名单关键词
+keyword: "申请白名单"
+# 监听指令的Q群
+groups:
+  - "951534513"
+  - "738159283"
+# 群->游戏 和 游戏->群 的违禁词列表
+blacklist-words:
+  - '傻'
+  - 'q'
+  - '.'
+  - '妈'
+
+# 自定义输出文字
+texts:
+  LazyCat: 
+    - '&7[&9末日社团&7] &c&l懒怠的小猫 &e详细'
+    - '&7[&9末日社团&7] &a末日社团服务器服主， 负责编写插件和创建玩法等'
+    - '&7[&9末日社团&7] &a游戏ID: &eLzayCat &7/ &eLittleCatX'
+  DS_sankuang:
+    - '&7[&9末日社团&7] &c&l东少三狂 &e详细'
+    - '&7[&9末日社团&7] &a人称阿强， 是圣灵服务器服主， 为末日社团提供机器'
+    - '&7[&9末日社团&7] &a现在圣灵只开末日社团这个分支服务器了'
+    - '&7[&9末日社团&7] &a游戏ID: &e730785247'
+  Candle_luminary:
+    - '&7[&9末日社团&7] &c&l皮革王炎星 &e详细'
+    - '&7[&9末日社团&7] &a开服初期玩家，为末日社团服务器'
+    - '&7[&9末日社团&7] &a提供了非常多的建议'
+    - '&7[&9末日社团&7] &a游戏ID: &eCandle_luminary'
+
+# 玩家燃烧设置
+player-fire:
+  # 燃烧的时间 (单位 Tick)
+  fire-time: 60
+  # 不燃烧的世界
+  world-blacklist:
+    - 'spawn'
+    - 'plotworld'
+    - 'world_nether'
+    - 'world_the_end'
+    - 'act'

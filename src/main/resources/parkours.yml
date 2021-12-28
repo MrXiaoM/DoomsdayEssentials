@@ -1,0 +1,16 @@
+level-1:
+  # 跑酷场地指定领地
+  binding-res: ''
+  # y坐标小于此值自动拉回起点 (领地传送点)
+  fail-y: 3
+  # 跑酷检查点坐标，需要依次踩检查点到达终点才有奖励，最后一个检查点为终点
+  checkpoints:
+  - '4,4,4'
+  # 玩家到达终点后执行的命令
+  # [console] 控制台执行，[player] 玩家执行，[message] 发给玩家消息
+  win-commands:
+  - '[message]&7[&9末日社团&7] &6你成功到达了第一关的终点!'
+  - '[message]&7[&9末日社团&7] &6奖励 &c500 &6新币'
+  - '[console]money give %player% 500'
+  # 在到达终点之后是否能随意传送到任意传送点
+  visitable: true
