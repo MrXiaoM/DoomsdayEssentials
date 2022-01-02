@@ -25,6 +25,7 @@ public interface IChapterTask<T extends Event> {
 	void end(Player player);
 
 	boolean hasEvent();
+	@SuppressWarnings("unchecked")
 	default Class<? extends Event>[] moreEvents(){
 		return new Class[] { };
 	}

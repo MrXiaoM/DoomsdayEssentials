@@ -39,6 +39,14 @@ chat:
     to-group: '[聊天转发]<%name%>: %msg%'
   group:
     to-game: '&7[&e聊天转发&8(/g 回复)&7] &e%name%&8(%qq%) &7>> &f%msg%'
+    notice:
+      - '欢迎来到末日社团 ------[%localtime_time_HH:mm%]'
+      - '服务器版本: 1.15.2 | IP: mc.doomteam.fun'
+      - '「进服需要先申请白名单，详细请见群公告」'
+      - '◇ 客户端在群文件，有什么不懂的在群里问'
+      - '◇ 发送“提问的智慧”即可获取提问的技巧'
+      - '◇ 发送“问题解答”即可获取解答相关链接'
+      - '◇ 你也可以发送 “/help” 来唤出我的菜单'
   format: '[&c%mypapi_party%&f] %udtitle_title%%player_name%%udtitle_suffix%&7 >>> &f{message}'
   formal-local: '&7[&c附近&7][&c%mypapi_party%&f] %udtitle_title%%player_name%%udtitle_suffix%&7 > &f{message}'
   enable-local: true

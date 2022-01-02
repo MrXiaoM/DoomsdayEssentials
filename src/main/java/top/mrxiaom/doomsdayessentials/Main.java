@@ -12,11 +12,8 @@ import com.hm.achievement.db.CacheManager;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.ranull.graves.Graves;
 import com.ranull.graves.manager.GraveManager;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.socket.SocketChannel;
+import me.albert.amazingbot.bot.Bot;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.coreprotect.CoreProtectAPI;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
@@ -46,7 +43,6 @@ import top.mrxiaom.doomsdayessentials.configs.*;
 import top.mrxiaom.doomsdayessentials.configs.MarketConfig.MarketData;
 import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.TeleportMode;
 import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.Zone;
-import top.mrxiaom.doomsdayessentials.external.netty.NettyChannelInitializer;
 import top.mrxiaom.doomsdayessentials.listener.*;
 import top.mrxiaom.doomsdayessentials.placeholder.*;
 import top.mrxiaom.doomsdayessentials.skills.IAmNoob;
@@ -60,9 +56,7 @@ import top.mrxiaom.doomsdayessentials.utils.NMSUtil.NMSItemStack;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.*;
-import java.util.logging.Level;
 
 public class Main extends JavaPlugin {
 
@@ -70,56 +64,6 @@ public class Main extends JavaPlugin {
 
 	public static Main getInstance() {
 		return instance;
-	}
-
-	private static String channelFieldName;
-	private static String getChannelFieldName(String version){
-		switch (version) {
-			case "v1_16_R1":
-			case "v1_16_R2":
-			case "v1_16_R3":
-			case "v1_15_R2":
-				return "listeningChannels";
-			case "v1_12_R1":
-			case "v1_11_R1":
-			case "v1_10_R1":
-			case "v1_9_R2":
-			case "v1_9_R1":
-			case "v1_8_R2":
-			case "v1_8_R3":
-				return "g";
-			case "v1_13_R1":
-			case "v1_14_R1":
-			case "v1_8_R1":
-				return "f";
-			case "v1_7_R4":
-				return "e";
-		}
-		return null;
-	}
-	@SuppressWarnings("unchecked")
-	private void inject() throws Exception {
-		Method serverGetHandle = Bukkit.getServer().getClass().getDeclaredMethod("getServer");
-		Object minecraftServer = serverGetHandle.invoke(Bukkit.getServer());
-
-		Method serverConnectionMethod = null;
-		for(Method method : minecraftServer.getClass().getSuperclass().getDeclaredMethods()) {
-			if(!method.getReturnType().getSimpleName().equals("ServerConnection")) {
-				continue;
-			}
-			serverConnectionMethod = method;
-			break;
-		}
-		Object serverConnection = serverConnectionMethod.invoke(minecraftServer);
-		List<ChannelFuture> channelFutureList = ReflectionUtils.getPrivateField(serverConnection.getClass(), serverConnection, List.class, channelFieldName);
-
-		for(ChannelFuture channelFuture : channelFutureList) {
-			ChannelPipeline channelPipeline = channelFuture.channel().pipeline();
-			ChannelHandler serverBootstrapAcceptor = channelPipeline.first();
-			System.out.println(serverBootstrapAcceptor.getClass().getName());
-			ChannelInitializer<SocketChannel> oldChildHandler = ReflectionUtils.getPrivateField(serverBootstrapAcceptor.getClass(), serverBootstrapAcceptor, ChannelInitializer.class, "childHandler");
-			ReflectionUtils.setFinalField(serverBootstrapAcceptor.getClass(), serverBootstrapAcceptor, "childHandler", new NettyChannelInitializer(oldChildHandler));
-		}
 	}
 
 	private static final List<Material> damager = Lists.newArrayList(Material.AIR, Material.CAVE_AIR, Material.VOID_AIR,
@@ -208,25 +152,6 @@ public class Main extends JavaPlugin {
 	private String threadId;
 	boolean disabled = false;
 	@Override
-	public void onLoad(){
-		String version = NMSUtil.getNMSVersion();
-		channelFieldName = getChannelFieldName(version);
-		if(channelFieldName == null){
-			getLogger().log(Level.SEVERE, "Unknown server version " + version + ", please see if there are any updates avaible");
-			return;
-		} else {
-			getLogger().info("Detected server version " + version);
-		}
-		try {
-			getLogger().info("Injecting NettyHandler...");
-			inject();
-			getLogger().info("Injection successful!");
-		} catch (Exception e) {
-			getLogger().info("Injection netty handler failed!");
-			e.printStackTrace();
-		}
-	}
-	@Override
 	public void onEnable() {
 		instance = this;
 		this.initListener();
@@ -275,6 +200,7 @@ public class Main extends JavaPlugin {
 		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateRandomTPCache, 400, 400);
 		this.getServer().getScheduler().runTaskTimer(this, this::checkMarketOutdate, 7200L, 7200L);
 		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::mcbbsChecker, 1200L, 1200L);
+		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::onBotSecond, 20, 20);
 	}
 	private void hookDependPlugins() {
 		boolean papiExists = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
@@ -399,6 +325,7 @@ public class Main extends JavaPlugin {
 		if (this.getSkullConfig() == null) this.skullConfig = new SkullConfig(this);
 		if (this.getMarketConfig() == null) this.marketConfig = new MarketConfig(this);
 		if (this.getMcbbsConfig() == null) this.mcbbsConfig = new McbbsConfig(this);
+		if (this.getChapterManager() == null) this.chapterManager = new ChapterManager(this);
 
 		this.getWhitelistConfig().reloadConfig();
 		this.getKeyManager().reloadConfig();
@@ -415,6 +342,7 @@ public class Main extends JavaPlugin {
 		this.getSkullConfig().reloadConfig();
 		this.getMarketConfig().reloadConfig();
 		this.getMcbbsConfig().reloadConfig();
+		this.getChapterManager().reloadConfig();
 		
 		this.getLogger().info("配置文件已重载");
 	}
@@ -443,7 +371,31 @@ public class Main extends JavaPlugin {
 		this.getLogger().info("基础插件 DoomsdayEssentials 已卸载");
 		System.gc();
 	}
-	
+	int botCooldown = 0;
+	public void onBotSecond(){
+		if(botCooldown > 0) {
+			botCooldown--;
+			return;
+		}
+		int minute = Calendar.getInstance().get(Calendar.MINUTE);
+		int second = Calendar.getInstance().get(Calendar.SECOND);
+		if(minute == 0 && second == 0) {
+			botCooldown = 60;
+			if(this.getConfig().contains("chat.group.notice")) {
+				List<String> list = this.getConfig().getStringList("chat.group.notice");
+				if(list.size() > 0) {
+					StringBuilder msg = new StringBuilder();
+					for (int i = 0; i < list.size(); i++)
+					{
+						msg.append(PlaceholderAPI.setPlaceholders(null, list.get(i))).append(i < list.size() - 1 ? "\n" : "");
+					}
+					Bot.getApi().getGroup(951534513L).sendMessage(msg.toString());
+				}
+			}
+
+		}
+	}
+
 	public void mcbbsChecker() {
 		try {
 			List<ThreadOperation> list = McbbsUtil.getThreadOperation(threadId);

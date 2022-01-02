@@ -66,6 +66,12 @@ public class AutoMineChecker implements Listener{
 			bar.setProgress(bar.getProgress() + value);
 		}
 	}
+
+	/**
+	 * 反自带挖矿检查任务
+	 * UUID: 玩家UUID
+	 * Task: 任务实例
+	 */
 	private final Map<UUID, Task> tasks = new HashMap<>();
 	public AutoMineChecker(Main plugin) {
 		this.plugin = plugin;
