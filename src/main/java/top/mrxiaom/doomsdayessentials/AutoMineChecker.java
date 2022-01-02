@@ -86,6 +86,7 @@ public class AutoMineChecker implements Listener{
 			&& !tasks.containsKey(player.getUniqueId()) && ItemStackUtil.isOre(event.getBlock().getType())) {
 			if(new Random().nextInt(1000) < 950) return;
 			tasks.put(player.getUniqueId(), new Task(player));
+			player.sendTitle(I18n.t("anti-automine.san-low-title"), I18n.t("anti-automine.san-low-subtitle"), 10, 30, 10);
 		}
 	}
 

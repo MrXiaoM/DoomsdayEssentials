@@ -377,8 +377,10 @@ public class Main extends JavaPlugin {
 			botCooldown--;
 			return;
 		}
-		int minute = Calendar.getInstance().get(Calendar.MINUTE);
-		int second = Calendar.getInstance().get(Calendar.SECOND);
+		Calendar c = Calendar.getInstance();
+		int hour = c.get(Calendar.HOUR);
+		int minute = c.get(Calendar.MINUTE);
+		int second = c.get(Calendar.SECOND);
 		if(minute == 0 && second == 0) {
 			botCooldown = 60;
 			if(this.getConfig().contains("chat.group.notice")) {
@@ -387,7 +389,11 @@ public class Main extends JavaPlugin {
 					StringBuilder msg = new StringBuilder();
 					for (int i = 0; i < list.size(); i++)
 					{
-						msg.append(PlaceholderAPI.setPlaceholders(null, list.get(i))).append(i < list.size() - 1 ? "\n" : "");
+						msg.append(list.get(i)
+								.replace("%hour%", (hour < 10 ? "0" : "") + hour)
+								.replace("%minute%", (minute<10 ? "0":"") +minute)
+								.replace("%second%", (second < 10 ? "0":"")+second)
+						).append(i < list.size() - 1 ? "\n" : "");
 					}
 					Bot.getApi().getGroup(951534513L).sendMessage(msg.toString());
 				}

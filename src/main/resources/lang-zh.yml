@@ -449,6 +449,8 @@ messages:
       prefix: '出现错误: &c%error%'  
       unallow: '切换背包错误-不允许的操作'
   anti-automine:
+    san-low-title: '&7! &c异常 &7!'
+    san-low-subtitle: '&e你感到精神涣散'
     san-low-bossbar: '&bsan 值剩余 %percent%% &e多次潜行来恢复 san 值，否则你将死亡'
     san-recovered-title: '&7/ &a完毕 &7/'
     san-recovered-subtitle: '&e你已恢复理智状态'

@@ -335,7 +335,7 @@ public class Util {
 	@Nullable
 	public static OfflinePlayer getOfflinePlayer(String name) {
 		for (OfflinePlayer player : Bukkit.getOfflinePlayers()) {
-			if (player.getName().equalsIgnoreCase(name)) {
+			if (player.getName() != null && player.getName().equalsIgnoreCase(name)) {
 				return player;
 			}
 		}
@@ -345,7 +345,7 @@ public class Util {
 	@Nullable
 	public static Player getOnlinePlayer(String name) {
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (player.getName().equalsIgnoreCase(name)) {
+			if (player.getName() != null && player.getName().equalsIgnoreCase(name)) {
 				return player;
 			}
 		}
