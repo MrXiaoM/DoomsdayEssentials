@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PlayerCooldownManager {
-	class GunCooldownData {
+	static class GunCooldownData {
 		public final String gunId;
 		public final int taskId;
 
@@ -65,16 +65,13 @@ public class PlayerCooldownManager {
 			}
 			targetPlayer.sendMessage(I18n.t("teleport-intime", true).replace("%time%", String.valueOf(3)));
 			plugin.getPlayerCooldownManager().put(targetPlayer.getName(),
-					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-						@Override
-						public void run() {
-							if (plugin.getPlayerCooldownManager().isCooldown(targetPlayer.getName())) {
-								plugin.getPlayerCooldownManager().cancelPlayerCooldownTask(targetPlayer.getName());
-							}
-							plugin.getBackConfig().addBackPoint(targetPlayer, targetPlayer.getLocation());
-							targetPlayer.teleport(target);
-							targetPlayer.sendMessage(I18n.t("teleport.to", true).replace("%player%", anotherPlayer.getName()));
+					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+						if (plugin.getPlayerCooldownManager().isCooldown(targetPlayer.getName())) {
+							plugin.getPlayerCooldownManager().cancelPlayerCooldownTask(targetPlayer.getName());
 						}
+						plugin.getBackConfig().addBackPoint(targetPlayer, targetPlayer.getLocation());
+						targetPlayer.teleport(target);
+						targetPlayer.sendMessage(I18n.t("teleport.to", true).replace("%player%", anotherPlayer.getName()));
 					}, 3 * 20));
 
 		}
@@ -133,11 +130,11 @@ public class PlayerCooldownManager {
 		}
 	}
 
-	public final Map<String, Integer> playerCooldown = new HashMap<String, Integer>();
-	public final Map<String, Integer> randomTPCooldown = new HashMap<String, Integer>();
-	public final Map<String, Integer> playerBeamCooldown = new HashMap<String, Integer>();
-	public final Map<String, GunCooldownData> playerGunCooldown = new HashMap<String, GunCooldownData>();
-	public final Map<String, Integer> playerRedstoneCooldown = new HashMap<String, Integer>();
+	public final Map<String, Integer> playerCooldown = new HashMap<>();
+	public final Map<String, Integer> randomTPCooldown = new HashMap<>();
+	public final Map<String, Integer> playerBeamCooldown = new HashMap<>();
+	public final Map<String, GunCooldownData> playerGunCooldown = new HashMap<>();
+	public final Map<String, Integer> playerRedstoneCooldown = new HashMap<>();
 	public final List<TPRequest> tpList = new ArrayList<>();
 	final Main plugin;
 
@@ -203,12 +200,7 @@ public class PlayerCooldownManager {
 		}
 	}
 	public void putRandomTP(String player, int cooldown) {
-		int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-		@Override
-		public void run() {
-			cancelRandomTPCooldownTask(player);
-		}
-		}, cooldown);
+		int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> cancelRandomTPCooldownTask(player), cooldown);
 		this.randomTPCooldown.put(player, taskId);
 	}
 
@@ -225,12 +217,7 @@ public class PlayerCooldownManager {
 	}
 
 	public void putBeam(String player, int cooldown) {
-		int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-			@Override
-			public void run() {
-				cancelPlayerBeamCooldownTask(player);
-			}
-		}, cooldown);
+		int taskId = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> cancelPlayerBeamCooldownTask(player), cooldown);
 		this.playerBeamCooldown.put(player, taskId);
 	}
 
@@ -279,12 +266,10 @@ public class PlayerCooldownManager {
 		if (this.isRedstoneCooldown(player)) {
 			return;
 		}
-		playerRedstoneCooldown.put(player, Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-			public void run() {
-				if(playerRedstoneCooldown.containsKey(player)) {
-					Bukkit.getScheduler().cancelTask(playerRedstoneCooldown.get(player));
-					playerRedstoneCooldown.remove(player);
-				}
+		playerRedstoneCooldown.put(player, Bukkit.getScheduler().runTaskLater(plugin, () -> {
+			if(playerRedstoneCooldown.containsKey(player)) {
+				Bukkit.getScheduler().cancelTask(playerRedstoneCooldown.get(player));
+				playerRedstoneCooldown.remove(player);
 			}
 		}, ticks).getTaskId());
 	}
@@ -297,11 +282,6 @@ public class PlayerCooldownManager {
 			this.playerGunCooldown.get(player).cancelTask();
 		}
 		this.playerGunCooldown.put(player,
-				new GunCooldownData(gunId, Bukkit.getServer().getScheduler().runTaskLater(plugin, new Runnable() {
-					@Override
-					public void run() {
-						playerGunCooldown.remove(player);
-					}
-				}, ticks).getTaskId()));
+				new GunCooldownData(gunId, Bukkit.getServer().getScheduler().runTaskLater(plugin, () -> playerGunCooldown.remove(player), ticks).getTaskId()));
 	}
 }

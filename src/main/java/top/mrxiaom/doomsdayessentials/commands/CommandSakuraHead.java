@@ -25,6 +25,7 @@ public class CommandSakuraHead extends ICommand {
 					Player player = Objects.requireNonNull(Bukkit.getPlayer(args[1]));
 
 					Skull skull = this.plugin.getSkullConfig().getSkull(EntityType.valueOf(args[2].toUpperCase()));
+					if(skull == null) throw new IllegalArgumentException();
 					player.getInventory().addItem(skull.getItemStack());
 
 					sender.sendMessage("头颅发送成功");

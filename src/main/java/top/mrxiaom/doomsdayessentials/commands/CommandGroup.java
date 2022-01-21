@@ -18,18 +18,16 @@ public class CommandGroup extends ICommand {
 	@Override
 	public boolean onCommand(CommandSender sender, String label, String[] args, boolean isPlayer) {
 		if (args.length > 0) {
-			String msg = args[0];
+			StringBuilder msg = new StringBuilder(args[0]);
 			for (int i = 1; i < args.length; i++) {
-				msg += " " + args[i];
+				msg.append(" ").append(args[i]);
 			}
 			if (plugin.getConfig().contains("blacklist-words")) {
 				List<String> bw = plugin.getConfig().getStringList("blacklist-words");
-				if (bw != null) {
-					for (String s : bw) {
-						if (msg.toLowerCase().contains(s)) {
-							sender.sendMessage(I18n.t("chat.group.banwords", true));
-							return true;
-						}
+				for (String s : bw) {
+					if (msg.toString().toLowerCase().contains(s)) {
+						sender.sendMessage(I18n.t("chat.group.banwords", true));
+						return true;
 					}
 				}
 			}
@@ -39,9 +37,9 @@ public class CommandGroup extends ICommand {
 				return true;
 			}
 			String str = plugin.getConfig().getString("chat.game.to-group").replace("%name%", sender.getName())
-					.replace("%msg%", msg);
+					.replace("%msg%", msg.toString());
 			String str2 = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("chat.game.to-game"))
-					.replace("%name%", sender.getName()).replace("%msg%", Util.replaceColor(msg, sender));
+					.replace("%name%", sender.getName()).replace("%msg%", Util.replaceColor(msg.toString(), sender));
 			Util.alert(str2);
 			bot.getGroup(951534513L).sendMessage(str);
 			sender.sendMessage(I18n.t("chat.group.sent", true));

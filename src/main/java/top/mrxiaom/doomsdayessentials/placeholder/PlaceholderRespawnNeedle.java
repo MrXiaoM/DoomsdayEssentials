@@ -2,6 +2,7 @@ package top.mrxiaom.doomsdayessentials.placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 import top.mrxiaom.doomsdayessentials.Main;
 
 import java.util.regex.Matcher;
@@ -14,11 +15,11 @@ public class PlaceholderRespawnNeedle extends PlaceholderExpansion {
 		this.plugin = plugin;
 	}
 
-	public String getAuthor() {
+	public @NotNull String getAuthor() {
 		return "mrxiaom";
 	}
 
-	public String getIdentifier() {
+	public @NotNull String getIdentifier() {
 		return "respawnneedle";
 	}
 
@@ -39,7 +40,7 @@ public class PlaceholderRespawnNeedle extends PlaceholderExpansion {
 		return identifier;
 	}
 
-	public String getVersion() {
+	public @NotNull String getVersion() {
 		return this.plugin.getDescription().getVersion();
 	}
 

@@ -41,7 +41,7 @@ public class HighfrequencyRedstoneCleaner implements Listener {
 			Material.REDSTONE_WALL_TORCH, Material.REDSTONE_WIRE, Material.COMPARATOR, Material.REPEATER,
 			Material.PISTON, Material.STICKY_PISTON, Material.LEVER);
 
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onBlockRedstone(final BlockRedstoneEvent e) {
 		Block block = e.getBlock();
 		if(block.getType().equals(Material.OBSERVER)) {
@@ -70,16 +70,15 @@ public class HighfrequencyRedstoneCleaner implements Listener {
 
 	public void redstone_run() {
 		if (!this.cache.isEmpty()) {
-			Boolean flag = false;
+			boolean flag = false;
 			Location location = null;
 			for (Location loc : this.cache.keySet()) {
 				if (this.cache.get(loc) >= limit) {
-					Bukkit.getScheduler().runTaskLater(this.plugin, new Runnable() {
-						public void run() {
-							try {
-								loc.getBlock().breakNaturally();
-							} catch (Throwable t) {
-							}
+					Bukkit.getScheduler().runTaskLater(this.plugin, () -> {
+						try {
+							loc.getBlock().breakNaturally();
+						} catch (Throwable t) {
+							// 收声
 						}
 					}, 2L);
 					if (location == null) {
@@ -94,7 +93,7 @@ public class HighfrequencyRedstoneCleaner implements Listener {
 				if (location == null) {
 					Bukkit.getServer().broadcastMessage(message);
 				} else {
-					String NameList = "";
+					StringBuilder nameList = new StringBuilder();
 					int count = 0;
 					Entity[] entities;
 					for (int length = (entities = location.getChunk().getEntities()).length, i = 0; i < length; ++i) {
@@ -105,23 +104,21 @@ public class HighfrequencyRedstoneCleaner implements Listener {
 						if (entity instanceof Player) {
 							final Player p = (Player) entity;
 							if (!p.hasMetadata("NPC") && !p.hasMetadata("shopkeeper") && !p.hasMetadata("MythicMobs")) {
-								if (NameList == "") {
-									NameList = p.getName();
+								if (nameList.toString().equals("")) {
+									nameList = new StringBuilder(p.getName());
 								} else {
-									NameList = String.valueOf(NameList) + ", " + p.getName();
+									nameList.append(", ").append(p.getName());
 								}
 								++count;
 							}
 						}
 					}
-					count = 0;
 					Bukkit.getServer()
 							.broadcastMessage(message
 									.replace("%Location%",
-											"[" + location.getWorld().getName() + "," + location.getBlockX() + ","
+											"[" + (location.getWorld() != null ? location.getWorld().getName() : "???") + "," + location.getBlockX() + ","
 													+ location.getBlockY() + "," + location.getBlockZ() + "]")
-									.replace("%Player%", NameList));
-					NameList = "";
+									.replace("%Player%", nameList.toString()));
 				}
 			}
 			this.cache.clear();

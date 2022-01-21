@@ -23,14 +23,14 @@ public class HomeConfig {
 	}
 
 	public YamlConfiguration getPlayerConfig(String player) {
-		if (!playerDatas.keySet().contains(player)) {
+		if (!playerDatas.containsKey(player)) {
 			return new YamlConfiguration();
 		}
 		return playerDatas.get(player);
 	}
 
 	public int getHomeCount(String player) {
-		if (!playerDatas.keySet().contains(player)) {
+		if (!playerDatas.containsKey(player)) {
 			return 0;
 		}
 		int result = 0;
@@ -43,7 +43,7 @@ public class HomeConfig {
 	}
 
 	public boolean hasHome(String player, String homeName) {
-		if (!playerDatas.keySet().contains(player)) {
+		if (!playerDatas.containsKey(player)) {
 			return false;
 		}
 		YamlConfiguration config = playerDatas.get(player);
@@ -53,10 +53,9 @@ public class HomeConfig {
 		return false;
 	}
 
-	@Nullable
 	public List<String> getHomes(String player) {
-		if (!playerDatas.keySet().contains(player)) {
-			return null;
+		if (!playerDatas.containsKey(player)) {
+			return new ArrayList<>();
 		}
 		List<String> homes = new ArrayList<String>();
 		YamlConfiguration config = playerDatas.get(player);
@@ -134,7 +133,9 @@ public class HomeConfig {
 				this.playerDatas = new HashMap<String, YamlConfiguration>();
 			}
 			this.playerDatas.clear();
-			for (File file : configPath.listFiles()) {
+			File[] files = configPath.listFiles();
+			if(files == null) return;
+			for (File file : files) {
 				try {
 					if (file.getName().toLowerCase().endsWith(".yml")) {
 						String playerName = file.getName().substring(0, file.getName().lastIndexOf(".yml"));
@@ -144,7 +145,6 @@ public class HomeConfig {
 					}
 				} catch (Throwable t) {
 					t.printStackTrace();
-					continue;
 				}
 			}
 		} catch (Throwable t) {
@@ -158,8 +158,9 @@ public class HomeConfig {
 			for (String player : players) {
 				playerDatas.get(player).save(new File(configPath, player + ".yml"));
 			}
-
-			for (File file : configPath.listFiles()) {
+			File[] files = configPath.listFiles();
+			if(files == null) return;
+			for (File file : files) {
 				String playerName = file.getName().substring(0, file.getName().lastIndexOf(".yml"));
 				if (!players.contains(playerName)) {
 					file.delete();

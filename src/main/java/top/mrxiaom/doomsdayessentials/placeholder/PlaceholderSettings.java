@@ -2,6 +2,7 @@ package top.mrxiaom.doomsdayessentials.placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 import top.mrxiaom.doomsdayessentials.Main;
 
 import java.util.regex.Matcher;
@@ -14,26 +15,26 @@ public class PlaceholderSettings extends PlaceholderExpansion {
 		this.plugin = plugin;
 	}
 
-	public String getAuthor() {
+	public @NotNull String getAuthor() {
 		return "mrxiaom";
 	}
 
-	public String getIdentifier() {
+	public @NotNull String getIdentifier() {
 		return "settings";
 	}
 
-	public String onRequest(OfflinePlayer offlinePlayer, String identifier) {
+	public String onRequest(OfflinePlayer offlinePlayer, @NotNull String identifier) {
 		Object obj = plugin.getPlayerConfig().getConfig().get(offlinePlayer.getName() + "." + identifier, "未配置");
 		if (obj != null) {
 			if (obj instanceof Boolean) {
-				return ((Boolean) obj).booleanValue() ? "§a开" : "§c关";
+				return (Boolean) obj ? "§a开" : "§c关";
 			}
 			return obj.toString();
 		}
 		return "未配置";
 	}
 
-	public String getVersion() {
+	public @NotNull String getVersion() {
 		return this.plugin.getDescription().getVersion();
 	}
 
@@ -43,11 +44,5 @@ public class PlaceholderSettings extends PlaceholderExpansion {
 
 	public boolean canRegister() {
 		return true;
-	}
-
-	public boolean isMatchPlayerName(String player) {
-		Pattern p = Pattern.compile("[a-zA-Z0-9_]*{3,16}");
-		Matcher m = p.matcher(player);
-		return m.matches();
 	}
 }

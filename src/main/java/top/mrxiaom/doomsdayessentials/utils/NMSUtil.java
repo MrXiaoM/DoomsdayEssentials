@@ -93,8 +93,7 @@ public class NMSUtil {
 				if (!flag)
 					return false;
 				Object nbt = getTag.invoke(nmsItem);
-				boolean flag2 = (boolean) hasKeyOfType.invoke(nbt, name, type);
-				return flag2;
+				return (boolean) hasKeyOfType.invoke(nbt, name, type);
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
@@ -238,12 +237,13 @@ public class NMSUtil {
 
 	public static void sendChatPacket(Player player, Object jsonOrPlainText) {
 		try {
+			String nmsVersion = NMSUtil.getNMSVersion();
 			Class<?> classIChatBase = Class
-					.forName("net.minecraft.server." + NMSUtil.getNMSVersion() + ".IChatBaseComponent");
+					.forName("net.minecraft.server." + nmsVersion + ".IChatBaseComponent");
 			Class<?> classPacket = Class
-					.forName("net.minecraft.server." + NMSUtil.getNMSVersion() + ".PacketPlayOutChat");
+					.forName("net.minecraft.server." + nmsVersion + ".PacketPlayOutChat");
 			Constructor<?> constPacket = classPacket.getDeclaredConstructor(classIChatBase);
-			Object packet = null;
+			Object packet;
 			if (jsonOrPlainText instanceof JsonElement) {
 				Class<?> classChatSerializer = classIChatBase.getDeclaredClasses()[0];
 				Method tellrawFromJson = null;
@@ -254,6 +254,7 @@ public class NMSUtil {
 						break;
 					}
 				}
+				if(tellrawFromJson == null) throw new NoSuchMethodException("net.minecraft.server." + nmsVersion + ".IChatBaseComponent.ChatSerializer.<unknown>(JsonElement) IChatBaseComponent");
 				Object chatMsg = tellrawFromJson.invoke(null, jsonOrPlainText);
 				packet = constPacket.newInstance(chatMsg);
 			} else {

@@ -4,6 +4,7 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 import top.mrxiaom.doomsdayessentials.Main;
 
 import java.util.regex.Matcher;
@@ -16,15 +17,15 @@ public class PlaceholderTitle extends PlaceholderExpansion {
 		this.plugin = plugin;
 	}
 
-	public String getAuthor() {
+	public @NotNull String getAuthor() {
 		return "MrXiaoM";
 	}
 
-	public String getIdentifier() {
+	public @NotNull String getIdentifier() {
 		return "udtitle";
 	}
 
-	public String onRequest(OfflinePlayer player, String identifier) {
+	public String onRequest(OfflinePlayer player, @NotNull String identifier) {
 		if (plugin.getTagConfig() == null)
 			return identifier;
 		if (identifier.toLowerCase().startsWith("title")) {
@@ -50,7 +51,7 @@ public class PlaceholderTitle extends PlaceholderExpansion {
 		return identifier;
 	}
 
-	public String getVersion() {
+	public @NotNull String getVersion() {
 		return "1.0";
 	}
 

@@ -12,7 +12,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.ItemMeta;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 import top.mrxiaom.doomsdayessentials.utils.TimeUtil;
@@ -36,15 +35,10 @@ public class InventoryListener implements Listener {
 		if (!(event.getWhoClicked() instanceof Player))
 			return;
 		if (event.getClickedInventory() instanceof AnvilInventory) {
-			ItemStack click = event.getCurrentItem();
-			ItemMeta im = click.getItemMeta();
-			if (im == null)
-				return;
-			if (im.hasLore()) {
-				if (im.getLore().get(0).toLowerCase().startsWith("§t§a§r§o§t")) {
-					event.setCancelled(true);
-					event.getWhoClicked().sendMessage("§7[§9末日社团§7] §c你不能将塔罗牌放入铁砧中");
-				}
+			List<String> lore = ItemStackUtil.getItemLore(event.getCurrentItem());
+			if (!lore.isEmpty() && lore.get(0).toLowerCase().startsWith("§t§a§r§o§t")) {
+				event.setCancelled(true);
+				event.getWhoClicked().sendMessage("§7[§9末日社团§7] §c你不能将塔罗牌放入铁砧中");
 			}
 		}
 	}
@@ -122,9 +116,9 @@ public class InventoryListener implements Listener {
 	 */
 	public boolean checkInventory(PlayerInventory inv, HumanEntity player) {
 		boolean flag = false;
-		boolean flag2 = false;
+		boolean flag2;
 		YamlConfiguration log = new YamlConfiguration();
-		List<ItemStack> items = new ArrayList<ItemStack>();
+		List<ItemStack> items = new ArrayList<>();
 		for (int i = 0; i < inv.getSize(); i++) {
 			ItemStack item1 = inv.getItem(i);
 			flag2 = false;
@@ -133,7 +127,7 @@ public class InventoryListener implements Listener {
 				for (int j = 0; j < inv.getSize() && j != i; j++) {
 					ItemStack item2 = inv.getItem(j);
 					String id2 = plugin.getBindConfig().getCodeFromItemStack(item2);
-					if (id2 != null && id1.equalsIgnoreCase(id2)) {
+					if (id1.equalsIgnoreCase(id2)) {
 						if (!flag2) {
 							items.add(item1);
 							flag2 = true;
@@ -153,7 +147,7 @@ public class InventoryListener implements Listener {
 			log.set("x", player.getLocation().getX());
 			log.set("y", player.getLocation().getY());
 			log.set("z", player.getLocation().getZ());
-			log.set("items", ItemStackUtil.itemStackArrayToBase64(items.stream().toArray(ItemStack[]::new), true));
+			log.set("items", ItemStackUtil.itemStackArrayToBase64(items.toArray(ItemStack[]::new), true));
 			try {
 				log.save(new File(cheatLogDir, player.getName() + "-" + TimeUtil.getDateTimeString().replace(":", ".") + ".yml"));
 			} catch (Throwable t) {

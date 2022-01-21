@@ -4,6 +4,8 @@ import com.bekvon.bukkit.residence.api.ResidenceApi;
 import com.bekvon.bukkit.residence.api.ResidenceInterface;
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.bekvon.bukkit.residence.protection.FlagPermissions;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.google.common.collect.Lists;
 import com.hm.achievement.AdvancedAchievements;
 import com.hm.achievement.api.AdvancedAchievementsAPI;
@@ -84,6 +86,7 @@ public class Main extends JavaPlugin {
 	PlaceholderPlayerPoints papiPlayerPoints;
 	PlaceholderMCMMO papiMcMMO;
 	PlaceholderSettings papiSettings;
+	PlaceholderMCBBS papiMcbbs;
 	// 事件监听器
 	PlayerListener playerListener;
 	LifeListener lifeListener;
@@ -121,6 +124,7 @@ public class Main extends JavaPlugin {
 	MultiverseCore mvApi;
 	CacheManager aachCacheApi;
 	top.mrxiaom.pluginupdater.Main updaterApi;
+	ProtocolManager protocolManager;
 	// 其他功能
 	CmdManager cmdManager;
 	KeyConfig keyManager;
@@ -154,10 +158,10 @@ public class Main extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		instance = this;
+		this.hookDependPlugins();
 		this.initListener();
 
 		this.reloadConfig();
-		this.hookDependPlugins();
 		
 		this.initSkill();
 
@@ -205,10 +209,15 @@ public class Main extends JavaPlugin {
 	private void hookDependPlugins() {
 		boolean papiExists = Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
 		if (papiExists) {
+			Util.registerPlaceholder(getLogger(), papiMcbbs = new PlaceholderMCBBS(this), "顶贴奖励");
 			Util.registerPlaceholder(getLogger(), papiRespawnNeedle = new PlaceholderRespawnNeedle(this), "复活针");
 			Util.registerPlaceholder(getLogger(), papiTitle = new PlaceholderTitle(this), "称号");
 			Util.registerPlaceholder(getLogger(), papiKit = new PlaceholderKit(this), "工具包");
 			Util.registerPlaceholder(getLogger(), papiSettings = new PlaceholderSettings(this), "设置");
+		}
+
+		if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null){
+			protocolManager = ProtocolLibrary.getProtocolManager();
 		}
 		if (Bukkit.getPluginManager().getPlugin("PluginUpdater") != null) {
 			updaterApi = (top.mrxiaom.pluginupdater.Main) Bukkit.getPluginManager().getPlugin("PluginUpdater");
@@ -225,7 +234,7 @@ public class Main extends JavaPlugin {
 			}
 		}
 		if (Bukkit.getPluginManager().getPlugin("Graves") != null) {
-			this.graveApi = ((Graves)Bukkit.getPluginManager().getPlugin("Graves")).getGraveManager();
+			this.graveApi = ((Graves) Bukkit.getPluginManager().getPlugin("Graves")).getGraveManager();
 		}
 		if (Bukkit.getPluginManager().getPlugin("PlayerPoints") != null) {
 			PlayerPoints pp = (PlayerPoints) Bukkit.getPluginManager().getPlugin("PlayerPoints");
@@ -264,15 +273,16 @@ public class Main extends JavaPlugin {
 	public void reloadConfig() {
 		this.saveDefaultConfig();
 		super.reloadConfig();
+		String langFileName = Objects.requireNonNullElse(this.getConfig().getString("lang-file", "lang-zh.yml"), "lang-zh.yml");
 		// 语言文件释放
-		if (!getFile(this.getConfig().getString("lang-file")).exists()) {
+		if (!getFile(langFileName).exists()) {
 			try {
-				this.saveResource(this.getConfig().getString("lang-file"), false);
+				this.saveResource(langFileName, false);
 			} catch (Throwable t) {
 				t.printStackTrace();
 			}
 		}
-		I18n.loadConfig(this, YamlConfiguration.loadConfiguration(getFile(this.getConfig().getString("lang-file"))));
+		I18n.loadConfig(this, YamlConfiguration.loadConfiguration(getFile(langFileName)));
 
 		// 读配置
 		this.fireWorldBlackList = new ArrayList<>();
@@ -284,7 +294,6 @@ public class Main extends JavaPlugin {
 		this.tpTimeout = this.getConfig().getInt("tp-timeout", 120);
 		this.teleportWaitTime = this.getConfig().getInt("teleport-wait-time", 3);
 		List<String> pision_blacklist = this.getConfig().getStringList("pision-extend-black-blocks");
-		if (pision_blacklist != null) {
 			this.pistonBlackList.clear();
 			for (String s : pision_blacklist) {
 				Material material = Material.getMaterial(s.toUpperCase().replace(" ", "_"));
@@ -292,16 +301,13 @@ public class Main extends JavaPlugin {
 					this.pistonBlackList.add(material);
 				}
 			}
-		}
 		this.notice = new ArrayList<>();
-		this.notice.clear();
 		if(this.getConfig().contains("notice")) {
 			for(String s : this.getConfig().getStringList("notice")) {
 				this.notice.add(ChatColor.translateAlternateColorCodes('&', s));
 			}
 		}
 		this.tips = new ArrayList<>();
-		this.tips.clear();
 		if(this.getConfig().contains("tips")) {
 			for(String s : this.getConfig().getStringList("tips")) {
 				this.tips.add(ChatColor.translateAlternateColorCodes('&', s));
@@ -350,6 +356,8 @@ public class Main extends JavaPlugin {
 	public void onDisable() {
 		this.disabled = true;
 		instance = null;
+		this.getRandomTPConfig().saveCache();
+		if(this.protocolManager != null) this.protocolManager.removePacketListeners(this);
 		Bukkit.getScheduler().cancelTasks(this);
 		this.playerListener.enable = false;
 		this.getRandomTPConfig().saveCache();
@@ -368,6 +376,9 @@ public class Main extends JavaPlugin {
 		if (this.papiSettings != null && this.papiSettings.isRegistered()) {
 			this.papiSettings.unregister();
 		}
+		if(this.papiMcbbs != null && this.papiMcbbs.isRegistered()){
+			this.papiMcbbs.unregister();
+		}
 		this.getLogger().info("基础插件 DoomsdayEssentials 已卸载");
 		System.gc();
 	}
@@ -381,7 +392,7 @@ public class Main extends JavaPlugin {
 		int hour = c.get(Calendar.HOUR);
 		int minute = c.get(Calendar.MINUTE);
 		int second = c.get(Calendar.SECOND);
-		if(minute == 0 && second == 0) {
+		if(minute == 0 && second == 0 && (hour >= 7 || hour == 0)) {
 			botCooldown = 60;
 			if(this.getConfig().contains("chat.group.notice")) {
 				List<String> list = this.getConfig().getStringList("chat.group.notice");
@@ -391,7 +402,7 @@ public class Main extends JavaPlugin {
 					{
 						msg.append(list.get(i)
 								.replace("%hour%", (hour < 10 ? "0" : "") + hour)
-								.replace("%minute%", (minute<10 ? "0":"") +minute)
+								.replace("%minute%", (minute < 10 ? "0":"") +minute)
 								.replace("%second%", (second < 10 ? "0":"")+second)
 						).append(i < list.size() - 1 ? "\n" : "");
 					}
@@ -471,12 +482,9 @@ public class Main extends JavaPlugin {
 				for (; i < j; i++) {
 					Block block = world.getBlockAt(randomX, i, randomZ);
 					// 如果该方块不危险且上方两格都是空气则传送
-					if (!damager.contains(block.getType())) {
-						if (block.getRelative(BlockFace.UP, 1).getType().isAir()
+					if (!damager.contains(block.getType()) && block.getRelative(BlockFace.UP, 1).getType().isAir()
 								&& block.getRelative(BlockFace.UP, 2).getType().isAir()) {
-							this.getRandomTPConfig().addToCache(zone, randomX, i + 1, randomZ);
-							continue;
-						}
+						this.getRandomTPConfig().addToCache(zone, randomX, i + 1, randomZ);
 					}
 				}
 			}
@@ -485,12 +493,9 @@ public class Main extends JavaPlugin {
 				for (i = Util.getIntegerMax(i, 63); i < j; i++) {
 					Block block = world.getBlockAt(randomX, i, randomZ);
 					// 如果该方块不危险且上方两格都是空气则传送
-					if (!damager.contains(block.getType())) {
-						if (block.getRelative(BlockFace.UP, 1).getType().isAir()
+					if (!damager.contains(block.getType()) && block.getRelative(BlockFace.UP, 1).getType().isAir()
 								&& block.getRelative(BlockFace.UP, 2).getType().isAir()) {
-							this.getRandomTPConfig().addToCache(zone, randomX, i + 1, randomZ);
-							continue;
-						}
+						this.getRandomTPConfig().addToCache(zone, randomX, i + 1, randomZ);
 					}
 				}
 			}
@@ -543,12 +548,14 @@ public class Main extends JavaPlugin {
 
 	private void handlePlayerStatus(Player player) {
 		RPGItem rpg = ItemManager.toRPGItemByMeta(player.getInventory().getItemInOffHand()).orElse(null);
+		// 老B灯
 		if(rpg != null && rpg.getName().equalsIgnoreCase("blantern")) {
 			if(player.hasPotionEffect(PotionEffectType.NIGHT_VISION)) {
 				player.removePotionEffect(PotionEffectType.NIGHT_VISION);
 			}
 			player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 280, 1, false, false, true), true);
 		}
+		// 诅咒
 		if (player.getHealth() <= 4) {
 			if (this.getPlayerConfig().getConfig().getConfigurationSection(player.getName()).getBoolean("curse")) {
 				player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 30, 4, true));
@@ -556,13 +563,13 @@ public class Main extends JavaPlugin {
 		}
 		if (this.getPlayerConfig().isShowBullets(player.getName())) {
 			ItemStack item = player.getInventory().getItemInMainHand();
-			if (item != null && item.hasItemMeta()) {
+			if (item.hasItemMeta()) {
 				ItemMeta im = item.getItemMeta();
-				if (im != null && im.hasLore()) {
+				if (im != null && im.hasLore() && im.getLore() != null) {
 
 					String s = im.getLore().get(im.getLore().size() - 1).toLowerCase();
 					NMSItemStack nms = NMSItemStack.fromBukkitItemStack(item);
-					if (s.toLowerCase().startsWith("§g§u§n")) {
+					if (nms != null && s.toLowerCase().startsWith("§g§u§n")) {
 						int bullets = nms.getNBTTagInt("bullets", 0);
 						showPlayerBullets(player, im.getDisplayName(), bullets);
 					}
@@ -583,8 +590,8 @@ public class Main extends JavaPlugin {
 			if (!player.isOnline() || player.isDead()
 					|| !(player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE)
 					|| this.isWorldNotFire(player.getWorld().getName()) || player.isSwimming()
-					|| loc.getWorld().hasStorm() || loc.getWorld().getTime() > 12500
-					|| loc.getWorld().getTime() < 1000) {
+					|| loc.getWorld() == null || loc.getWorld().hasStorm()
+					|| loc.getWorld().getTime() > 12500 || loc.getWorld().getTime() < 1000) {
 				return;
 			}
 			int x = loc.getBlockX();
@@ -606,7 +613,7 @@ public class Main extends JavaPlugin {
 				if (ItemStackUtil.hasHelmet(player)) {
 					ItemStack itemStack = player.getInventory().getHelmet();
 					if (!ItemStackUtil.isDisplayNameContains(itemStack, String.valueOf(ChatColor.COLOR_CHAR))) {
-						ItemMeta im = itemStack.getItemMeta();
+						ItemMeta im = Objects.requireNonNullElse(itemStack.getItemMeta(), ItemStackUtil.getItemMeta(itemStack.getType()));
 						if (ItemStackUtil.isHelmetFastBurn(itemStack)) {
 							if (((Damageable) im).getDamage() + 1 > itemStack.getType().getMaxDurability()) {
 								player.getInventory().setHelmet(null);
@@ -617,7 +624,7 @@ public class Main extends JavaPlugin {
 								player.getInventory().setHelmet(itemStack);
 							}
 						} else {
-							int reduceInt = this.armorDamageTime.containsKey(player.getUniqueId()) ? this.armorDamageTime.get(player.getUniqueId()) : 0;
+							int reduceInt = this.armorDamageTime.getOrDefault(player.getUniqueId(), 0);
 							if(reduceInt < 4) {
 								reduceInt++;
 							}
@@ -627,7 +634,7 @@ public class Main extends JavaPlugin {
 									player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0F, 1.0F);
 								} else {
 									((Damageable) im).setDamage(((Damageable) im).getDamage() + 1);
-									itemStack.setItemMeta((ItemMeta) im);
+									itemStack.setItemMeta(im);
 									player.getInventory().setHelmet(itemStack);
 								}
 								reduceInt = 0;
@@ -901,4 +908,5 @@ public class Main extends JavaPlugin {
 	public ChapterManager getChapterManager() {
 		return chapterManager;
 	}
+	public ProtocolManager getProtocolManager(){return protocolManager;}
 }

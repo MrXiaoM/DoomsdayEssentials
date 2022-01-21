@@ -14,7 +14,7 @@ public class EmailConfig {
 	final File configPath;
 	Map<String, YamlConfiguration> playerDatas;
 	final Main plugin;
-	public class Email{
+	public static class Email{
 		String sender;
 		String receiver;
 		List<String> content;
@@ -74,27 +74,27 @@ public class EmailConfig {
 	}
 	
 	public YamlConfiguration getPlayerConfig(String player) {
-		if (!playerDatas.keySet().contains(player)) {
+		if (!playerDatas.containsKey(player)) {
 			return new YamlConfiguration();
 		}
 		return playerDatas.get(player);
 	}
 
 	public int getEmailCount(String player) {
-		if (!playerDatas.keySet().contains(player) || !playerDatas.get(player).contains("email")) {
+		if (!playerDatas.containsKey(player) || !playerDatas.get(player).contains("email")) {
 			return 0;
 		}
 		return playerDatas.get(player).getConfigurationSection("email").getKeys(false).size();
 	}
 	public int getUnreadEmailCount(String player) {
-		if (!playerDatas.keySet().contains(player) || !playerDatas.get(player).contains("unread")) {
+		if (!playerDatas.containsKey(player) || !playerDatas.get(player).contains("unread")) {
 			return 0;
 		}
 		return playerDatas.get(player).getStringList("unread").size();
 	}
 
 	public boolean hasEmail(String player, String id) {
-		if (!playerDatas.keySet().contains(player) || !playerDatas.get(player).contains("email")) {
+		if (!playerDatas.containsKey(player) || !playerDatas.get(player).contains("email")) {
 			return false;
 		}
 		return playerDatas.get(player).contains(id);
@@ -145,7 +145,7 @@ public class EmailConfig {
 		String receiver = email.getString("receiver");
 		List<String> content = email.getStringList("content");
 		ItemStack item = email.getItemStack("item", null);
-		return new Email(sender,receiver,content,item);
+		return new Email(sender, receiver, content, item);
 	}
 
 
@@ -184,7 +184,9 @@ public class EmailConfig {
 				this.playerDatas = new HashMap<String, YamlConfiguration>();
 			}
 			this.playerDatas.clear();
-			for (File file : configPath.listFiles()) {
+			File[] files = configPath.listFiles();
+			if(files == null) return this;
+			for (File file : files) {
 				try {
 					if (file.getName().toLowerCase().endsWith(".yml")) {
 						String playerName = file.getName().substring(0, file.getName().lastIndexOf(".yml"));
@@ -194,7 +196,6 @@ public class EmailConfig {
 					}
 				} catch (Throwable t) {
 					t.printStackTrace();
-					continue;
 				}
 			}
 		} catch (Throwable t) {
@@ -209,8 +210,9 @@ public class EmailConfig {
 			for (String player : players) {
 				playerDatas.get(player).save(new File(configPath, player + ".yml"));
 			}
-
-			for (File file : configPath.listFiles()) {
+			File[] files = configPath.listFiles();
+			if(files == null) return this;
+			for (File file : files) {
 				String playerName = file.getName().substring(0, file.getName().lastIndexOf(".yml"));
 				if (!players.contains(playerName)) {
 					file.delete();

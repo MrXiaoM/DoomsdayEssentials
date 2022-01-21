@@ -36,11 +36,12 @@ public class SpiritualCrystallization implements ISkill {
 
 			public SkillArrow(double rotate, double distance) {
 				net.minecraft.server.v1_15_R1.WorldServer world = ((CraftWorld) player.getWorld()).getHandle();
-				this.arrow = (EntityArrow) EntityTypes.ARROW.a(world);
+				this.arrow = EntityTypes.ARROW.a(world);
 				this.distance = distance;
 				this.rotate = rotate;
 				this.yOffset = (6.0D + new Random().nextInt(10)) / 10.0D;
 				this.updateLoc();
+				if(arrow == null) return;
 				arrow.setShooter(((CraftPlayer) player).getHandle());
 				arrow.setDamage(1.0D);
 				arrow.setNoGravity(true);
@@ -57,9 +58,7 @@ public class SpiritualCrystallization implements ISkill {
 
 			public double getDamage() {
 				double result = ((double) time / (double) maxtime) * 3.6D;
-				if (result < 1.0D)
-					return 1.0D;
-				return result;
+				return Math.max(result, 1.0D);
 			}
 
 			@SuppressWarnings("deprecation")

@@ -26,16 +26,16 @@ public class CommandBroadcast extends ICommand {
 			return Util.noPerm(sender);
 		}
 		if (args.length > 0) {
-			String msg = "§7[§c公告§7] §6";
+			StringBuilder msg = new StringBuilder("§7[§c公告§7] §6");
 			for (String arg : args) {
-				msg += arg.replace('&', ChatColor.COLOR_CHAR).replace("\\n", "\n");
+				msg.append(arg.replace('&', ChatColor.COLOR_CHAR).replace("\\n", "\n"));
 			}
 
 			final Collection<? extends Player> players = Bukkit.getOnlinePlayers();
 			for (final Player player : players) {
-				player.sendMessage(msg);
+				player.sendMessage(msg.toString());
 			}
-			logger.info(msg);
+			logger.info(msg.toString());
 			return true;
 		} else {
 			sender.sendMessage(I18n.t("no-bc-content", true));

@@ -4,14 +4,12 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import top.mrxiaom.doomsdayessentials.Main;
-import top.mrxiaom.doomsdayessentials.utils.NMSUtil;
+import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -102,23 +100,19 @@ public class GunConfig {
 		}
 
 		public ItemStack getItem() {
-			ItemStack result = new ItemStack(material);
-			result.setAmount(1);
-			ItemMeta im = NMSUtil.getMetaFormMaterial(material);
-
-			String identifier = "§g§u§n";
+			ItemStack result = new ItemStack(material, 1);
+			StringBuilder identifier = new StringBuilder("§g§u§n");
 			for (char c : gunId.toCharArray()) {
-				identifier += "§" + c;
+				identifier.append("§").append(c);
 			}
-			List<String> itemLore = new ArrayList<String>();
+			List<String> itemLore = new ArrayList<>();
 			for (String s : lore) {
 				itemLore.add(ChatColor.translateAlternateColorCodes('&', s));
 			}
-			itemLore.add(identifier);
+			itemLore.add(identifier.toString());
 
-			im.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-			im.setLore(itemLore);
-			result.setItemMeta(im);
+			ItemStackUtil.setItemDisplayName(result, ChatColor.translateAlternateColorCodes('&', name));
+			ItemStackUtil.setItemLore(result, itemLore);
 			return result;
 		}
 
@@ -127,7 +121,7 @@ public class GunConfig {
 		}
 	}
 
-	private Map<String, Gun> gunMap = new HashMap<String, Gun>();
+	private Map<String, Gun> gunMap = new HashMap<>();
 
 	public GunConfig(Main plugin) {
 		this.plugin = plugin;
@@ -168,10 +162,11 @@ public class GunConfig {
 			this.saveConfig();
 		}
 
-		this.gunMap = new HashMap<String, Gun>();
-		this.gunMap.clear();
+		this.gunMap = new HashMap<>();
 		if (configFile.exists()) {
-			for (File file : configFile.listFiles()) {
+			File[] files = configFile.listFiles();
+			if(files == null) return;
+			for (File file : files) {
 				try {
 					YamlConfiguration gunConfig = YamlConfiguration.loadConfiguration(file);
 					String id = file.getName().substring(0, file.getName().length() - 4);
@@ -201,8 +196,8 @@ public class GunConfig {
 					}
 					this.gunMap.put(id, new Gun(id, name, material, lore, bullet, bulletsInt, delay, damage, speed,
 							spread, sound, volume, pitch));
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
 		}
@@ -213,7 +208,7 @@ public class GunConfig {
 			if (!configFile.exists()) {
 				configFile.mkdirs();
 			}
-			List<String> files = new ArrayList<String>();
+			List<String> files = new ArrayList<>();
 			for (String key : gunMap.keySet()) {
 				try {
 					Gun gun = gunMap.get(key);
@@ -236,17 +231,19 @@ public class GunConfig {
 					}
 					gunConfig.save(new File(configFile, gun.getName() + ".yml"));
 					files.add(gun.getName() + ".yml");
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
-			for (File file : configFile.listFiles()) {
+			File[] filelist = configFile.listFiles();
+			if(filelist == null) return;
+			for (File file : filelist) {
 				if (!files.contains(file.getName())) {
 					file.delete();
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 }

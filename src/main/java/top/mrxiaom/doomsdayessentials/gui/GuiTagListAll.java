@@ -12,11 +12,11 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.api.IGui;
 import top.mrxiaom.doomsdayessentials.configs.TagConfig;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
+import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -60,30 +60,23 @@ public class GuiTagListAll implements IGui{
 				if(i < 0 || i >= titleKeys.size()) break;
 				int titleId = titleKeys.get(i);
 				Material material = plugin.getTagConfig().getTagDisplayItemMaterial(titleId);
-				ItemStack item = new ItemStack(material, 1);
-				ItemMeta im = item.getItemMeta();
 				List<String> lore = plugin.getTagConfig().getTagDisplayLore(titleId);
 				if (plugin.getTagConfig().hasTag(player, titleId)) {
 					lore.add(0, I18n.t("title.hava"));
 				} else {
 					lore.add(0, I18n.t("title.nohava"));
 				}
-				im.setLore(lore);
-				im.setDisplayName(String.valueOf(TagConfig.packId(titleId))
-						+ ChatColor.translateAlternateColorCodes('&', "&r" + listAllTitle.get(titleId)));
-				item.setItemMeta(im);
+				ItemStack item = ItemStackUtil.buildItem(material, TagConfig.packId(titleId)
+						+ ChatColor.translateAlternateColorCodes('&', "&r" + listAllTitle.get(titleId)),
+						lore);
+
 				inv.setItem(nowSlot, item);
 				nowSlot++;
 			}
 		}
-		ItemStack IS2 = new ItemStack(Material.PAPER, 1);
-		ItemMeta IM2 = IS2.getItemMeta();
-		IM2.setDisplayName(I18n.t("title.LastPage"));
-		IS2.setItemMeta(IM2);
+		ItemStack IS2 = ItemStackUtil.buildItem(Material.PAPER, I18n.t("title.LastPage"));
 		inv.setItem(45, IS2);
-		ItemStack IS3 = new ItemStack(Material.PAPER, 1);
-		IM2.setDisplayName(I18n.t("title.NextPage"));
-		IS3.setItemMeta(IM2);
+		ItemStack IS3 = ItemStackUtil.buildItem(Material.PAPER, I18n.t("title.NextPage"));
 		inv.setItem(53, IS3);
 		return inv;
 	}
@@ -92,8 +85,8 @@ public class GuiTagListAll implements IGui{
 	public void onClick(InventoryAction action,  ClickType click, InventoryType.SlotType slotType, int slot,
                        ItemStack currentItem, ItemStack cursor, InventoryView view, InventoryClickEvent event) {
 		event.setCancelled(true);
-		event.getCurrentItem().getItemMeta().hasDisplayName();
-		String name = event.getCurrentItem().getItemMeta().getDisplayName();
+		if(event.getCurrentItem() == null) return;
+		String name = ItemStackUtil.getItemDisplayName(event.getCurrentItem());
 		int extractId = TagConfig.extractId(name);
 		if (name.equals(I18n.t("title.LastPage"))) {
 			player.closeInventory();
@@ -122,7 +115,7 @@ public class GuiTagListAll implements IGui{
 				return;
 			} else {
 				player.sendMessage(I18n.t("title.ExpendMoney", true).replace("%1",
-						new StringBuilder(String.valueOf(this.plugin.getTagConfig().getCost())).toString()));
+						String.valueOf(this.plugin.getTagConfig().getCost())));
 			}
 			player.closeInventory();
 			player.updateInventory();

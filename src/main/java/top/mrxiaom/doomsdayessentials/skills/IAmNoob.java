@@ -65,7 +65,7 @@ public class IAmNoob implements ISkill{
 		final BukkitTask task;
 		final BossBar bar;
 		int ticks = 0;
-		int maxTicks = 40;
+		int maxTicks;
 		private NoobSkillAttackCooldown(Player player, int maxTicks) {
 			this.player = player;
 			this.maxTicks = maxTicks;
@@ -76,7 +76,7 @@ public class IAmNoob implements ISkill{
 		}
 		public void run() {
 			if(!enable) return;
-			this.bar.setProgress(1.0D - ticks / maxTicks);
+			this.bar.setProgress(1.0D - (double)ticks / maxTicks);
 			ticks++;
 			if(ticks >= maxTicks) {
 				this.enable = false;

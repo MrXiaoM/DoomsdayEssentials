@@ -3,6 +3,7 @@ package top.mrxiaom.doomsdayessentials.placeholder;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,11 +15,11 @@ public class PlaceholderPlayerPoints extends PlaceholderExpansion {
 		this.api = api;
 	}
 
-	public String getAuthor() {
+	public @NotNull String getAuthor() {
 		return "mrxiaom";
 	}
 
-	public String getIdentifier() {
+	public @NotNull String getIdentifier() {
 		return "playerpoints";
 	}
 
@@ -40,7 +41,7 @@ public class PlaceholderPlayerPoints extends PlaceholderExpansion {
 		return identifier;
 	}
 
-	public String getVersion() {
+	public @NotNull String getVersion() {
 		return "1.0";
 	}
 

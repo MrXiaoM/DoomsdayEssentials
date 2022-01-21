@@ -1,5 +1,6 @@
 package top.mrxiaom.doomsdayessentials.configs;
 
+import com.google.common.collect.Lists;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import top.mrxiaom.doomsdayessentials.Main;
@@ -7,6 +8,7 @@ import top.mrxiaom.doomsdayessentials.Main;
 import java.io.File;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
 
 public class PlayerConfig {
 
@@ -22,6 +24,10 @@ public class PlayerConfig {
 
 	public FileConfiguration getConfig() {
 		return this.config;
+	}
+
+	public List<String> getPlayers(){
+		return Lists.newArrayList(this.config.getKeys(false));
 	}
 
 	public PlayerConfig addNeedle(String player, int amount) {

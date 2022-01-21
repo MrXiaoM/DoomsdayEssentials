@@ -103,7 +103,7 @@ public class CommandWhiteList extends ICommand {
 				sender.sendMessage("§7[§9末日社团§7] §c你没有执行该命令的权限");
 				return true;
 			}
-			List<String> players = new ArrayList<String>();
+			List<String> players = new ArrayList<>();
 			for (final String key : plugin.getWhitelistConfig().getSavedPlayers()) {
 				if (plugin.getWhitelistConfig().getPlayerBindQQ(key).equalsIgnoreCase(args[1])) {
 					players.add(key);

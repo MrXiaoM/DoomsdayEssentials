@@ -19,6 +19,7 @@ import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.api.IGui;
 import top.mrxiaom.doomsdayessentials.configs.GunConfig.Gun;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
+import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 import top.mrxiaom.doomsdayessentials.utils.NMSUtil;
 
 import java.util.Map;
@@ -50,17 +51,9 @@ public class GuiBullet implements IGui {
 		String guiTitle = "§0§8§3§2" + I18n.t("gun.bullet-title");
 		Inventory inv = Bukkit.createInventory(null, 9, guiTitle);
 
-		ItemStack itemFrame = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-		ItemMeta im = itemFrame.hasItemMeta() ? itemFrame.getItemMeta()
-				: CraftItemFactory.instance().getItemMeta(itemFrame.getType());
-		im.setDisplayName(ChatColor.WHITE + "*");
-		itemFrame.setItemMeta(im);
+		ItemStack itemFrame = ItemStackUtil.buildItem(Material.WHITE_STAINED_GLASS_PANE, "&f*");
 
-		ItemStack itemConfirm = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
-		ItemMeta imConfirm = itemConfirm.hasItemMeta() ? itemConfirm.getItemMeta()
-				: CraftItemFactory.instance().getItemMeta(itemConfirm.getType());
-		imConfirm.setDisplayName("§a确认填充子弹");
-		itemConfirm.setItemMeta(imConfirm);
+		ItemStack itemConfirm = ItemStackUtil.buildItem(Material.LIME_STAINED_GLASS_PANE, "&a确认填充子弹");
 
 		inv.setItem(1, itemFrame);
 		inv.setItem(2, itemFrame);
@@ -87,7 +80,8 @@ public class GuiBullet implements IGui {
 
 			// 确认填充子弹
 			if (slot == 8) {
-				if (inv.getItem(8).getType().equals(Material.LIME_STAINED_GLASS_PANE)) {
+				ItemStack item8 = inv.getItem(8);
+				if (item8 != null && item8.getType().equals(Material.LIME_STAINED_GLASS_PANE)) {
 					ItemStack itemHand = player.getInventory().getItemInMainHand();
 					if (itemHand.getType() == Material.AIR) {
 						player.sendTitle(ChatColor.RED + "错误", ChatColor.YELLOW + "你手中的枪械无效", 10, 60, 10);

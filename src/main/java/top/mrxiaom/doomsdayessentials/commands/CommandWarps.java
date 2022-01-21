@@ -18,7 +18,7 @@ public class CommandWarps extends ICommand {
 			return Util.noPlayer(sender);
 		}
 		Player player = (Player) sender;
-		plugin.getGuiManager().openGui(new GuiWarps(plugin, player, 1, (args.length == 0 ? false : args[0].equalsIgnoreCase("menu"))));
+		plugin.getGuiManager().openGui(new GuiWarps(plugin, player, 1, (args.length != 0 && args[0].equalsIgnoreCase("menu"))));
 		return true;
 	}
 }

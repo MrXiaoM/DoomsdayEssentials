@@ -7,6 +7,7 @@ import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.configs.WarpConfig.Warp;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
+import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -29,22 +30,12 @@ public class CommandWarp extends ICommand {
 		}
 		return result;
 	}
-	
-	@Nullable
-	public static Player getOnlinePlayer(String name) {
-		for(Player player : Bukkit.getOnlinePlayers()) {
-			if(player.getName().equalsIgnoreCase(name)) {
-				return player;
-			}
-		}
-		return null;
-	}
-	
+
 	@Override
 	public boolean onCommand(CommandSender sender, String label, String[] args, boolean isPlayer) {
 		if (!isPlayer) {
 			if (args.length == 2) {
-				Player player = getOnlinePlayer(args[0]);
+				Player player = Util.getOnlinePlayer(args[0]);
 				if(player == null) {
 					sender.sendMessage(I18n.t("not-online"));
 					return true;
@@ -53,7 +44,11 @@ public class CommandWarp extends ICommand {
 					sender.sendMessage(I18n.t("warp.nowarp", true));
 					return true;
 				}
-				final Warp warp = plugin.getWarpConfig().get(args[1]);
+				Warp warp = plugin.getWarpConfig().get(args[1]);
+				if (warp == null){
+					sender.sendMessage(I18n.t("warp.nowarp", true));
+					return true;
+				}
 				plugin.getBackConfig().addBackPoint(player, player.getLocation());
 				warp.teleport(player);
 				player.sendMessage(I18n.t("warp.teleport", true).replace("%warp%", warp.getName()));
@@ -62,15 +57,19 @@ public class CommandWarp extends ICommand {
 			return true;
 		}
 		if (args.length >= 1) {
-			final Player player = (Player) sender;
-			final String playerName = player.getName();
+			Player player = (Player) sender;
+			String playerName = player.getName();
 			String warpName = args[0];
 			if (!plugin.getWarpConfig().contains(warpName)) {
 				sender.sendMessage(I18n.t("warp.nowarp", true));
 				return true;
 			}
-			final Warp warp = plugin.getWarpConfig().get(warpName);
-			final String wName = warp.getName();
+			Warp warp = plugin.getWarpConfig().get(warpName);
+			if (warp == null){
+				sender.sendMessage(I18n.t("warp.nowarp", true));
+				return true;
+			}
+			String wName = warp.getName();
 			if (player.hasPermission("doomteam.teleport.cooldown.bypass")) {
 				plugin.getBackConfig().addBackPoint(player, player.getLocation());
 				warp.teleport(player);
@@ -87,26 +86,22 @@ public class CommandWarp extends ICommand {
 			}
 			sender.sendMessage(I18n.t("teleport-intime", true).replace("%time%", String.valueOf(3)));
 			plugin.getPlayerCooldownManager().put(playerName,
-					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-						@Override
-						public void run() {
-							if (plugin.getPlayerCooldownManager().isCooldown(playerName)) {
-								plugin.getPlayerCooldownManager().cancelPlayerCooldownTask(playerName);
-							}
-							plugin.getBackConfig().addBackPoint(player, player.getLocation());
-							warp.teleport(player);
-							sender.sendMessage(I18n.t("warp.teleport", true).replace("%warp%", wName));
+					Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+						if (plugin.getPlayerCooldownManager().isCooldown(playerName)) {
+							plugin.getPlayerCooldownManager().cancelPlayerCooldownTask(playerName);
 						}
+						plugin.getBackConfig().addBackPoint(player, player.getLocation());
+						warp.teleport(player);
+						sender.sendMessage(I18n.t("warp.teleport", true).replace("%warp%", wName));
 					}, 3 * 20));
 		}
 		if (args.length == 0) {
-			String warpMsg = I18n.t("warp.list.header", true);
+			StringBuilder warpMsg = new StringBuilder(I18n.t("warp.list.header", true));
 			List<String> warps = plugin.getWarpConfig().getAllWarps();
 			for (int i = 0; i < warps.size(); i++) {
-				warpMsg = warpMsg + I18n.t("warp.list.prefix") + warps.get(i)
-						+ ((i == warps.size() - 1) ? "" : I18n.t("warp.list.suffix"));
+				warpMsg.append(I18n.t("warp.list.prefix")).append(warps.get(i)).append((i == warps.size() - 1) ? "" : I18n.t("warp.list.suffix"));
 			}
-			sender.sendMessage(warpMsg);
+			sender.sendMessage(warpMsg.toString());
 		}
 		return true;
 	}

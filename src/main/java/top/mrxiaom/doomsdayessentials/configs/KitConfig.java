@@ -7,7 +7,6 @@ import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -146,9 +145,10 @@ public class KitConfig {
 		}
 
 		this.kitsMap = new HashMap<String, Kit>();
-		this.kitsMap.clear();
 		if (configFile.exists()) {
-			for (File file : configFile.listFiles()) {
+			File[] files = configFile.listFiles();
+			if(files == null) return;
+			for (File file : files) {
 				try {
 					YamlConfiguration kitConfig = YamlConfiguration.loadConfiguration(file);
 					String id = file.getName().substring(0, file.getName().length() - 4);
@@ -159,8 +159,8 @@ public class KitConfig {
 					String items = kitConfig.getString("items");
 					this.kitsMap.put(id,
 							new Kit(id, name, items, everyday, commands, maxTime));
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
 		}
@@ -171,7 +171,7 @@ public class KitConfig {
 			if (!configFile.exists()) {
 				configFile.mkdirs();
 			}
-			List<String> files = new ArrayList<String>();
+			List<String> files = new ArrayList<>();
 			for (String key : kitsMap.keySet()) {
 				try {
 					Kit kit = kitsMap.get(key);
@@ -183,17 +183,19 @@ public class KitConfig {
 					kitConfig.set("items", kit.getItemsString());
 					kitConfig.save(new File(configFile, key + ".yml"));
 					files.add(key + ".yml");
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
-			for (File file : configFile.listFiles()) {
+			File[] filelist = configFile.listFiles();
+			if(filelist == null) return;
+			for (File file : filelist) {
 				if (!files.contains(file.getName())) {
 					file.delete();
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 }

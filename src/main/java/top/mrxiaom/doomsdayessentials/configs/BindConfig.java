@@ -67,12 +67,10 @@ public class BindConfig {
 				ItemStack item = getItemStackFromCode(num + player);
 				if(item == null) continue;
 				if(withGuiLore) {
-					ItemMeta meta = item.getItemMeta() == null ? ItemStackUtil.getItemMeta(item.getType()) : item.getItemMeta();
 					List<String> lore = ItemStackUtil.getItemLore(item);
 					lore.add("§0" + num + player);
 					lore.add("                   §b§o点击召回");
-					meta.setLore(lore);
-					item.setItemMeta(meta);
+					ItemStackUtil.setItemLore(item, lore);
 				}
 				map.put(num, item);
 			}
@@ -95,7 +93,7 @@ public class BindConfig {
 		String player = code.substring(6);
 		if(!this.config.containsKey(player)) return null;
 		String itemStr = this.config.get(player).getString(num + ".save-item", "");
-		if(itemStr.length() > 0) {
+		if(itemStr != null && itemStr.length() > 0) {
 			ItemStack[] items = ItemStackUtil.itemStackArrayFromBase64(itemStr);
 			if(items.length > 0) {
 				return items[0];
@@ -105,7 +103,7 @@ public class BindConfig {
 	}
 
 	public String putBind(String player, ItemStack item) {
-		String num = genRandomID(this.config.containsKey(player) ? this.config.get(player) : null);
+		String num = genRandomID(this.config.getOrDefault(player, null));
 		String base64 = ItemStackUtil.itemStackArrayToBase64(new ItemStack[] { item });
 		LocalDateTime now = LocalDateTime.now();
 		this.set(player, num + ".save-item", base64)
@@ -164,9 +162,7 @@ public class BindConfig {
 	}
 	
 	public BindConfig set(String player, FileConfiguration value) {
-		if(this.config.containsKey(player)) {
-			this.config.remove(player);
-		}
+		this.config.remove(player);
 		this.config.put(player, value);
 		return this;
 	}
@@ -176,7 +172,9 @@ public class BindConfig {
 			configFile.mkdirs();
 		}
 		this.config.clear();
-		for(File file : configFile.listFiles()) {
+		File[] files = configFile.listFiles();
+		if(files == null) return this;
+		for(File file : files) {
 			try {
 				String name = file.getName().replace(".yml", "");
 				this.config.put(name, YamlConfiguration.loadConfiguration(file));
@@ -189,7 +187,7 @@ public class BindConfig {
 
 	public BindConfig saveConfig() {
 		try {
-			List<String> files = new ArrayList<String>();
+			List<String> files = new ArrayList<>();
 			for(String key : this.config.keySet()) {
 				try {
 					this.config.get(key).save(new File(this.configFile, key + ".yml"));
@@ -198,8 +196,9 @@ public class BindConfig {
 					t.printStackTrace();
 				}
 			}
-		
-			for (File file : configFile.listFiles()) {
+			File[] filelist = configFile.listFiles();
+			if(filelist == null) return this;
+			for (File file : filelist) {
 				if (!files.contains(file.getName())) {
 					file.delete();
 				}

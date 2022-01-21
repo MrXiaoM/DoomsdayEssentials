@@ -27,18 +27,19 @@ public class CommandMsg extends ICommand {
 				sender.sendMessage(I18n.t("not-online", true));
 				return true;
 			}
-			String msg = "";
+			StringBuilder msg = new StringBuilder();
 			for (int i = 1; i < args.length; i++) {
-				msg = msg + args[i] + " ";
+				msg.append(args[i]).append(" ");
 			}
-			msg = Util.replaceColor(msg, sender);
+			msg = new StringBuilder(Util.replaceColor(msg.toString(), sender));
 
-			fromPlayer.sendMessage(ChatColor.translateAlternateColorCodes('&', msgTemplateFrom)
-					.replace("%from%", isPlayer ? fromPlayer.getName() : "控制台").replace("%to%", toPlayer.getName())
-					.replace("%msg%", msg));
+			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', msgTemplateFrom)
+					.replace("%from%", "控制台").replace("%to%", toPlayer.getName())
+					.replace("%msg%", msg.toString()));
+
 			toPlayer.sendMessage(ChatColor.translateAlternateColorCodes('&', msgTemplateTo)
 					.replace("%from%", isPlayer ? fromPlayer.getName() : "控制台").replace("%to%", toPlayer.getName())
-					.replace("%msg%", msg));
+					.replace("%msg%", msg.toString()));
 			return true;
 		}
 		sender.sendMessage(I18n.t("msg-help", true));

@@ -380,6 +380,7 @@ messages:
       items:
         name: '&e%warp%'
         world: '&7所在世界: %world%'
+      back: '&c回到传送菜单'
       prev-page: '&a上一页'
       no-prev-page: '&7已经没有上一页了'
       no-prev-page-message: '&a已经是第一页了'

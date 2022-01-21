@@ -5,7 +5,6 @@ import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import net.minecraft.server.v1_15_R1.StatisticList;
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemFactory;
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -24,9 +23,7 @@ import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CommandLC extends ICommand {
 	public CommandLC(Main plugin) {
@@ -35,8 +32,7 @@ public class CommandLC extends ICommand {
 
 	@Override
 	public List<String> onTabComplete(CommandSender sender, String[] args, boolean isPlayer) {
-		List<String> list = new ArrayList<>();
-		return list;
+		return new ArrayList<>();
 	}
 
 	@Override
@@ -48,6 +44,7 @@ public class CommandLC extends ICommand {
 				sender.sendMessage(I18n.t("respawnneedle.reloaded"));
 				return true;
 			}
+			World world = isPlayer ? ((Player)sender).getLocation().getWorld() : null;
 			if(isPlayer) {
 				Player player = (Player) sender;
 				if(args.length == 1) {
@@ -70,45 +67,45 @@ public class CommandLC extends ICommand {
 					return true;
 				}
 				Warp warp = plugin.getWarpConfig().get(args[1]);
+				if(warp == null) return true;
 				warp.setMaterial(m);
 				plugin.getWarpConfig().set(warp.getName(), warp);
 				plugin.getWarpConfig().saveConfig();
 				sender.sendMessage(I18n.prefix() + "§a已设置目标地标在GUI中的物品材质");
 				return true;
 			}
-			if(isPlayer && args.length == 1 && args[0].equalsIgnoreCase("time")) {
-				((Player) sender).sendMessage("time: " + ((Player) sender).getLocation().getWorld().getTime());
+			if(isPlayer && args.length == 1 && args[0].equalsIgnoreCase("time") && world != null) {
+				sender.sendMessage("time: " + world.getTime());
 				return true;
 			}
-			if(isPlayer && args.length == 1 && args[0].equalsIgnoreCase("not-fire")) {
-				((Player) sender).sendMessage("not-fire: " + this.plugin.isWorldNotFire(((Player) sender).getLocation().getWorld().getName()));
+			if(isPlayer && args.length == 1 && args[0].equalsIgnoreCase("not-fire") && world != null) {
+				sender.sendMessage("not-fire: " + this.plugin.isWorldNotFire(world.getName()));
 				return true;
 			}
-			if(isPlayer && args.length == 1 && args[0].equalsIgnoreCase("test")) {
+			if(isPlayer && args.length == 1 && args[0].equalsIgnoreCase("test") && world != null) {
 				Player player = (Player) sender;
-				Location loc = player.getLocation();
 				if (!player.isOnline() || player.isDead()
 						|| !(player.getGameMode() == GameMode.SURVIVAL
 						|| player.getGameMode() == GameMode.ADVENTURE)
 						|| this.plugin.isWorldNotFire(player.getWorld().getName())
 						|| player.isSwimming()
-						|| loc.getWorld().hasStorm()
-						|| loc.getWorld().getTime() > 12500
-						|| loc.getWorld().getTime() < 1000) {
+						|| world.hasStorm()
+						|| world.getTime() > 12500
+						|| world.getTime() < 1000) {
 					player.sendMessage("not-fire");
 					return true;
 				}
 				player.sendMessage("fire");
 				return true;
 			}
-			if(isPlayer && args.length == 1 && args[0].equalsIgnoreCase("test2")) {
+			if(isPlayer && args.length == 1 && args[0].equalsIgnoreCase("test2") && world != null) {
 				Player player = (Player) sender;
 				Location loc = player.getLocation();
 				int x = loc.getBlockX();
 				int y = loc.getBlockY();
 				int z = loc.getBlockZ();
 				boolean firePlayer = true;
-				for (int i = y; i <= loc.getWorld().getHighestBlockYAt(x, z); i++) {
+				for (int i = y; i <= world.getHighestBlockYAt(x, z); i++) {
 					if (ItemStackUtil.isBlockAntiSun(player.getWorld().getBlockAt(x, i, z).getType())) {
 						firePlayer = false;
 						break;
@@ -139,11 +136,15 @@ public class CommandLC extends ICommand {
 								return true;
 							}
 							Gun gun = plugin.getGunConfig().get(gunid);
+							if(gun == null){
+								sender.sendMessage("§7[§9末日社团§7] §c无法找到指定的枪");
+								return true;
+							}
 							sender.sendMessage("id: " + gun.getGunId() + ", name: " + gun.getName() + ", material: "
 									+ gun.getMaterial() + "");
 							Inventory i = Bukkit.createInventory(null, 9, "§9末日社团§8 - §0" + gun.getName());
 							ItemStack item = gun.getItem();
-							sender.sendMessage(item.getType() + " | " + item.getItemMeta().getDisplayName());
+							sender.sendMessage(item.getType() + " | " + ItemStackUtil.getItemDisplayName(item));
 							i.addItem(gun.getItem());
 							player.openInventory(i);
 							player.updateInventory();
@@ -153,33 +154,28 @@ public class CommandLC extends ICommand {
 						return true;
 					} else if (args[0].equalsIgnoreCase("listgun")) {
 						Map<String, Gun> m = plugin.getGunConfig().all();
-						String r = "§7[§9末日社团§7] §6枪械列表: ";
+						StringBuilder r = new StringBuilder("§7[§9末日社团§7] §6枪械列表: ");
 						if (m.isEmpty()) {
-							r += "§c空";
+							r.append("§c空");
 						} else {
 							for (String k : m.keySet()) {
 								Gun g = m.get(k);
-								r += "\n  §c" + g.getGunId() + "§6: §r" + g.getName();
+								r.append("\n  §c").append(g.getGunId()).append("§6: §r").append(g.getName());
 							}
 						}
-						sender.sendMessage(r);
+						sender.sendMessage(r.toString());
 						return true;
 					} else if (args[0].equalsIgnoreCase("item")) {
 						ItemStack im = player.getInventory().getItemInMainHand();
-						if (im != null) {
-							player.sendMessage("物品材质: " + im.getType().name());
-							ItemMeta ime = im.getItemMeta();
-							if (ime != null) {
-								String lore = "\n物品描述:";
-								for (String s : ime.getLore() != null ? ime.getLore() : new ArrayList<String>()) {
-									lore += "\n" + s.replace(ChatColor.COLOR_CHAR, '&');
-								}
-
-								player.sendMessage(
-										"物品名称: " + ime.getDisplayName().replace(ChatColor.COLOR_CHAR, '&') + lore);
+						player.sendMessage("物品材质: " + im.getType().name());
+						ItemMeta ime = im.getItemMeta();
+						if (ime != null) {
+							StringBuilder lore = new StringBuilder("\n物品描述:");
+							for (String s : ime.getLore() != null ? ime.getLore() : new ArrayList<String>()) {
+								lore.append("\n").append(s.replace(ChatColor.COLOR_CHAR, '&'));
 							}
-						} else {
-							player.sendMessage("物品材质: null");
+
+							player.sendMessage("物品名称: " + ime.getDisplayName().replace(ChatColor.COLOR_CHAR, '&') + lore);
 						}
 					} else if (args[0].equalsIgnoreCase("getitem")) {
 						if (args.length >= 2) {
@@ -192,19 +188,15 @@ public class CommandLC extends ICommand {
 						}
 					} else if (args[0].equalsIgnoreCase("bullet")) {
 						ItemStack item = player.getInventory().getItemInMainHand();
-						if (item == null || !item.hasItemMeta()) {
-							player.sendMessage("物品为null");
-							return true;
-						}
-						ItemMeta im = item.getItemMeta();
-						if (!im.hasLore()) {
+						List<String> lore = ItemStackUtil.getItemLore(item);
+						if (lore.isEmpty()) {
 							player.sendMessage("物品无Lore");
 							return true;
 						}
-						String s = im.getLore().get(im.getLore().size() - 1).toLowerCase();
+						String s = lore.get(lore.size() - 1).toLowerCase();
 						net.minecraft.server.v1_15_R1.ItemStack nms = CraftItemStack.asNMSCopy(item);
 						if (s.toLowerCase().startsWith("§g§u§n")) {
-							NBTTagCompound tags = nms.hasTag() ? nms.getTag() : new NBTTagCompound();
+							NBTTagCompound tags = Objects.requireNonNullElse(nms.getTag(), new NBTTagCompound());
 							// Type Of NBTTagInt is 3
 							if (!tags.hasKeyOfType("bullets", 3)) {
 								tags.setInt("bullets", 0);
@@ -226,12 +218,9 @@ public class CommandLC extends ICommand {
 							return true;
 						}
 						ItemStack item = player.getInventory().getItemInMainHand();
-						ItemMeta im = item.hasItemMeta() ? item.getItemMeta()
-								: CraftItemFactory.instance().getItemMeta(item.getType());
-						List<String> lore = im.hasLore() ? im.getLore() : new ArrayList<String>();
+						List<String> lore = ItemStackUtil.getItemLore(item);
 						lore.add("§b§u§l§l§e§t" + TagConfig.packId(Util.strToInt(args[1], 0)));
-						im.setLore(lore);
-						item.setItemMeta(im);
+						ItemStackUtil.setItemLore(item, lore);
 						player.getInventory().setItemInMainHand(item);
 						player.sendMessage("完成");
 					} else if (args[0].equalsIgnoreCase("clear")) {
@@ -281,9 +270,5 @@ public class CommandLC extends ICommand {
 			}
 		}
 		return true;
-	}
-
-	public void sendLoc(Player player, Location loc) {
-		player.sendMessage(loc.getX() + ", " + loc.getY() + ", " + loc.getZ());
 	}
 }

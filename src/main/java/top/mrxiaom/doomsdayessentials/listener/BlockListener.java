@@ -148,54 +148,58 @@ public class BlockListener implements Listener {
 	public void onSignChange(SignChangeEvent event) {
 		// 此部分来自 NeverLag
 		for (int i = 0; i < 4; i++) {
-			if (event.getLine(i).length() > 50) {
+			String line = event.getLine(i);
+			if (line != null && line.length() > 50) {
 				event.setCancelled(true);
 				break;
 			}
 		}
 		// 此部分为末日社团服务器功能
 		Player player = event.getPlayer();
-		if(event.getBlock().getState() instanceof Sign) {
+		if (event.getBlock().getState() instanceof Sign) {
 			//Sign sign = (Sign) event.getBlock().getState();
-			if (event.getLine(0).equals("[集市]") && !player.isOp()) {
-				event.getBlock().breakNaturally();
-				player.closeInventory();
-				player.sendMessage(I18n.t("market.sign-cannot-create", true));
-				return;
-			}
-			if(event.getLine(0).equals("$redstone")) {
-				double money = Util.strToDouble(event.getLine(1), 0.0D);
-				if(money <= 0 || money > 100000) {
+			String line0 = event.getLine(0);
+			if (line0 != null) {
+
+				if (line0.equals("[集市]") && !player.isOp()) {
 					event.getBlock().breakNaturally();
-					player.sendMessage(I18n.t("redstone-sign.money-invalid", true));
-				 	return;
+					player.closeInventory();
+					player.sendMessage(I18n.t("market.sign-cannot-create", true));
+					return;
 				}
-				event.setLine(0, "§0[§c收费红石§0]");
-				event.setLine(1, "花费: " + money);
-				event.setLine(3, player.getName());
-				player.sendMessage(I18n.t("redstone-sign.success", true));
-				return;
-			}
-			if(event.getLine(0).equals("$lock")) {
-				double money = Util.strToDouble(event.getLine(1), 0.0D);
-				if(money < 0 || money > 100000) {
-					event.getBlock().breakNaturally();
-					player.sendMessage(I18n.t("redstone-sign.money-invalid", true));
-				 	return;
+				if (line0.equals("$redstone")) {
+					double money = Util.strToDouble(event.getLine(1), 0.0D);
+					if (money <= 0 || money > 100000) {
+						event.getBlock().breakNaturally();
+						player.sendMessage(I18n.t("redstone-sign.money-invalid", true));
+						return;
+					}
+					event.setLine(0, "§0[§c收费红石§0]");
+					event.setLine(1, "花费: " + money);
+					event.setLine(3, player.getName());
+					player.sendMessage(I18n.t("redstone-sign.success", true));
+					return;
 				}
-				String line2 = event.getLine(2);
-				boolean flagIn = line2.contains("i");
-				boolean flagOut = line2.contains("o");
-				boolean flagEmptyInv = line2.contains("e");
-				boolean flagEmptyPotion = line2.contains("p");
-				event.setLine(0, "§0[§d收费门§0]");
-				event.setLine(1, "花费: " + money);
-				event.setLine(2, (flagIn ? "§a进" : "§c进") + (flagOut ? "§a出" : "§c出") +
-						(flagEmptyInv || flagEmptyPotion ? " " : "") +
-						(flagEmptyInv ? "§2空" : "") + (flagEmptyPotion ? "§2效" : ""));
-				event.setLine(3, player.getName());
-				player.sendMessage(I18n.t("lcoks.success", true));
-				return;
+				if (line0.equals("$lock")) {
+					double money = Util.strToDouble(event.getLine(1), 0.0D);
+					if (money < 0 || money > 100000) {
+						event.getBlock().breakNaturally();
+						player.sendMessage(I18n.t("redstone-sign.money-invalid", true));
+						return;
+					}
+					String line2 = event.getLine(2);
+					boolean flagIn = line2 != null && line2.contains("i");
+					boolean flagOut = line2 != null && line2.contains("o");
+					boolean flagEmptyInv = line2 != null && line2.contains("e");
+					boolean flagEmptyPotion = line2 != null && line2.contains("p");
+					event.setLine(0, "§0[§d收费门§0]");
+					event.setLine(1, "花费: " + money);
+					event.setLine(2, (flagIn ? "§a进" : "§c进") + (flagOut ? "§a出" : "§c出") +
+							(flagEmptyInv || flagEmptyPotion ? " " : "") +
+							(flagEmptyInv ? "§2空" : "") + (flagEmptyPotion ? "§2效" : ""));
+					event.setLine(3, player.getName());
+					player.sendMessage(I18n.t("lcoks.success", true));
+				}
 			}
 		}
 	}
@@ -223,7 +227,6 @@ public class BlockListener implements Listener {
 					player.sendMessage(I18n.t("market.sign-wrong-position", true));
 					return;
 				}
-				if(marketName != null) {
 					MarketData data = plugin.getMarketConfig().getMarketDataById(marketName);
 					// 摊位无主
 					if (data == null || data.getOwner().length() == 0) {
@@ -271,8 +274,6 @@ public class BlockListener implements Listener {
 					if(owner.equals(player.getName())) {
 						player.sendMessage(I18n.tn("market.rent-info-owner", true));
 					}
-					return;
-				}
 				return;
 			}
 			if(SpaceUtil.signLineEquals(block, 0, "§0[§c收费红石§0]")) {
@@ -323,14 +324,12 @@ public class BlockListener implements Listener {
 				redstone.setBlockData(data);
 				plugin.getEcoApi().withdrawPlayer(player, money);
 				plugin.getEcoApi().depositPlayer(owner, money);
-				Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
-					public void run() {
-						data.setPower(0);
-						redstone.setBlockData(data);
-					}
+				Bukkit.getScheduler().runTaskLater(plugin, () -> {
+					data.setPower(0);
+					redstone.setBlockData(data);
 				}, 2);
 				player.sendMessage(I18n.t("redstone-sign.used", true).replace("%money%", String.valueOf(money)));
-				if(owner.isOnline()) {
+				if(owner.isOnline() && owner.getPlayer() != null) {
 					owner.getPlayer().sendMessage(I18n.t("redstone-sign.used-owner")
 							.replace("%player%", player.getName())
 							.replace("%world%", block.getWorld().getName())
@@ -399,7 +398,7 @@ public class BlockListener implements Listener {
 							+ (flagEmptyInv ? ("§e需要背包为空" + (flagEmptyPotion ? "§a， " : "")) : "")
 							+ (flagEmptyPotion ? "§e需要无药水效果" : "");
 					player.sendMessage(I18n.tn("locks.details", true)
-							.replace("%owner%", owner.getName())
+							.replace("%owner%", owner.getName() != null ? owner.getName(): "???")
 							.replace("%money%", String.format("%.2f", money))
 							.replace("%rules%", rules));
 					return;
@@ -446,7 +445,7 @@ public class BlockListener implements Listener {
 			if (block.getWorld().getName().equals("spawn") && block.getX() == 155 && block.getY() == 37
 					&& block.getZ() == -58) {
 				// 打开谜题 GUI
-				return;
+				player.sendMessage("undefined");
 			}
 		}
 	}

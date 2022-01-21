@@ -21,7 +21,7 @@ public class ParkourConfig {
 	FileConfiguration config;
 	final File configFile;
 	final Main plugin;
-	final Map<String, Parkour> parkours = new HashMap<String, Parkour>();
+	final Map<String, Parkour> parkours = new HashMap<>();
 
 	public ParkourConfig(Main plugin) {
 		this.plugin = plugin;
@@ -31,10 +31,6 @@ public class ParkourConfig {
 
 	public FileConfiguration getConfig() {
 		return this.config;
-	}
-
-	public void updateProcess() {
-
 	}
 
 	@Nullable

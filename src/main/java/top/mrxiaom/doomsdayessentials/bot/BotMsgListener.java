@@ -3,10 +3,12 @@ package top.mrxiaom.doomsdayessentials.bot;
 import com.ranull.graves.inventory.GraveInventory;
 import fr.xephi.authme.api.v3.AuthMeApi;
 import me.albert.amazingbot.events.GroupMessageEvent;
+import me.albert.amazingbot.events.PrivateMessageEvent;
 import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.utils.Punishment;
 import me.leoko.advancedban.utils.SQLQuery;
 import net.mamoe.mirai.contact.Group;
+import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.message.data.QuoteReply;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,9 +36,41 @@ public class BotMsgListener implements Listener {
 
     public final Map<String, Long> requestMap = new HashMap<>();
 
+    @EventHandler
+    public void onFriendMessage(PrivateMessageEvent e){
+        FriendMessageEvent event = e.getEvent();
+        QuoteReply quote = new QuoteReply(event.getSource());
+        String exchangeKey = plugin.getConfig().getString("bot.exchange-key");
+        if (e.getMsg().startsWith(exchangeKey)) {
+            if (!e.getMsg().contains(" ")) {
+                event.getFriend().sendMessage(quote.plus(I18n.t("bot.usage.exchange")));
+                return;
+            }
+            String[] args = e.getMsg().split(" ");
+            if (!args[0].equals(exchangeKey))
+                return;
+            if (args.length != 3) {
+                event.getFriend().sendMessage(quote.plus(I18n.t("bot.usage.exchange")));
+                return;
+            }
+            String playerName = args[1];
+            String code = args[2];
+            if (plugin.getPlayerConfig().getNeedle(playerName) < 0) {
+                if (plugin.getKeyManager().canKeyBeUse(code)) {
+                    event.getFriend().sendMessage(quote.plus(plugin.getKeyManager().useKey(playerName, code)));
+                } else {
+                    event.getFriend().sendMessage(quote.plus(I18n.t("bot.code-not-found")));
+                }
+            } else {
+                event.getFriend().sendMessage(quote.plus(I18n.t("bot.no-need-needle")));
+            }
+            return;
+        }
+    }
+
     @SuppressWarnings("deprecation")
     @EventHandler
-    public void onGroupMessage(final GroupMessageEvent e) {
+    public void onGroupMessage(GroupMessageEvent e) {
         net.mamoe.mirai.event.events.GroupMessageEvent event = e.getEvent();
         Group g = event.getGroup();
         if (g.getId() == 951534513L) {

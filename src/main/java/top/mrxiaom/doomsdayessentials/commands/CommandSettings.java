@@ -49,7 +49,6 @@ public class CommandSettings extends ICommand {
 						}
 						if (args[1].equalsIgnoreCase("false")) {
 							flag = true;
-							value = false;
 						}
 						if (!flag) {
 							player.sendMessage(I18n.t("settings.no-boolean", true));

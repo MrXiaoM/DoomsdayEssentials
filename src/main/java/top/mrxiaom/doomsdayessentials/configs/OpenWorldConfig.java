@@ -8,10 +8,7 @@ import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class OpenWorldConfig {
 	final File configFile;
@@ -37,10 +34,7 @@ public class OpenWorldConfig {
 
 		public static OngoingTask transStringToOngoingTask(String string) {
 			if (string.contains(";")) {
-				List<String> result = new ArrayList<String>();
-				for (String s : string.split(";")) {
-					result.add(s);
-				}
+				List<String> result = new ArrayList<>(Arrays.asList(string.split(";")));
 				return transStringListToOngoingTask(result);
 			} else {
 				return new OngoingTask(string);
@@ -71,16 +65,14 @@ public class OpenWorldConfig {
 					}
 					if (i == 7) {
 						String s = list.get(7);
-						task.booleanValue1 = s.equalsIgnoreCase("true") ? true
-								: s.equalsIgnoreCase("false") ? false : null;
+						task.booleanValue1 = s.equalsIgnoreCase("true");
 					}
 					if (i == 8) {
 						String s = list.get(8);
-						task.booleanValue2 = s.equalsIgnoreCase("true") ? true
-								: s.equalsIgnoreCase("false") ? false : null;
+						task.booleanValue2 = s.equalsIgnoreCase("true");
 					}
 				} catch (Throwable t) {
-					continue;
+					// 收声
 				}
 			}
 			return task;
@@ -121,11 +113,7 @@ public class OpenWorldConfig {
 		}
 
 		public void removeTask(String task) {
-			for (String t : tasks) {
-				if (t.toLowerCase().startsWith(task.toLowerCase())) {
-					tasks.remove(t);
-				}
-			}
+			tasks.removeIf(t -> t.toLowerCase().startsWith(task.toLowerCase()));
 		}
 
 		public List<String> getTaskStatus(String task) {
@@ -135,13 +123,11 @@ public class OpenWorldConfig {
 		public List<String> getTaskStatus(String task, boolean noResult) {
 			for (String t : tasks) {
 				if (t.toLowerCase().startsWith(task.toLowerCase())) {
-					List<String> result = new ArrayList<String>();
+					List<String> result = new ArrayList<>();
 					if (noResult)
 						return result;
 					if (t.contains(";")) {
-						for (String s : t.split(";")) {
-							result.add(s);
-						}
+						result.addAll(Arrays.asList(t.split(";")));
 					} else {
 						result.add(t);
 					}
@@ -153,12 +139,12 @@ public class OpenWorldConfig {
 
 		public void setTaskStatus(List<String> task) {
 			if (task.size() >= 1) {
-				String t = "";
+				StringBuilder t = new StringBuilder();
 				for (int i = 0; i < task.size(); i++) {
-					t += task.get(i) + (i + 1 < task.size() ? ";" : "");
+					t.append(task.get(i)).append(i + 1 < task.size() ? ";" : "");
 				}
 				this.removeTask(task.get(0));
-				this.addTask(t);
+				this.addTask(t.toString());
 			}
 		}
 
@@ -232,7 +218,7 @@ public class OpenWorldConfig {
 		if (!this.contains(player.getName())) {
 			String s = ItemStackUtil.itemStackArrayToBase64(player.getInventory().getContents(), true);
 			OpenWorldPlayer owp = new OpenWorldPlayer(player.getName(), isVanillaInv ? s : "", isVanillaInv ? "" : s,
-					new ArrayList<String>(), 0);
+					new ArrayList<>(), 0);
 			this.set(player.getName(), owp);
 		}
 		return this.playersMap.get(player.getName());
@@ -255,10 +241,11 @@ public class OpenWorldConfig {
 			this.saveConfig();
 		}
 
-		this.playersMap = new HashMap<String, OpenWorldPlayer>();
-		this.playersMap.clear();
+		this.playersMap = new HashMap<>();
 		if (configFile.exists()) {
-			for (File file : configFile.listFiles()) {
+			File[] files = configFile.listFiles();
+			if(files == null) return;
+			for (File file : files) {
 				try {
 					YamlConfiguration kitConfig = YamlConfiguration.loadConfiguration(file);
 
@@ -269,8 +256,8 @@ public class OpenWorldConfig {
 					String itemsOpenWorldLast = kitConfig.getString("items-openworld-last");
 					this.playersMap.put(file.getName().substring(0, file.getName().length() - 4),
 							new OpenWorldPlayer(name, itemsLast, itemsOpenWorldLast, tasks, level));
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
 		}
@@ -281,7 +268,7 @@ public class OpenWorldConfig {
 			if (!configFile.exists()) {
 				configFile.mkdirs();
 			}
-			List<String> files = new ArrayList<String>();
+			List<String> files = new ArrayList<>();
 			for (String key : playersMap.keySet()) {
 				try {
 					OpenWorldPlayer playerData = playersMap.get(key);
@@ -293,17 +280,19 @@ public class OpenWorldConfig {
 					playerConfig.set("items-openworld-last", playerData.getItemsOpenWorldLastString());
 					playerConfig.save(new File(configFile, key + ".yml"));
 					files.add(key + ".yml");
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
-			for (File file : configFile.listFiles()) {
+			File[] filelist = configFile.listFiles();
+			if(filelist == null) return;
+			for (File file : filelist) {
 				if (!files.contains(file.getName())) {
 					file.delete();
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 }

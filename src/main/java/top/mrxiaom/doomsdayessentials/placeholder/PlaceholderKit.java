@@ -2,13 +2,11 @@ package top.mrxiaom.doomsdayessentials.placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.configs.KitConfig.Kit;
 import top.mrxiaom.doomsdayessentials.configs.PlayerConfig.LastSignInfo;
 import top.mrxiaom.doomsdayessentials.configs.PlayerConfig.SignTime;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class PlaceholderKit extends PlaceholderExpansion {
 	private final Main plugin;
@@ -17,11 +15,11 @@ public class PlaceholderKit extends PlaceholderExpansion {
 		this.plugin = plugin;
 	}
 
-	public String getAuthor() {
+	public @NotNull String getAuthor() {
 		return "mrxiaom";
 	}
 
-	public String getIdentifier() {
+	public @NotNull String getIdentifier() {
 		return "doomsdaykit";
 	}
 
@@ -44,7 +42,7 @@ public class PlaceholderKit extends PlaceholderExpansion {
 			String kitId = args[1];
 			Kit kit = plugin.getKitConfig().get(kitId);
 			LastSignInfo last = plugin.getPlayerConfig().getLastSignInfo(player.getName(), kitId);
-			if (last.times >= kit.getMaxTime() && kit.getMaxTime() != 0) {
+			if (kit == null || (last.times >= kit.getMaxTime() && kit.getMaxTime() != 0)) {
 				return limited;
 			}
 			if (last.times > 0) {
@@ -61,7 +59,7 @@ public class PlaceholderKit extends PlaceholderExpansion {
 		return identifier;
 	}
 
-	public String getVersion() {
+	public @NotNull String getVersion() {
 		return this.plugin.getDescription().getVersion();
 	}
 
@@ -71,11 +69,5 @@ public class PlaceholderKit extends PlaceholderExpansion {
 
 	public boolean canRegister() {
 		return true;
-	}
-
-	public boolean isMatchPlayerName(String player) {
-		Pattern p = Pattern.compile("[a-zA-Z0-9_]*{3,16}");
-		Matcher m = p.matcher(player);
-		return m.matches();
 	}
 }

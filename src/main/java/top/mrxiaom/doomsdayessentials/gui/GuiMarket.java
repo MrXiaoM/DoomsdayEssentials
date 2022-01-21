@@ -97,13 +97,6 @@ public class GuiMarket implements IGui {
 			boolean shift = event.isShiftClick();
 
 			if (rawSlot == 1) {
-				// Calendar outdateTime = data.getOutdateTime();
-				
-				// if(!player.isOp()) {
-				// 	   player.sendMessage("§7[§9末日社团§7] §c存在严重bug，正在修复，敬请期待");
-				//	   player.closeInventory();
-				//	   return;
-				// }
 				if(!shift) {
 					if(left && !right) {
 						if(plugin.getEcoApi().getBalance(player) < 1000) {
@@ -178,7 +171,6 @@ public class GuiMarket implements IGui {
 					plugin.getEcoApi().depositPlayer(player, money);
 					plugin.getMarketConfig().onMarketRemoved(data.getId());
 					player.sendMessage("§7[§9末日社团§7] §a你已成功停止租用你的摊位， 你获得了 §e" + money + " §a新币");
-					return;
 				}
 			}
 		}

@@ -14,7 +14,7 @@ public class CommandTips extends ICommand {
 	@Override
 	public boolean onCommand(CommandSender sender, String label, String[] args, boolean isPlayer) {
 		if(!isPlayer) {
-			return Util.noPerm(sender);
+			return Util.noPlayer(sender);
 		}
 		Player player = (Player) sender;
 		player.sendMessage("§a你知道吗\n§r" + plugin.getRandomTips());

@@ -26,9 +26,8 @@ public class SelfAttack implements ISkill {
 	public void runSkill(Object data) {
 		Player damager = (Player) ((EntityDamageByEntityEvent) data).getDamager();
 		if (((EntityDamageByEntityEvent) data).getEntity() instanceof Player
-				&& ((EntityDamageByEntityEvent) data).getEntity().getName() == damager.getName())
+				&& ((EntityDamageByEntityEvent) data).getEntity().getName().equals(damager.getName()))
 			return;
-		// damager.sendMessage("§7[§9末日社团§7] §e你正在用自我攻击剑来攻击自己");
 		damager.damage(((EntityDamageByEntityEvent) data).getDamage(), damager);
 		((EntityDamageByEntityEvent) data).setCancelled(true);
 	}

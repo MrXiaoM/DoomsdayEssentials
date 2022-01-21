@@ -22,7 +22,7 @@ import java.util.Map;
 
 public class CommandKit extends ICommand {
 	public CommandKit(Main plugin) {
-		super(plugin, "doomsdaykit", new String[] { "kit" });
+		super(plugin, "doomsdaykit", new String[]{"kit"});
 	}
 
 	@Override
@@ -75,6 +75,10 @@ public class CommandKit extends ICommand {
 				}
 
 				Kit kit = plugin.getKitConfig().get(kitId);
+				if (kit == null) {
+					player.sendMessage(I18n.t("kit.nokit", true));
+					return true;
+				}
 				LastSignInfo last = plugin.getPlayerConfig().getLastSignInfo(playerName, kitId);
 				if (last.times >= kit.getMaxTime() && kit.getMaxTime() != 0) {
 					player.sendMessage(I18n.t("kit.limited", true));
@@ -136,6 +140,10 @@ public class CommandKit extends ICommand {
 				}
 
 				Kit kit = plugin.getKitConfig().get(kitId);
+				if (kit == null) {
+					player.sendMessage(I18n.t("kit.nokit", true));
+					return true;
+				}
 				ItemStack[] items = kit.getItems();
 				HashMap<Integer, ItemStack> map = player.getInventory().addItem(items);
 				if (!map.isEmpty()) {
@@ -177,6 +185,10 @@ public class CommandKit extends ICommand {
 				}
 
 				Kit kit = plugin.getKitConfig().get(kitId);
+				if (kit == null) {
+					player.sendMessage(I18n.t("kit.nokit", true));
+					return true;
+				}
 				LastSignInfo last = plugin.getPlayerConfig().getLastSignInfo(playerName, kitId);
 
 				String msg = I18n.t("kit.used-title").replace("%kit%", kit.getName()) + "\n";
@@ -232,6 +244,10 @@ public class CommandKit extends ICommand {
 					sender.sendMessage(I18n.t("kit.nokit", true));
 				}
 				Kit kit = plugin.getKitConfig().get(kitId);
+				if (kit == null) {
+					sender.sendMessage(I18n.t("kit.nokit", true));
+					return true;
+				}
 				String displayName = args[2];
 				kit.setName(displayName);
 				plugin.getKitConfig().set(kit);
@@ -247,26 +263,29 @@ public class CommandKit extends ICommand {
 					sender.sendMessage(I18n.t("kit.nokit", true));
 				}
 				Kit kit = plugin.getKitConfig().get(kitId);
+				if (kit == null) {
+					sender.sendMessage(I18n.t("kit.nokit", true));
+					return true;
+				}
 				List<String> commands = kit.getCommands();
 				if (args.length == 3 && args[2].equalsIgnoreCase("look")) {
-					String msg = I18n.t("kit.command-list.header", true);
+					StringBuilder msg = new StringBuilder(I18n.t("kit.command-list.header", true));
 					if (commands.isEmpty()) {
-						msg += I18n.t("kit.command-list.empty");
+						msg.append(I18n.t("kit.command-list.empty"));
 					} else {
 						for (int i = 0; i < commands.size(); i++) {
-							msg += I18n.t("kit.command-list.prefix", true) + i + I18n.t("kit.command-list.suffix")
-									+ commands.get(i);
+							msg.append(I18n.t("kit.command-list.prefix", true)).append(i).append(I18n.t("kit.command-list.suffix")).append(commands.get(i));
 						}
 					}
-					sender.sendMessage(msg);
+					sender.sendMessage(msg.toString());
 					return true;
 				}
 				if (args.length > 3 && args[2].equalsIgnoreCase("add")) {
-					String cmd = args[3];
+					StringBuilder cmd = new StringBuilder(args[3]);
 					for (int i = 4; i < args.length; i++) {
-						cmd += " " + args[i];
+						cmd.append(" ").append(args[i]);
 					}
-					commands.add(cmd);
+					commands.add(cmd.toString());
 					kit.setCommands(commands);
 					plugin.getKitConfig().set(kit);
 					sender.sendMessage(I18n.t("kit.add-command", true));
@@ -295,6 +314,10 @@ public class CommandKit extends ICommand {
 					sender.sendMessage(I18n.t("kit.nokit", true));
 				}
 				Kit kit = plugin.getKitConfig().get(kitId);
+				if (kit == null) {
+					sender.sendMessage(I18n.t("kit.nokit", true));
+					return true;
+				}
 				kit.setIsEveryday(kit.isEveryday());
 				plugin.getKitConfig().set(kit);
 				sender.sendMessage(
@@ -314,6 +337,10 @@ public class CommandKit extends ICommand {
 					return true;
 				}
 				Kit kit = plugin.getKitConfig().get(kitId);
+				if (kit == null) {
+					sender.sendMessage(I18n.t("kit.nokit", true));
+					return true;
+				}
 				kit.setMaxTime(maxTime);
 				plugin.getKitConfig().set(kit);
 				sender.sendMessage(
@@ -323,18 +350,17 @@ public class CommandKit extends ICommand {
 
 		}
 		if (args.length == 0) {
-			String kitMsg = I18n.t("kit.list.header", true);
+			StringBuilder kitMsg = new StringBuilder(I18n.t("kit.list.header", true));
 			Map<String, Kit> kits = plugin.getKitConfig().getAllKits();
 			int i = 0;
 			for (String kitId : kits.keySet()) {
 				if (sender.hasPermission("doomsdaykits.use." + kitId)) {
 					Kit kit = kits.get(kitId);
-					kitMsg = kitMsg + I18n.t("kit.list.prefix") + kitId + " §7(§6" + kit.getName() + "§7)"
-							+ ((i == kits.size() - 1) ? "" : I18n.t("kit.list.suffix"));
+					kitMsg.append(I18n.t("kit.list.prefix")).append(kitId).append(" §7(§6").append(kit.getName()).append("§7)").append((i == kits.size() - 1) ? "" : I18n.t("kit.list.suffix"));
 				}
 				i++;
 			}
-			sender.sendMessage(kitMsg);
+			sender.sendMessage(kitMsg.toString());
 		}
 		return true;
 	}

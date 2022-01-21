@@ -60,22 +60,20 @@ public class CommandMcbbs extends ICommand {
 				return true;
 			}
 			this.processPlayers.add(player.getName());
-			Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
-				public void run() {
-					try {
-						UserInfo info = McbbsUtil.getUserInfoUid(uid);
-						if(info.isPromotionUserGroup()) {
-							plugin.getMcbbsConfig().setPlayerUid(player.getName(), info.getUid());
-							player.sendMessage(I18n.t("mcbbs.bound", true).replace("%username%", info.getUsername()).replace("%uid%", info.getUid()));
-						}
-						else {
-							player.sendMessage(I18n.t("mcbbs.need-verify", true));
-						}
-					}catch(Throwable t) {
-						t.printStackTrace();
-					} finally {
-						processPlayers.remove(player.getName());
+			Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+				try {
+					UserInfo info = McbbsUtil.getUserInfoUid(uid);
+					if(info != null && info.isPromotionUserGroup()) {
+						plugin.getMcbbsConfig().setPlayerUid(player.getName(), info.getUid());
+						player.sendMessage(I18n.t("mcbbs.bound", true).replace("%username%", info.getUsername()).replace("%uid%", info.getUid()));
 					}
+					else {
+						player.sendMessage(I18n.t("mcbbs.need-verify", true));
+					}
+				}catch(Throwable t) {
+					t.printStackTrace();
+				} finally {
+					processPlayers.remove(player.getName());
 				}
 			});
 			return true;

@@ -19,7 +19,7 @@ public class CommandTpahere extends ICommand {
 
 	@Override
 	public List<String> onTabComplete(CommandSender sender, String[] args, boolean isPlayer) {
-		List<String> result = new ArrayList<String>();
+		List<String> result = new ArrayList<>();
 		if (args.length == 1) {
 			for (Player player : Bukkit.getOnlinePlayers()) {
 				if (player.getName().toLowerCase().startsWith(args[0].toLowerCase())) {
@@ -28,16 +28,6 @@ public class CommandTpahere extends ICommand {
 			}
 		}
 		return result;
-	}
-
-	@Nullable
-	public Player getOnlinePlayer(String name) {
-		for (Player p : Bukkit.getOnlinePlayers()) {
-			if (p.getName().equalsIgnoreCase(name)) {
-				return p;
-			}
-		}
-		return null;
 	}
 
 	@Override
@@ -51,7 +41,7 @@ public class CommandTpahere extends ICommand {
 				player.sendMessage(I18n.t("teleport.self", true));
 				return true;
 			}
-			Player targetPlayer = this.getOnlinePlayer(args[0]);
+			Player targetPlayer = Util.getOnlinePlayer(args[0]);
 			if (targetPlayer == null) {
 				player.sendMessage(I18n.t("not-online", true));
 				return true;

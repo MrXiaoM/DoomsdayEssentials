@@ -16,6 +16,7 @@ import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import org.yaml.snakeyaml.external.biz.base64Coder.Base64Coder;
 
+import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Method;
@@ -144,11 +145,10 @@ public class ItemStackUtil {
 			ByteArrayOutputStream var2 = new ByteArrayOutputStream();
 			BukkitObjectOutputStream var3 = new BukkitObjectOutputStream(var2);
 			var3.writeInt(var1.length);
-			ItemStack[] var4 = var1;
 			int var5 = var1.length;
 
 			for (int var6 = 0; var6 < var5; ++var6) {
-				ItemStack var7 = var4[var6];
+				ItemStack var7 = var1[var6];
 				var3.writeObject(var7);
 			}
 
@@ -187,16 +187,16 @@ public class ItemStackUtil {
 	}
 
 	public static String b64encode(String s) {
-		return Base64.getEncoder().encode(s.getBytes()).toString();
+		return Arrays.toString(Base64.getEncoder().encode(s.getBytes()));
 	}
 
 	public static String b64decode(String s) {
-		return Base64.getDecoder().decode(s.getBytes()).toString();
+		return Arrays.toString(Base64.getDecoder().decode(s.getBytes()));
 	}
 
 	public static boolean isHelmetFastBurn(ItemStack itemStack) {
-		if ((itemStack == null) || (itemStack.getType() == null))
-			return false;
+		if ((itemStack == null)) return false;
+
 		return itemStack.getType().equals(Material.LEATHER_HELMET)
 				|| itemStack.getType().equals(Material.CHAINMAIL_HELMET)
 				|| itemStack.getType().equals(Material.IRON_HELMET);
@@ -207,8 +207,8 @@ public class ItemStackUtil {
 	}
 
 	public static boolean isHelmet(ItemStack itemStack) {
-		if ((itemStack == null) || (itemStack.getType() == null))
-			return false;
+		if ((itemStack == null)) return false;
+
 		return itemStack.getType().equals(Material.LEATHER_HELMET)
 				|| itemStack.getType().equals(Material.CHAINMAIL_HELMET)
 				|| itemStack.getType().equals(Material.IRON_HELMET)
@@ -219,21 +219,6 @@ public class ItemStackUtil {
 
 	public static boolean hasHelmet(Player player) {
 		return isHelmet(player.getInventory().getHelmet());
-	}
-
-	public static Set<BaseBlock> getWESigns() {
-		return Sets.newHashSet(BlockTypes.ACACIA_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.BIRCH_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.DARK_OAK_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.JUNGLE_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.OAK_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.SPRUCE_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.ACACIA_WALL_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.BIRCH_WALL_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.DARK_OAK_WALL_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.JUNGLE_WALL_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.OAK_WALL_SIGN.getDefaultState().toBaseBlock(),
-				BlockTypes.SPRUCE_WALL_SIGN.getDefaultState().toBaseBlock());
 	}
 
 	public static boolean isBlockAntiSun(Material m) {
@@ -261,7 +246,7 @@ public class ItemStackUtil {
 
 	public static String getItemDisplayName(ItemStack item) {
 		if ((item == null) || !item.hasItemMeta() || item.getItemMeta() == null)
-			return item != null ? item.getType().name() : new String();
+			return item != null ? item.getType().name() : "";
 		return item.getItemMeta().getDisplayName();
 	}
 
@@ -338,6 +323,22 @@ public class ItemStackUtil {
 		if (im == null)
 			return;
 		im.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+		item.setItemMeta(im);
+	}
+
+	public static void setItemLore(ItemStack item, String... lore){
+		setItemLore(item, Lists.newArrayList(lore));
+	}
+
+	public static void setItemLore(ItemStack item, List<String> lore) {
+		if (item == null)
+			return;
+		ItemMeta im = item.getItemMeta() == null ? getItemMeta(item.getType()) : item.getItemMeta();
+		if (im == null)
+			return;
+		List<String> newLore = new ArrayList<>();
+		lore.forEach(s-> newLore.add(ChatColor.translateAlternateColorCodes('&', s)));
+		im.setLore(newLore);
 		item.setItemMeta(im);
 	}
 
@@ -418,7 +419,7 @@ public class ItemStackUtil {
 
 	public static ItemStack getEnchantedBook(Map<Enchantment, Integer> map) {
 		ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
-		ItemMeta im = item == null ? getItemMeta(Material.ENCHANTED_BOOK) : item.getItemMeta();
+		ItemMeta im = item.getItemMeta();
 		if (im == null)
 			return item;
 		for (Enchantment ench : map.keySet()) {
@@ -512,14 +513,14 @@ public class ItemStackUtil {
 
 	public static void giveItemToPlayer(final Player player, final String msg, final String msgFull,
 			final List<ItemStack> items) {
-		giveItemToPlayer(player, msg, msgFull, items.stream().toArray(ItemStack[]::new));
+		giveItemToPlayer(player, msg, msgFull, items.toArray(ItemStack[]::new));
 	}
 
 	public static void giveItemToPlayer(final Player player, final String msg, final String msgFull,
 			final ItemStack... items) {
 		final Collection<ItemStack> last = player.getInventory().addItem(items).values();
 		if (msg.length() > 0 || (last.isEmpty() && msgFull.length() > 0)) {
-			player.sendMessage(String.valueOf(msg) + (last.isEmpty() ? "" : ("\n" + msgFull)));
+			player.sendMessage(msg + (last.isEmpty() ? "" : ("\n" + msgFull)));
 		}
 		for (final ItemStack item : last) {
 			player.getWorld().dropItem(player.getLocation(), item);

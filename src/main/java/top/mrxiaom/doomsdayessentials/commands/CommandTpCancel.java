@@ -33,16 +33,6 @@ public class CommandTpCancel extends ICommand {
 		return result;
 	}
 
-	@Nullable
-	public Player getOnlinePlayer(String name) {
-		for (Player p : Bukkit.getOnlinePlayers()) {
-			if (p.getName().equalsIgnoreCase(name)) {
-				return p;
-			}
-		}
-		return null;
-	}
-
 	@Override
 	public boolean onCommand(CommandSender sender, String label, String[] args, boolean isPlayer) {
 		if (!isPlayer) {

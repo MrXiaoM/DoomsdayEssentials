@@ -27,7 +27,7 @@ public class BackConfig {
 	}
 
 	public YamlConfiguration getPlayerConfig(String player) {
-		if (!playerDatas.keySet().contains(player)) {
+		if (!playerDatas.containsKey(player)) {
 			return new YamlConfiguration();
 		}
 		return playerDatas.get(player);
@@ -35,7 +35,7 @@ public class BackConfig {
 
 	public Location[] getBackPoints(String player) {
 		Location[] locs = new Location[7];
-		if (!playerDatas.keySet().contains(player)) {
+		if (!playerDatas.containsKey(player)) {
 			return locs;
 		}
 		YamlConfiguration config = playerDatas.get(player);
@@ -65,14 +65,14 @@ public class BackConfig {
 		YamlConfiguration config = new YamlConfiguration();
 		Location[] locs = this.getBackPoints(player.getName());
 
-		for (int i = locs.length - 2; i >= 0; i--) {
-			locs[i + 1] = locs[i];
-		}
+		if (locs.length - 2 + 1 >= 0) System.arraycopy(locs, 0, locs, 1, locs.length - 2 + 1);
 		locs[0] = location;
 		for (int i = 0; i < locs.length; i++) {
 			if (locs[i] == null)
 				continue;
 			Location loc = locs[i];
+			if(loc.getWorld() == null)
+				continue;
 			config.set(i + ".world", loc.getWorld().getName());
 			config.set(i + ".x", loc.getX());
 			config.set(i + ".y", loc.getY());
@@ -103,10 +103,12 @@ public class BackConfig {
 				configPath.mkdirs();
 			}
 			if (this.playerDatas == null) {
-				this.playerDatas = new HashMap<String, YamlConfiguration>();
+				this.playerDatas = new HashMap<>();
 			}
 			this.playerDatas.clear();
-			for (File file : configPath.listFiles()) {
+			File[] files = configPath.listFiles();
+			if(files == null) return this;
+			for (File file : files) {
 				try {
 					if (file.getName().toLowerCase().endsWith(".yml")) {
 						String playerName = file.getName().substring(0, file.getName().lastIndexOf(".yml"));
@@ -116,7 +118,6 @@ public class BackConfig {
 					}
 				} catch (Throwable t) {
 					t.printStackTrace();
-					continue;
 				}
 			}
 		} catch (Throwable t) {
@@ -131,8 +132,9 @@ public class BackConfig {
 			for (String player : players) {
 				playerDatas.get(player).save(new File(configPath, player + ".yml"));
 			}
-
-			for (File file : configPath.listFiles()) {
+			File[] files = configPath.listFiles();
+			if(files == null) return this;
+			for (File file : files) {
 				String playerName = file.getName().substring(0, file.getName().lastIndexOf(".yml"));
 				if (!players.contains(playerName)) {
 					file.delete();

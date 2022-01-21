@@ -5,6 +5,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import top.mrxiaom.doomsdayessentials.Main;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,12 @@ public class KeyConfig {
 			config = YamlConfiguration.loadConfiguration(configFile);
 		} catch (Throwable t) {
 			t.printStackTrace();
-			InputStreamReader isr = new InputStreamReader(plugin.getResource("keys.yml"));
+			InputStream is = plugin.getResource("keys.yml");
+			if(is == null){
+				config = new YamlConfiguration();
+				return;
+			}
+			InputStreamReader isr = new InputStreamReader(is);
 			config = YamlConfiguration.loadConfiguration(isr);
 		}
 	}
@@ -57,8 +63,7 @@ public class KeyConfig {
 	public String useKey(String player, String key) {
 		List<String> list = (config.contains("used-keys") && config.isList("used-keys"))
 				? config.getStringList("used-keys")
-				: new ArrayList<String>();
-		;
+				: new ArrayList<>();
 		list.add(key);
 		config.set("used-keys", list);
 		this.saveConfig();

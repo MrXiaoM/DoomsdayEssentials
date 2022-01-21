@@ -22,6 +22,7 @@ import org.bukkit.potion.PotionEffectType;
 import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.logging.Logger;
@@ -41,6 +42,14 @@ public class Util {
 		return nullValue;
 	}
 
+	public static Object valueOfForce(String enumType, String name) throws ClassNotFoundException {
+		return valueOfForce(Class.forName(enumType), name);
+	}
+
+	public static Object valueOfForce(String enumType, String name, Object nullValue) throws ClassNotFoundException {
+		return valueOfForce(Class.forName(enumType), name, nullValue);
+	}
+
 	public static Object valueOfForce(Class<?> enumType, String name) {
 		return valueOfForce(enumType, name, null);
 	}
@@ -53,6 +62,9 @@ public class Util {
 		return nullValue;
 	}
 
+	/*
+	* 全球市场 ServerMarket 将物品发送到玩家邮箱
+	* */
 	public static void sendItemToMail(String player, String sender, ItemStack item) {
 		SaleItem si = new SaleItem(UUID.randomUUID().toString(), "xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxxxxxx", sender, item, PayType.VAULT, 0, System.currentTimeMillis());
 		ServerMarket.getInstance().getApi().getPlayerData(player).addItem(si);
@@ -81,22 +93,20 @@ public class Util {
 	}
 
 	public static int randomIntegerBetween(int a, int b) {
-		return (a > b ? b : a) + new Random().nextInt((a > b ? a : b) - (a > b ? b : a));
+		return (Math.min(a, b)) + new Random().nextInt((Math.max(a, b)) - (Math.min(a, b)));
 	}
 
 	public static double randomDoubleBetween(double a, double b, int digit) {
 		if (digit < 1)
 			return a;
 		double c = Math.pow(10, digit);
-		return (a > b ? b : a) + new Random().nextInt((int) ((a > b ? a : b) * c) - (int) ((a > b ? b : a) * c)) / c;
+		return (Math.min(a, b)) + new Random().nextInt((int) ((Math.max(a, b)) * c) - (int) ((Math.min(a, b)) * c)) / c;
 	}
 
 	public static void clearPlayerEffects(Player player) {
 		if (player == null)
 			return;
 		for (PotionEffectType type : PotionEffectType.values()) {
-			if (type == null)
-				continue;
 			if (player.hasPotionEffect(type)) {
 				player.removePotionEffect(type);
 			}
@@ -154,22 +164,22 @@ public class Util {
 
 	public static boolean isNoClearEntities(Entity e) {
 		return e instanceof org.bukkit.entity.Endermite
+				|| e instanceof org.bukkit.entity.Villager
 				// boss 相关
-				|| e instanceof org.bukkit.entity.EnderDragon || e instanceof org.bukkit.entity.ElderGuardian
+				|| e instanceof org.bukkit.entity.EnderDragon
+				|| e instanceof org.bukkit.entity.ElderGuardian
 				|| e instanceof org.bukkit.entity.WitherSkeleton
 				// 袭击相关
-				|| e instanceof org.bukkit.entity.Vex || e instanceof org.bukkit.entity.Evoker
-				|| e instanceof org.bukkit.entity.Illusioner || e instanceof org.bukkit.entity.Vindicator
-				|| e instanceof org.bukkit.entity.Raider || e instanceof org.bukkit.entity.Pillager
-				|| e instanceof org.bukkit.entity.Ravager
+				|| e instanceof org.bukkit.entity.Vex
+				|| e instanceof org.bukkit.entity.Raider
 
 				|| e instanceof org.bukkit.entity.Wither;
 	}
 
 	public static Calendar getDoomsdayEssentialsUpdateTime() {
 		try {
-			String path = URLDecoder.decode(Util.class.getClassLoader()
-					.getResource(Util.class.getName().replace('.', '/') + ".class").getPath(), "UTF-8");
+			String path = URLDecoder.decode(Objects.requireNonNull(Util.class.getClassLoader()
+					.getResource(Util.class.getName().replace('.', '/') + ".class")).getPath(), StandardCharsets.UTF_8);
 			JarFile jf = new JarFile(path.substring(6, path.indexOf("!")));
 			Calendar date = Calendar.getInstance();
 			date.setTimeInMillis(jf.getEntry("META-INF/MANIFEST.MF").getLastModifiedTime().toMillis());
@@ -218,29 +228,29 @@ public class Util {
 	}
 
 	public static String readFile(File file, String encode) {
-		String result = "";
-		InputStreamReader read = null;
+		StringBuilder result = new StringBuilder();
+		InputStreamReader read;
 		try {
 			read = new InputStreamReader(new FileInputStream(file), encode);
 
 			BufferedReader bufferedReader = new BufferedReader(read);
 
-			String lineTxt = null;
+			String lineTxt;
 			while ((lineTxt = bufferedReader.readLine()) != null) {
-				result += lineTxt + "\n";
+				result.append(lineTxt).append("\n");
 			}
 			read.close();
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-		return result;
+		return result.toString();
 	}
 
 	public static Throwable writeFile(File file, String content) {
 		Throwable t = null;
 		try {
-			if (!file.exists()) {
-				file.createNewFile();
+			if (!file.exists()&& !file.createNewFile()) {
+				throw new IOException("Can NOT create new file \"" + file.getName() + "\"");
 			}
 
 			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "GBK"));
@@ -261,7 +271,7 @@ public class Util {
 
 	public static long strToLong(String s, Long nullReturnValue) {
 		try {
-			return Long.valueOf(s);
+			return Long.parseLong(s);
 		} catch (NumberFormatException ex) {
 			return nullReturnValue;
 		}
@@ -269,7 +279,7 @@ public class Util {
 
 	public static int strToInt(String s, Integer nullReturnValue) {
 		try {
-			return Integer.valueOf(s);
+			return Integer.parseInt(s);
 		} catch (NumberFormatException ex) {
 			return nullReturnValue;
 		}
@@ -277,7 +287,7 @@ public class Util {
 
 	public static float strToFloat(String s, Float nullReturnValue) {
 		try {
-			return Float.valueOf(s);
+			return Float.parseFloat(s);
 		} catch (NumberFormatException ex) {
 			return nullReturnValue;
 		}
@@ -285,7 +295,7 @@ public class Util {
 
 	public static double strToDouble(String s, Double nullReturnValue) {
 		try {
-			return Double.valueOf(s);
+			return Double.parseDouble(s);
 		} catch (NumberFormatException ex) {
 			return nullReturnValue;
 		}
@@ -301,10 +311,11 @@ public class Util {
 				if (config.isDouble(key)) {
 					return Util.convertToFloat(config.getDouble(key));
 				} else {
-					return (float) config.get(key);
+					return Objects.requireNonNullElse((Float) config.get(key), nullValue);
 				}
 			}
 		} catch (Throwable t) {
+			// 收声
 		}
 		return nullValue;
 	}
@@ -320,16 +331,16 @@ public class Util {
 	}
 
 	public static String removeColor(String str) {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		char[] a = str.toCharArray();
 		for (int i = 0; i < a.length; i++) {
-			if (a[i] == ChatColor.COLOR_CHAR) {
+			if (a[i] == ChatColor.COLOR_CHAR || a[i] == '&') {
 				i++;
 				continue;
 			}
-			result += String.valueOf(a[i]);
+			result.append(a[i]);
 		}
-		return result;
+		return result.toString();
 	}
 	
 	@Nullable
@@ -345,7 +356,7 @@ public class Util {
 	@Nullable
 	public static Player getOnlinePlayer(String name) {
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (player.getName() != null && player.getName().equalsIgnoreCase(name)) {
+			if (player.getName().equalsIgnoreCase(name)) {
 				return player;
 			}
 		}
@@ -371,14 +382,6 @@ public class Util {
 			logger.info("无法注册 " + name + " PAPI 变量");
 		}
 		return result;
-	}
-	
-	public static void fakeDeath(Player player) {
-		try {
-			ProtocolLibrary.getProtocolManager().sendServerPacket(player, ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.UPDATE_HEALTH));
-		} catch(Throwable t) {
-			t.printStackTrace();
-		}
 	}
 
 	public static void updateHealth(Player player) {
@@ -436,9 +439,6 @@ public class Util {
 							System.out.println("[实体农场] 已清理 " + entity.getName() + " (" + entity.getWorld().getName() + ": " +
 									entity.getLocation().getBlockX() + ", " + entity.getLocation().getBlockY() +
 									", " + entity.getLocation().getBlockZ() + ")");
-							// CoreProtect.getInstance().getAPI().logRemoval("清理 " +
-							// entity.getType().name(), entity.getLocation(), Material.NETHER_STAR,
-							// (byte)0);
 							entity.remove();
 						}
 					}
@@ -463,5 +463,4 @@ public class Util {
 		}
 		return count;
 	}
-
 }

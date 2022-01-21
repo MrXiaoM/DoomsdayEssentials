@@ -23,13 +23,13 @@ public class CommandHomes extends ICommand {
 		Player player = (Player) sender;
 		String playerName = player.getName();
 		List<String> homes = plugin.getHomeConfig().getHomes(playerName);
-		String s = homes.size() == 0 ? "空" : "";
+		StringBuilder s = new StringBuilder(homes.size() == 0 ? "空" : "");
 		for (int i = 0; i < homes.size(); i++) {
 			Location loc = plugin.getHomeConfig().getHome(playerName, homes.get(i));
 			boolean flag = plugin.getParkoursConfig().getParkourByLoc(loc) != null;
-			s += (flag ? "§c§m" : "§6") + homes.get(i) + ((i + 1 < homes.size()) ? "§7, " : "");
+			s.append(flag ? "§c§m" : "§6").append(homes.get(i)).append((i + 1 < homes.size()) ? "§7, " : "");
 		}
-		player.sendMessage(I18n.t("home.homes", true).replace("%list%", s));
+		player.sendMessage(I18n.t("home.homes", true).replace("%list%", s.toString()));
 
 		return true;
 	}

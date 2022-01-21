@@ -1,5 +1,6 @@
 package top.mrxiaom.doomsdayessentials.gui;
 
+import com.google.common.collect.Lists;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -53,39 +54,17 @@ public class GuiBindRecall implements IGui{
 			}
 			i++;
 		}
+		String pages = "&0" + page;
 
-		ItemStack itemFrame = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-		ItemMeta im = itemFrame.hasItemMeta() ? itemFrame.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemFrame.getType());
-		im.setDisplayName(ChatColor.WHITE + "*");
-		itemFrame.setItemMeta(im);
+		ItemStack itemFrame = ItemStackUtil.buildItem(Material.WHITE_STAINED_GLASS_PANE, "&f*");
 
-		ItemStack itemPrevPage = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-		ItemMeta imPrevPage = itemPrevPage.hasItemMeta() ? itemPrevPage.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemPrevPage.getType());
-		imPrevPage.setDisplayName(I18n.t("warp.gui.prev-page"));
-		List<String> lorePP = new ArrayList<String>();
-		if (page == 1) {
-			lorePP.add(I18n.t("warp.gui.no-prev-page"));
-		}
-		lorePP.add(ChatColor.BLACK + "" + page);
-		imPrevPage.setLore(lorePP);
+		ItemStack itemPrevPage = ItemStackUtil.buildItem(Material.GREEN_STAINED_GLASS_PANE, I18n.t("warp.gui.prev-page"),
+				page <= 1 ? Lists.newArrayList(I18n.t("warp.gui.no-prev-page"), pages) : Lists.newArrayList(pages));
 
-		itemPrevPage.setItemMeta(imPrevPage);
+		ItemStack itemNextPage = ItemStackUtil.buildItem(Material.GREEN_STAINED_GLASS_PANE, I18n.t("warp.gui.next-page"),
+				page >= maxPages ? Lists.newArrayList(I18n.t("warp.gui.no-next-page"), pages) : Lists.newArrayList(pages));
 
-		ItemStack itemNextPage = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-		ItemMeta imNextPage = itemNextPage.hasItemMeta() ? itemNextPage.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemNextPage.getType());
-		imNextPage.setDisplayName(I18n.t("warp.gui.next-page"));
-		List<String> loreNP = new ArrayList<String>();
-		if (page == maxPages) {
-			loreNP.add(I18n.t("warp.gui.no-next-page"));
-		}
-		loreNP.add(ChatColor.BLACK + "" + page);
-		imNextPage.setLore(loreNP);
-		itemNextPage.setItemMeta(imNextPage);
-
-		inv.setItem(45, page == 1 ? itemFrame : itemPrevPage);
+		inv.setItem(45, page <= 1 ? itemFrame : itemPrevPage);
 		inv.setItem(46, itemFrame);
 		inv.setItem(47, itemFrame);
 		inv.setItem(48, itemFrame);
@@ -93,7 +72,7 @@ public class GuiBindRecall implements IGui{
 		inv.setItem(50, itemFrame);
 		inv.setItem(51, itemFrame);
 		inv.setItem(52, itemFrame);
-		inv.setItem(53, page == maxPages ? itemFrame : itemNextPage);
+		inv.setItem(53, page >= maxPages ? itemFrame : itemNextPage);
 		return inv;
 	
 	}

@@ -45,12 +45,7 @@ public class CommandNear extends ICommand {
 	
 	private String getString(Map<String, Double> players, String p, String s) {
 		 List<Map.Entry<String, Double>> list = Lists.newArrayList(players.entrySet());
-		 list.sort(new Comparator<Map.Entry<String, Double>>() {
-	          @Override
-	          public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
-	              return o2.getValue().compareTo(o1.getValue());
-	          }
-	     });
+		 list.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));
 		 String result = p;
 		 DecimalFormat df = new DecimalFormat("#.0");
 		 for(int i = 0; i < list.size(); i++) {

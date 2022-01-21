@@ -11,12 +11,11 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.api.IGui;
 import top.mrxiaom.doomsdayessentials.configs.KitConfig.Kit;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
-import top.mrxiaom.doomsdayessentials.utils.NMSUtil;
+import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,17 +45,9 @@ public class GuiKitEditor implements IGui{
 			inv.addItem(items);
 		}
 
-		ItemStack itemFrame = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-		ItemMeta im = itemFrame.hasItemMeta() ? itemFrame.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemFrame.getType());
-		im.setDisplayName(ChatColor.WHITE + "*");
-		itemFrame.setItemMeta(im);
+		ItemStack itemFrame = ItemStackUtil.buildItem(Material.WHITE_STAINED_GLASS_PANE, "&f*");
 
-		ItemStack itemSave = new ItemStack(Material.CHEST);
-		ItemMeta imSave = itemSave.hasItemMeta() ? itemSave.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemSave.getType());
-		imSave.setDisplayName(ChatColor.RED + "保存工具包");
-		itemSave.setItemMeta(imSave);
+		ItemStack itemSave = ItemStackUtil.buildItem(Material.CHEST, "&c保存工具包");
 
 		inv.setItem(36, itemFrame);
 		inv.setItem(37, itemFrame);
@@ -94,21 +85,21 @@ public class GuiKitEditor implements IGui{
 
 			// 返回菜单
 			if (event.getRawSlot() == 49) {
-				if (inv.getItem(49).getType().equals(Material.CHEST)) {
-					List<ItemStack> itemList = new ArrayList<ItemStack>();
+				ItemStack item49 = inv.getItem(49);
+				if (item49 != null && item49.getType().equals(Material.CHEST)) {
+					List<ItemStack> itemList = new ArrayList<>();
 					for (int i = 0; i < 36; i++) {
 						ItemStack is = inv.getItem(i);
 						if (is != null) {
 							itemList.add(is);
 						}
 					}
-					kit.setItems(itemList.toArray(new ItemStack[itemList.size()]));
+					kit.setItems(itemList.toArray(new ItemStack[0]));
 					plugin.getKitConfig().set(kit);
 					player.closeInventory();
 					player.sendMessage(I18n.t("kit.edit-success", true).replace("%kit%", kit.getId()).replace("%items%",
 							String.valueOf(itemList.size())));
 				}
-				return;
 			}
 		}
 	}

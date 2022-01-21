@@ -19,7 +19,7 @@ public class CommandHome extends ICommand {
 
 	@Override
 	public List<String> onTabComplete(CommandSender sender, String[] args, boolean isPlayer) {
-		List<String> result = new ArrayList<String>();
+		List<String> result = new ArrayList<>();
 		if (isPlayer) {
 			if (args.length == 1) {
 				for (String value : plugin.getHomeConfig().getHomes(sender.getName())) {
@@ -45,6 +45,10 @@ public class CommandHome extends ICommand {
 			return true;
 		}
 		Location loc = plugin.getHomeConfig().getHome(playerName, homeName);
+		if (loc == null){
+			player.sendMessage(I18n.t("home.nohome", true));
+			return true;
+		}
 		if (plugin.getParkoursConfig().getParkourByLoc(loc) != null) {
 			player.sendMessage(I18n.t("home.home-parkour", true));
 			return true;
@@ -55,24 +59,19 @@ public class CommandHome extends ICommand {
 			sender.sendMessage(I18n.t("home.teleport", true).replace("%home%", homeName));
 			return true;
 		}
-
 		if (plugin.getPlayerCooldownManager().isCooldown(playerName)) {
 			plugin.getPlayerCooldownManager().cancelPlayerCooldownTask(playerName);
 		}
 		sender.sendMessage(I18n.t("teleport-intime", true).replace("%time%", "3"));
 		plugin.getPlayerCooldownManager().put(playerName,
-				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-					@Override
-					public void run() {
-						if (plugin.getPlayerCooldownManager().isCooldown(playerName)) {
-							plugin.getPlayerCooldownManager().cancelPlayerCooldownTask(playerName);
-						}
-						plugin.getBackConfig().addBackPoint(player, player.getLocation());
-						player.teleport(loc);
-						sender.sendMessage(I18n.t("home.teleport", true).replace("%home%", homeName));
+				Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+					if (plugin.getPlayerCooldownManager().isCooldown(playerName)) {
+						plugin.getPlayerCooldownManager().cancelPlayerCooldownTask(playerName);
 					}
+					plugin.getBackConfig().addBackPoint(player, player.getLocation());
+					player.teleport(loc);
+					sender.sendMessage(I18n.t("home.teleport", true).replace("%home%", homeName));
 				}, 3 * 20));
-
 		return true;
 	}
 

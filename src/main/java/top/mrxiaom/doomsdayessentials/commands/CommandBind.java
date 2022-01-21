@@ -2,6 +2,7 @@ package top.mrxiaom.doomsdayessentials.commands;
 
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -61,12 +62,11 @@ public class CommandBind extends ICommand {
 				}
 				plugin.getEcoApi().withdrawPlayer(player, cost);
 				String code = plugin.getBindConfig().putBind(player.getName(), item);
-				ItemMeta meta = item.getItemMeta();
-				List<String> lore = meta.getLore();
+
+				List<String> lore = ItemStackUtil.getItemLore(item);
 				lore.add(BindConfig.PREFIX + code);
 				lore.add("§a已绑定 " + player.getName());
-				meta.setLore(lore);
-				item.setItemMeta(meta);
+				ItemStackUtil.setItemLore(item, lore);
 				player.getInventory().setItemInMainHand(item);
 				player.sendMessage("§7[§9末日社团§7] §6你成功绑定了 §c" + ItemStackUtil.getItemDisplayName(item));
 				return true;
@@ -88,13 +88,11 @@ public class CommandBind extends ICommand {
 					return true;
 				}
 				plugin.getBindConfig().removeBind(code);
-				ItemMeta meta = item.getItemMeta();
-				List<String> lore = meta.getLore();
+				List<String> lore = ItemStackUtil.getItemLore(item);
 				int size = lore.size();
 				lore.remove(size-1);
 				lore.remove(size-2);
-				meta.setLore(lore);
-				item.setItemMeta(meta);
+				ItemStackUtil.setItemLore(item, lore);
 				player.getInventory().setItemInMainHand(item);
 				player.sendMessage("§7[§9末日社团§7] §6你成功解绑了 §c" + ItemStackUtil.getItemDisplayName(item));
 				return true;

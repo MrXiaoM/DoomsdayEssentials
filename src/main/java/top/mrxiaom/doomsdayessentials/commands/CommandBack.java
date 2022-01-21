@@ -43,16 +43,13 @@ public class CommandBack extends ICommand {
 		}
 		sender.sendMessage(I18n.t("teleport-intime", true).replace("%time%", String.valueOf(3)));
 		plugin.getPlayerCooldownManager().put(playerName,
-			Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-				@Override
-				public void run() {
-					if (plugin.getPlayerCooldownManager().isCooldown(playerName)) {
-						plugin.getPlayerCooldownManager().cancelPlayerCooldownTask(playerName);
-					}
-					plugin.getBackConfig().addBackPoint(player, player.getLocation());
-					player.teleport(loc);
-					sender.sendMessage(I18n.t("back.teleport", true));
+			Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+				if (plugin.getPlayerCooldownManager().isCooldown(playerName)) {
+					plugin.getPlayerCooldownManager().cancelPlayerCooldownTask(playerName);
 				}
+				plugin.getBackConfig().addBackPoint(player, player.getLocation());
+				player.teleport(loc);
+				sender.sendMessage(I18n.t("back.teleport", true));
 			}, 3 * 20));
 		return true;
 	}

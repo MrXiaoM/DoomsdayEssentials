@@ -9,10 +9,12 @@ import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.configs.GunConfig.Gun;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
+import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 import top.mrxiaom.doomsdayessentials.utils.NMSUtil;
 import top.mrxiaom.doomsdayessentials.utils.NMSUtil.NMSItemStack;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
+import java.util.List;
 import java.util.Map;
 
 public class CommandGun extends ICommand {
@@ -29,17 +31,17 @@ public class CommandGun extends ICommand {
 				}
 				Player player = (Player) sender;
 				ItemStack item = player.getInventory().getItemInMainHand();
-				if (item == null || !item.hasItemMeta()) {
+				List<String> lore = ItemStackUtil.getItemLore(item);
+				if (lore.isEmpty()) {
 					player.sendMessage(I18n.t("gun.item-not-correct", true));
 					return true;
 				}
-				ItemMeta im = item.hasItemMeta() ? item.getItemMeta() : NMSUtil.getMetaFormMaterial(item.getType());
-				if (!im.hasLore()) {
-					player.sendMessage(I18n.t("gun.item-not-correct", true));
-					return true;
-				}
-				String s = im.getLore().get(im.getLore().size() - 1).toLowerCase();
+				String s = lore.get(lore.size() - 1).toLowerCase();
 				NMSItemStack nms = NMSItemStack.fromBukkitItemStack(item);
+				if (nms == null){
+					player.sendMessage(I18n.t("gun.item-not-correct", true));
+					return true;
+				}
 				if (s.toLowerCase().startsWith("§g§u§n")) {
 					int bullets = nms.getNBTTagInt("bullets", 0);
 					player.sendMessage(I18n.tn("gun.look", true).replace("%bullets%", String.valueOf(bullets)));
@@ -62,15 +64,10 @@ public class CommandGun extends ICommand {
 					return true;
 				}
 				if (args.length >= 3) {
-					boolean flag = false;
-					for (Player p : Bukkit.getOnlinePlayers()) {
-						if (p.getName().equalsIgnoreCase(args[2])) {
-							player = p;
-							flag = true;
-						}
-					}
-					if (!flag) {
+					player = Util.getOnlinePlayer(args[2]);
+					if (player == null) {
 						sender.sendMessage(I18n.t("not-online", true));
+						return true;
 					}
 				}
 				String gunId = args[1];
@@ -79,6 +76,10 @@ public class CommandGun extends ICommand {
 					return true;
 				}
 				Gun gun = plugin.getGunConfig().get(gunId);
+				if(gun == null){
+					sender.sendMessage(I18n.t("gun.not-found", true));
+					return true;
+				}
 				Map<Integer, ItemStack> lost = player.getInventory().addItem(gun.getItem());
 				player.updateInventory();
 				sender.sendMessage(I18n.t("gun.giving", true).replace("%gun%", gun.getName()).replace("%player%",

@@ -28,11 +28,11 @@ public class RandomTPConfig {
 			Material.SPRUCE_PRESSURE_PLATE, Material.STONE_PRESSURE_PLATE, Material.CACTUS, Material.NETHER_PORTAL,
 			Material.END_PORTAL, Material.TRIPWIRE, Material.TRIPWIRE_HOOK, Material.END_GATEWAY, Material.MAGMA_BLOCK);
 
-	public static enum TeleportResult {
+	public enum TeleportResult {
 		SUCCESS, NO_LOC, NO_MONEY, NO_PERM
 	}
 
-	public static enum TeleportMode {
+	public enum TeleportMode {
 		TOP, TOP_GROUND, GROUND;
 	}
 
@@ -282,6 +282,7 @@ public class RandomTPConfig {
 	public void addToCache(String zoneName, int x, int y, int z) {
 		if(this.contains(zoneName)) {
 			Zone zone = this.get(zoneName);
+			if(zone == null) return;
 			List<Location> list = this.cacheMap.containsKey(zone.getName()) ? this.cacheMap.get(zone.getName()) : new ArrayList<>();
 			list.add(new Location(zone.getWorld(), x, y, z));
 			this.cacheMap.put(zone.getName(), list);
@@ -314,8 +315,7 @@ public class RandomTPConfig {
 	
 	public boolean needToCache(String zone) {
 		if(!this.cacheMap.containsKey(zone)) return true;
-		if(this.cacheMap.get(zone).size() < 100) return true;
-		return false;
+		return this.cacheMap.get(zone).size() < 100;
 	}
 	
 	public boolean contains(String zoneName) {
@@ -365,18 +365,16 @@ public class RandomTPConfig {
 	public List<String> getZoneNameList(int count, int page) {
 		// “节 省 资 源” 垃 圾 佬
 		int i = (page - 1) * count;
-		List<String> allZoneList = new ArrayList<String>();
+		List<String> allZoneList = new ArrayList<>();
 		if (zoneMap.size() <= i)
 			return allZoneList;
-		for (String key : zoneMap.keySet()) {
-			allZoneList.add(key);
-		}
+		allZoneList.addAll(zoneMap.keySet());
 
 		if (page == 1 && allZoneList.size() < count) {
 			return allZoneList;
 		}
 
-		List<String> zones = new ArrayList<String>();
+		List<String> zones = new ArrayList<>();
 		for (; i < allZoneList.size(); i++) {
 			zones.add(allZoneList.get(i));
 		}
@@ -422,9 +420,10 @@ public class RandomTPConfig {
 			cacheFile.mkdirs();
 		}
 		this.cacheMap = new HashMap<>();
-		this.cacheMap.clear();
 		try {
-			for (File file : cacheFile.listFiles()) {
+			File[] filelist = configFile.listFiles();
+			if(filelist == null) return this;
+			for (File file : filelist) {
 				try {
 					YamlConfiguration zoneConfig = YamlConfiguration.loadConfiguration(file);
 					String name = file.getName().replace(".yml", "");
@@ -440,9 +439,9 @@ public class RandomTPConfig {
 						String[] a = s.split(",");
 						if(a.length == 3) {
 							try {
-								int x = Integer.valueOf(a[0]);
-								int y = Integer.valueOf(a[1]);
-								int z = Integer.valueOf(a[2]);
+								int x = Integer.parseInt(a[0]);
+								int y = Integer.parseInt(a[1]);
+								int z = Integer.parseInt(a[2]);
 								loc.add(new Location(world, x, y, z));
 							} catch(NumberFormatException e) {
 								plugin.getLogger().warning("随机传送缓存 " + name + " 中出现了一个异常项 " + s);
@@ -453,8 +452,8 @@ public class RandomTPConfig {
 						continue;
 					}
 					this.cacheMap.put(name, loc);
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
 		} catch(Throwable t) {
@@ -481,17 +480,19 @@ public class RandomTPConfig {
 					cacheConfig.set("cache", locs);
 					cacheConfig.save(new File(cacheFile, key + ".yml"));
 					files.add(key + ".yml");
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
-			for (File file : cacheFile.listFiles()) {
+			File[] filelist = cacheFile.listFiles();
+			if(filelist == null) return this;
+			for (File file : filelist) {
 				if (!files.contains(file.getName())) {
 					file.delete();
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 		return this;
 	}
@@ -501,9 +502,10 @@ public class RandomTPConfig {
 		}
 
 		this.zoneMap = new HashMap<>();
-		this.zoneMap.clear();
 		if (configFile.exists()) {
-			for (File file : configFile.listFiles()) {
+			File[] filelist = configFile.listFiles();
+			if(filelist == null) return this;
+			for (File file : filelist) {
 				try {
 					YamlConfiguration zoneConfig = YamlConfiguration.loadConfiguration(file);
 					String name = zoneConfig.getString("name");
@@ -519,8 +521,8 @@ public class RandomTPConfig {
 					TeleportMode mode = Util.valueOf(TeleportMode.class, zoneConfig.getString("mode", "TOP_GROUND"),
 							TeleportMode.TOP_GROUND);
 					this.zoneMap.put(name, new Zone(name, worldName, x1, y1, z1, x2, y2, z2, price, mode, commands));
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
 		}
@@ -550,17 +552,19 @@ public class RandomTPConfig {
 					zoneConfig.set("commands", zone.getCommands());
 					zoneConfig.save(new File(configFile, zone.getName() + ".yml"));
 					files.add(zone.getName() + ".yml");
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
-			for (File file : configFile.listFiles()) {
+			File[] filelist = configFile.listFiles();
+			if(filelist == null) return this;
+			for (File file : filelist) {
 				if (!files.contains(file.getName())) {
 					file.delete();
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 		return this;
 	}

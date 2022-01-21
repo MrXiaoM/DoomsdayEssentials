@@ -46,7 +46,6 @@ public class TagConfig {
 		config = YamlConfiguration.loadConfiguration(configFile);
 		if (config == null) {
 			plugin.getLogger().info(I18n.t("title.LoadFail"));
-			
 		}
 		else{
 			tagGuiTitle = ChatColor.translateAlternateColorCodes('&', config.getString("title", "&b称号列表"));
@@ -61,13 +60,12 @@ public class TagConfig {
 		Collections.sort(tagKeys);
 		for (String id : tagKeys) {
 			try {
-				Integer intId = Util.strToInt(id, -1);
+				int intId = Util.strToInt(id, -1);
 				if(intId < 0) continue;
 				String tag = config.getString("titles." + id);
 				titleMap.put(intId, tag);
 			} catch (Throwable t) {
 				plugin.getLogger().warning("载入称号(id=" + id + ")时出现异常: " + t.getLocalizedMessage());
-				continue;
 			}
 		}
 		try {
@@ -107,7 +105,7 @@ public class TagConfig {
 	}
 
 	public boolean isTagExist(int id) {
-		return this.titleMap.keySet().contains(id);
+		return this.titleMap.containsKey(id);
 	}
 
 	public Map<Integer, String> getPlayerTags(OfflinePlayer player) {
@@ -129,7 +127,7 @@ public class TagConfig {
 	}
 
 	public String getTagFromID(int id) {
-		if (titleMap.keySet().contains(id)) {
+		if (titleMap.containsKey(id)) {
 			return titleMap.get(id);
 		}
 		return "";
@@ -241,7 +239,7 @@ public class TagConfig {
 
 	public String setDefaultTag(String player) {
 		String defaultTag = "&7[&a玩家&7]&e";
-		if (this.titleMap.keySet().contains(this.defaultTitleId)) {
+		if (this.titleMap.containsKey(this.defaultTitleId)) {
 			defaultTag = this.titleMap.get(this.defaultTitleId);
 		}
 		this.setPlayerTag(player, defaultTag);

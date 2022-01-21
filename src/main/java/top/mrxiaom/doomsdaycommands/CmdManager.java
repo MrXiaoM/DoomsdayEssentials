@@ -5,12 +5,14 @@ import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 import top.mrxiaom.doomsdayessentials.api.CommandProcessEvent;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -48,7 +50,7 @@ public class CmdManager implements CommandExecutor, TabCompleter, Listener {
 	public CmdManager register() {
 		List<Command> list = new ArrayList<>();
 		try {
-			String jar = URLDecoder.decode(this.plugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath(), "UTF-8");
+			String jar = URLDecoder.decode(this.plugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath(), StandardCharsets.UTF_8);
 			ZipFile zip = new ZipFile(jar);
 			// 遍历插件压缩包內所有内容
 			Enumeration<? extends ZipEntry> files = zip.entries();
@@ -117,8 +119,7 @@ public class CmdManager implements CommandExecutor, TabCompleter, Listener {
 		if(clazz == null) return null;
 		for(AbstractCommand cmd : this.commands) {
 			try {
-				T result = clazz.cast(cmd);
-				return result;
+				return clazz.cast(cmd);
 			} catch(Throwable t) {
 				// 收声
 			}
@@ -137,7 +138,7 @@ public class CmdManager implements CommandExecutor, TabCompleter, Listener {
 	}
 
 	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, String label, String[] args) {
 		String cmdHead = label.contains(":") ? label.substring(label.indexOf(":") + 1) : label;
 		for (AbstractCommand c : this.commands) {
 			if (c.isCommand(cmdHead)) {
@@ -152,7 +153,7 @@ public class CmdManager implements CommandExecutor, TabCompleter, Listener {
 	}
 
 	@Override
-	public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+	public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, String label, String[] args) {
 		String cmdHead = label.contains(":") ? label.substring(label.indexOf(":") + 1) : label;
 		for (AbstractCommand c : commands) {
 			if (c.isCommand(cmdHead)) {

@@ -14,6 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -100,10 +101,11 @@ public class SkullConfig {
 		}
 		return null;
 	}
+	@Nullable
 	public Skull getSkull(EntityType entityType) {
 
 		ConfigurationSection skullType = this.config.getConfigurationSection("SkullType");
-
+		if(skullType == null) return null;
 		String name = entityType.name();
 		if (skullType.getString(name) == null) {
 			Bukkit.getConsoleSender().sendMessage(

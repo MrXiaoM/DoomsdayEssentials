@@ -30,6 +30,7 @@ public class GuiBackPoints implements IGui {
 	}
 
 	private Material getMaterial(Location loc) {
+		if(loc.getWorld() == null) return Material.ITEM_FRAME;
 		String world = loc.getWorld().getName();
 		if (world.equalsIgnoreCase("world"))
 			return Material.GRASS_BLOCK;
@@ -63,11 +64,8 @@ public class GuiBackPoints implements IGui {
 			Location location = locs[i];
 			if (location == null)
 				continue;
-			ItemStack item = new ItemStack(getMaterial(location));
-			ItemMeta im = item.hasItemMeta() ? item.getItemMeta()
-					: NMSUtil.getMetaFormMaterial(item.getType());
-			im.setDisplayName(I18n.t("back.gui.items.name").replace("%point%", String.valueOf(i + 1)));
-			List<String> lore = new ArrayList<String>();
+
+			List<String> lore = new ArrayList<>();
 			for (String s : I18n.l("back.gui.items.lore")) {
 				lore.add(s.replace("%world%", plugin.getWorldAlias(location.getWorld()))
 						.replace("%x%", String.valueOf(location.getX())).replace("%y%", String.valueOf(location.getY()))
@@ -76,8 +74,9 @@ public class GuiBackPoints implements IGui {
 						.replace("%pitch%", String.valueOf(location.getPitch()))
 						.replace("%money%", String.valueOf(i * 100)));
 			}
-			im.setLore(lore);
-			item.setItemMeta(im);
+			ItemStack item = ItemStackUtil.buildItem(getMaterial(location),
+					I18n.t("back.gui.items.name").replace("%point%", String.valueOf(i + 1)),
+					lore);
 			inv.setItem(i, item);
 		}
 		inv.setItem(8, ItemStackUtil.buildItem(Material.BARRIER, "&c&l返回主菜单"));
@@ -135,7 +134,6 @@ public class GuiBackPoints implements IGui {
 							player.sendMessage(I18n.t("back.teleport", true));
 							}
 						}, 3 * 20));
-				return;
 			}
 		}
 	}

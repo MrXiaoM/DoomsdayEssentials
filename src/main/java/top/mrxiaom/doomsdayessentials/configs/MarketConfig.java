@@ -119,7 +119,7 @@ public class MarketConfig {
 						Shop shop = QuickShop.getInstance().getShopManager()
 								.getShopIncludeAttached(new Location(world, x, y, z));
 						if (shop != null) {
-							shop.getDisplay().remove();
+							if(shop.getDisplay() != null) shop.getDisplay().remove();
 							shop.delete();
 						}
 						Block block = world.getBlockAt(x, y, z);
@@ -136,12 +136,9 @@ public class MarketConfig {
 						// 清空箱子
 						if (block.getState() instanceof Chest) {
 							plugin.getCoreProtectApi().logContainerTransaction("摊位" + id, block.getLocation());
-							if (((Chest) block.getState()).getInventory() != null)
-								((Chest) block.getState()).getInventory().clear();
-							if (((Chest) block.getState()).getBlockInventory() != null)
-								((Chest) block.getState()).getBlockInventory().clear();
-							if (((Chest) block.getState()).getSnapshotInventory() != null)
-								((Chest) block.getState()).getSnapshotInventory().clear();
+							((Chest) block.getState()).getInventory().clear();
+							((Chest) block.getState()).getBlockInventory().clear();
+							((Chest) block.getState()).getSnapshotInventory().clear();
 						}
 					}
 				}
@@ -342,7 +339,7 @@ public class MarketConfig {
 				this.data.set(id + ".outdate.second", marketData.getSecond());
 				}
 				Location loc = marketData.getSignLoc();
-				if (loc != null) {
+				if (loc != null && loc.getWorld() != null) {
 					this.data.set(id + ".sign.world", loc.getWorld().getName());
 					this.data.set(id + ".sign.x", loc.getBlockX());
 					this.data.set(id + ".sign.y", loc.getBlockY());

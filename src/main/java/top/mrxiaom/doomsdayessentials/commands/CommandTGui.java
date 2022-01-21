@@ -1,6 +1,5 @@
 package top.mrxiaom.doomsdayessentials.commands;
 
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -9,6 +8,7 @@ import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.gui.GuiTagListAll;
 import top.mrxiaom.doomsdayessentials.gui.GuiTagListPlayer;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
+import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +20,6 @@ public class CommandTGui extends ICommand {
 
 	@Override
 	public boolean onCommand(CommandSender sender, String label, String[] args, boolean isPlayer) {
-
 		if ((sender instanceof Player) && args.length > 0 && args[0].equalsIgnoreCase("open")) {
 			plugin.getGuiManager().openGui(new GuiTagListPlayer(plugin, (Player)sender, 1));
 		}
@@ -46,13 +45,8 @@ public class CommandTGui extends ICommand {
 			}
 		} else if (args.length == 2) {
 			if (args[0].equalsIgnoreCase("list")) {
-				OfflinePlayer player = null;
-				for (OfflinePlayer offline : Bukkit.getOfflinePlayers()) {
-					if (offline.getName().equals(args[1])) {
-						player = offline;
-					}
-				}
-				Map<Integer, String> playerAllTitle = new HashMap<Integer, String>();
+				OfflinePlayer player = Util.getOfflinePlayer(args[1]);
+				Map<Integer, String> playerAllTitle = new HashMap<>();
 				if (player != null) {
 					Map<Integer, String> titleMap = plugin.getTagConfig().getTagMap();
 					for (int titleId : titleMap.keySet()) {
@@ -70,5 +64,4 @@ public class CommandTGui extends ICommand {
 		}
 		return true;
 	}
-
 }

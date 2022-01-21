@@ -57,14 +57,14 @@ public class CommandTpdeny extends ICommand {
 		}
 		if (args.length == 0) {
 			if (requests.size() != 1) {
-				String str = I18n.t("teleport.multi-requests-deny", true);
+				StringBuilder str = new StringBuilder(I18n.t("teleport.multi-requests-deny", true));
 				for (TPRequest request : requests) {
 					String p1 = request.isTpahere() ? "你" : request.getSender().getName();
 					String p2 = request.isTpahere() ? request.getSender().getName() : "你";
-					str += "\n" + I18n.t("teleport.multi-requests-temp").replace("%player1%", p1)
-							.replace("%player2%", p2).replace("%time%", String.valueOf(request.getTime()));
+					str.append("\n").append(I18n.t("teleport.multi-requests-temp").replace("%player1%", p1)
+							.replace("%player2%", p2).replace("%time%", String.valueOf(request.getTime())));
 				}
-				player.sendMessage(str);
+				player.sendMessage(str.toString());
 				return true;
 			}
 			requests.get(0).reject();

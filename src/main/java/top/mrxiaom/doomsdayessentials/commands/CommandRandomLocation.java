@@ -70,6 +70,7 @@ public class CommandRandomLocation extends ICommand {
 					return true;
 				}
 				Zone zone = this.plugin.getRandomTPConfig().get(zoneName);
+				if(zone == null) return true;
 				for (String s : I18n.l("randomlocation.rloc-info")) {
 					sender.sendMessage(I18n.prefix() + s.replace("%zone%", zoneName)
 							.replace("%world%", zone.getWorld().getName()).replace("%x1%", String.valueOf(zone.getX1()))
@@ -104,16 +105,17 @@ public class CommandRandomLocation extends ICommand {
 					sender.sendMessage(I18n.t("randomlocation.nozone", true));
 					return true;
 				}
-				if ((args.length != 5 || args.length != 6) && !isPlayer) {
+				if (!isPlayer) {
 					return Util.noPlayer(sender);
 				}
 				Zone zone = this.plugin.getRandomTPConfig().get(zoneName);
-				if (args.length == 3 && isPlayer) {
+				if(zone == null) return true;
+				if (args.length == 3) {
 					Location loc = ((Player) sender).getLocation();
 					zone.setWorld(loc.getWorld()).setX1(loc.getBlockX()).setY1(loc.getBlockY()).setZ1(loc.getBlockZ())
 							.save();
 					sender.sendMessage(I18n.t("randomlocation.set-pos", true).replace("%zone%", zoneName)
-							.replace("%pos%", "1").replace("%world%", loc.getWorld().getName())
+							.replace("%pos%", "1").replace("%world%", loc.getWorld() != null ? loc.getWorld().getName() : "???")
 							.replace("%x%", String.valueOf(loc.getBlockX()))
 							.replace("%y%", String.valueOf(loc.getBlockY()))
 							.replace("%z%", String.valueOf(loc.getBlockZ())));
@@ -128,9 +130,9 @@ public class CommandRandomLocation extends ICommand {
 						zone.setWorld(world);
 					}
 					try {
-						int x = Integer.valueOf(args[2]);
-						int y = Integer.valueOf(args[3]);
-						int z = Integer.valueOf(args[4]);
+						int x = Integer.parseInt(args[2]);
+						int y = Integer.parseInt(args[3]);
+						int z = Integer.parseInt(args[4]);
 						zone.setX1(x).setY1(y).setZ1(z).save();
 						sender.sendMessage(
 								I18n.t("randomlocation.set-pos", true).replace("%zone%", zoneName).replace("%pos%", "1")
@@ -150,16 +152,17 @@ public class CommandRandomLocation extends ICommand {
 					sender.sendMessage(I18n.t("randomlocation.nozone", true));
 					return true;
 				}
-				if ((args.length != 5 || args.length != 6) && !isPlayer) {
+				if (!isPlayer) {
 					return Util.noPlayer(sender);
 				}
 				Zone zone = this.plugin.getRandomTPConfig().get(zoneName);
-				if (args.length == 3 && isPlayer) {
+				if(zone == null) return true;
+				if (args.length == 3) {
 					Location loc = ((Player) sender).getLocation();
 					zone.setWorld(loc.getWorld()).setX2(loc.getBlockX()).setY2(loc.getBlockY()).setZ2(loc.getBlockZ())
 							.save();
 					sender.sendMessage(I18n.t("randomlocation.set-pos", true).replace("%zone%", zoneName)
-							.replace("%pos%", "2").replace("%world%", loc.getWorld().getName())
+							.replace("%pos%", "2").replace("%world%", loc.getWorld() != null ? loc.getWorld().getName() : "???")
 							.replace("%x%", String.valueOf(loc.getBlockX()))
 							.replace("%y%", String.valueOf(loc.getBlockY()))
 							.replace("%z%", String.valueOf(loc.getBlockZ())));
@@ -174,9 +177,9 @@ public class CommandRandomLocation extends ICommand {
 						zone.setWorld(world);
 					}
 					try {
-						int x = Integer.valueOf(args[2]);
-						int y = Integer.valueOf(args[3]);
-						int z = Integer.valueOf(args[4]);
+						int x = Integer.parseInt(args[2]);
+						int y = Integer.parseInt(args[3]);
+						int z = Integer.parseInt(args[4]);
 						zone.setX2(x).setY2(y).setZ2(z).save();
 						sender.sendMessage(
 								I18n.t("randomlocation.set-pos", true).replace("%zone%", zoneName).replace("%pos%", "2")
@@ -201,6 +204,7 @@ public class CommandRandomLocation extends ICommand {
 						return true;
 					}
 					Zone zone = this.plugin.getRandomTPConfig().get(zoneName);
+					if(zone == null) return true;
 					Player player = (Player) sender;
 					try {
 						int xRange = Integer.parseInt(args[2]);
@@ -243,7 +247,9 @@ public class CommandRandomLocation extends ICommand {
 						sender.sendMessage(I18n.t("randomlocation.noworld", true));
 						return true;
 					}
-					this.plugin.getRandomTPConfig().get(zoneName).setWorld(world).save();
+					Zone zone = this.plugin.getRandomTPConfig().get(zoneName);
+					if(zone == null) return true;
+					zone.setWorld(world).save();
 					sender.sendMessage(I18n.t("randomlocation.set-world", true).replace("%zone%", zoneName)
 							.replace("%world%", world.getName()));
 					return true;
@@ -259,7 +265,9 @@ public class CommandRandomLocation extends ICommand {
 						sender.sendMessage(I18n.t("not-integer", true));
 						return true;
 					}
-					this.plugin.getRandomTPConfig().get(zoneName).setPrice(price).save();
+					Zone zone = this.plugin.getRandomTPConfig().get(zoneName);
+					if(zone == null) return true;
+					zone.setPrice(price).save();
 					sender.sendMessage(I18n.t("randomlocation.set-price", true).replace("%zone%", zoneName)
 							.replace("%money%", String.valueOf(price)));
 					return true;
@@ -274,9 +282,11 @@ public class CommandRandomLocation extends ICommand {
 					if (mode == null) {
 						sender.sendMessage(I18n.t("randomlocation.nomode", true));
 					}
-					this.plugin.getRandomTPConfig().get(zoneName).setMode(mode).save();
+					Zone zone = this.plugin.getRandomTPConfig().get(zoneName);
+					if(zone == null) return true;
+					zone.setMode(mode).save();
 					sender.sendMessage(I18n.t("randomlocation.set-mode", true).replace("%zone%", zoneName)
-							.replace("%mode%", mode.name()));
+							.replace("%mode%", mode != null ? mode.name() : "???"));
 					return true;
 				}
 			}
@@ -290,7 +300,11 @@ public class CommandRandomLocation extends ICommand {
 			return Util.noPerm(sender);
 		}
 		if (args.length == 2) {
-			Player player = Bukkit.getPlayer(args[0]);
+			Player player = Util.getOnlinePlayer(args[0]);
+			if(player == null){
+				sender.sendMessage(I18n.t("not-online", true));
+				return true;
+			}
 			String zoneName = args[0];
 			Zone zone = plugin.getRandomTPConfig().get(zoneName);
 			if (zone == null) {

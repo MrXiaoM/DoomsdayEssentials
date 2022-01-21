@@ -107,8 +107,4 @@ public class AutoMineChecker implements Listener{
 			tasks.put(player.getUniqueId(), task);
 		}
 	}
-	
-	public float numBewteen(float a, float b) {
-		return (a - b) * (a < b ? -1 : 1);
-	}
 }

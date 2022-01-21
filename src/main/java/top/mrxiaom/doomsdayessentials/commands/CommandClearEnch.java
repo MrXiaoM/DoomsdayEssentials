@@ -12,6 +12,8 @@ import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.NMSUtil;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
+import java.util.Objects;
+
 public class CommandClearEnch extends ICommand {
 	public CommandClearEnch(Main plugin) {
 		super(plugin, "clearench", new String[] {});
@@ -33,9 +35,7 @@ public class CommandClearEnch extends ICommand {
 					sender.sendMessage(I18n.t("clear-ench.air", true));
 					return true;
 				}
-				ItemMeta im = item.hasItemMeta() ? item.getItemMeta()
-						: NMSUtil.getMetaFormMaterial(item.getType());
-
+				ItemMeta im = Objects.requireNonNullElse(item.getItemMeta(), NMSUtil.getMetaFormMaterial(item.getType()));
 				if (!im.hasEnchants()) {
 					sender.sendMessage(I18n.t("clear-ench.no-ench", true));
 					return true;

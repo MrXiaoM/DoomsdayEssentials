@@ -49,6 +49,7 @@ public class LoginListener implements Listener {
 				LastSignInfo info = plugin.getPlayerConfig().getLastSignInfo(player.getName(), "xs");
 				if (info.signTime == null || info.times < 1) {
 					Kit kit = plugin.getKitConfig().get("xs");
+					if(kit == null) throw new NullPointerException("礼包不存在");
 					plugin.getPlayerConfig().setSign(player.getName(), "xs", SignTime.getNowTime()).saveConfig();
 					player.getInventory().addItem(kit.getItems());
 				}

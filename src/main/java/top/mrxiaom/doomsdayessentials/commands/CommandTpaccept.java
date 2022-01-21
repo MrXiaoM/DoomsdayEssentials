@@ -20,7 +20,7 @@ public class CommandTpaccept extends ICommand {
 
 	@Override
 	public List<String> onTabComplete(CommandSender sender, String[] args, boolean isPlayer) {
-		List<String> result = new ArrayList<String>();
+		List<String> result = new ArrayList<>();
 		if (!(sender instanceof Player))
 			return result;
 		result.add("ALL");
@@ -58,14 +58,14 @@ public class CommandTpaccept extends ICommand {
 
 		if (args.length == 1) {
 			if (args[0].equalsIgnoreCase("list")) {
-				String str = I18n.t("teleport.multi-requests-accept", true);
+				StringBuilder str = new StringBuilder(I18n.t("teleport.multi-requests-accept", true));
 				for (TPRequest request : requests) {
 					String p1 = request.isTpahere() ? "你" : request.getSender().getName();
 					String p2 = request.isTpahere() ? request.getSender().getName() : "你";
-					str += "\n" + I18n.t("teleport.multi-requests-temp").replace("%player1%", p1)
-							.replace("%player2%", p2).replace("%time%", String.valueOf(request.getTime()));
+					str.append("\n").append(I18n.t("teleport.multi-requests-temp").replace("%player1%", p1)
+							.replace("%player2%", p2).replace("%time%", String.valueOf(request.getTime())));
 				}
-				player.sendMessage(str);
+				player.sendMessage(str.toString());
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("all")) {
@@ -91,14 +91,14 @@ public class CommandTpaccept extends ICommand {
 			return true;
 		}
 		if (requests.size() > 1) {
-			String str = I18n.t("teleport.multi-requests-accept", true);
+			StringBuilder str = new StringBuilder(I18n.t("teleport.multi-requests-accept", true));
 			for (TPRequest request : requests) {
 				String p1 = request.isTpahere() ? "你" : request.getSender().getName();
 				String p2 = request.isTpahere() ? request.getSender().getName() : "你";
-				str += "\n" + I18n.t("teleport.multi-requests-temp").replace("%player1%", p1).replace("%player2%", p2)
-						.replace("%time%", String.valueOf(request.getTime()));
+				str.append("\n").append(I18n.t("teleport.multi-requests-temp").replace("%player1%", p1).replace("%player2%", p2)
+						.replace("%time%", String.valueOf(request.getTime())));
 			}
-			player.sendMessage(str);
+			player.sendMessage(str.toString());
 			return true;
 		}
 		if(plugin.getPlayerConfig().getConfig().getBoolean(player.getName() + ".tips-while-teleport", false)) {

@@ -80,12 +80,11 @@ public class I18n {
 		if (!config.isList("messages." + key))
 			return "[notlist:messages." + key + "]";
 		List<String> list = config.getStringList("messages." + key);
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		for (int i = 0; i < list.size(); i++) {
-			result = result + prefixStr + ChatColor.translateAlternateColorCodes('&', list.get(i))
-					+ (i < list.size() - 1 ? "\n" : "");
+			result.append(prefixStr).append(ChatColor.translateAlternateColorCodes('&', list.get(i))).append(i < list.size() - 1 ? "\n" : "");
 		}
-		return result;
+		return result.toString();
 	}
 
 	public static List<String> l(String key) {
@@ -100,7 +99,7 @@ public class I18n {
 			return Lists.newArrayList("[notfound:messages." + key + "]");
 		if (!config.isList("messages." + key))
 			return Lists.newArrayList("[notlist:messages." + key + "]");
-		List<String> result = new ArrayList<String>();
+		List<String> result = new ArrayList<>();
 		for (String s : config.getStringList("messages." + key)) {
 			result.add((prefix ? prefixStr : "") + ChatColor.translateAlternateColorCodes('&', s));
 		}

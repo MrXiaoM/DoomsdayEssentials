@@ -198,7 +198,6 @@ public class GuiBlockBaptism implements IGui {
 					player.sendMessage("§7[§9末日社团§7] §e洗炼结束了，但是返回了空的物品列表，这是一个BUG，请联系管理员");
 				}
 				this.flagClose = false;
-				return;
 			}
 		}
 		

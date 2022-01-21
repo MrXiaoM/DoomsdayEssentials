@@ -94,7 +94,7 @@ public class WarpConfig {
 		}
 	}
 
-	private Map<String, Warp> warpMap = new HashMap<String, Warp>();
+	private Map<String, Warp> warpMap = new HashMap<>();
 
 	public WarpConfig(Main plugin) {
 		this.plugin = plugin;
@@ -113,18 +113,16 @@ public class WarpConfig {
 	public List<String> getWarpNameList(int count, int page) {
 		// “节 省 资 源” 垃 圾 佬
 		int i = (page - 1) * count;
-		List<String> allWarpList = new ArrayList<String>();
+		List<String> allWarpList = new ArrayList<>();
 		if (warpMap.size() <= i)
 			return allWarpList;
-		for (String key : warpMap.keySet()) {
-			allWarpList.add(key);
-		}
+		allWarpList.addAll(warpMap.keySet());
 
 		if (page == 1 && allWarpList.size() < count) {
 			return allWarpList;
 		}
 
-		List<String> warps = new ArrayList<String>();
+		List<String> warps = new ArrayList<>();
 		for (; i < allWarpList.size(); i++) {
 			warps.add(allWarpList.get(i));
 		}
@@ -146,16 +144,11 @@ public class WarpConfig {
 	public List<Warp> getWarpList(int count, int page, boolean showHidden) {
 		// TODO 隐藏地标
 		int i = (page - 1) * count;
-		List<Warp> allWarpList = new ArrayList<Warp>();
+		List<Warp> allWarpList = new ArrayList<>();
 		if (warpMap.size() <= i || page < 1)
 			return allWarpList;
-		List<String> keySet = new ArrayList<String>(warpMap.keySet());
-		keySet.sort(new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				return Collator.getInstance(Locale.CHINESE).compare(o1, o2);
-			}
-		});
+		List<String> keySet = new ArrayList<>(warpMap.keySet());
+		keySet.sort((o1, o2) -> Collator.getInstance(Locale.CHINESE).compare(o1, o2));
 		for (String key : keySet) {
 			Warp w = warpMap.get(key);
 			if (!w.isHidden() || showHidden) {
@@ -167,7 +160,7 @@ public class WarpConfig {
 			return allWarpList;
 		}
 
-		List<Warp> warps = new ArrayList<Warp>();
+		List<Warp> warps = new ArrayList<>();
 		for (; i < i + count; i++) {
 			if (i >= allWarpList.size())
 				break;
@@ -177,11 +170,7 @@ public class WarpConfig {
 	}
 
 	public List<String> getAllWarps() {
-		List<String> allWarpList = new ArrayList<String>();
-		for (String key : warpMap.keySet()) {
-			allWarpList.add(key);
-		}
-		return allWarpList;
+		return new ArrayList<>(warpMap.keySet());
 	}
 
 	public int getPages() {
@@ -217,10 +206,11 @@ public class WarpConfig {
 			this.saveConfig();
 		}
 
-		this.warpMap = new HashMap<String, Warp>();
-		this.warpMap.clear();
+		this.warpMap = new HashMap<>();
 		if (configFile.exists()) {
-			for (File file : configFile.listFiles()) {
+			File[] files = configFile.listFiles();
+			if(files == null) return;
+			for (File file : files) {
 				try {
 					YamlConfiguration warpConfig = YamlConfiguration.loadConfiguration(file);
 					String name = warpConfig.getString("name");
@@ -233,8 +223,8 @@ public class WarpConfig {
 					float yaw = Util.getFloatFromConfig(warpConfig, "yaw");
 					float pitch = Util.getFloatFromConfig(warpConfig, "pitch");
 					this.warpMap.put(name, new Warp(name, worldName, x, y, z, yaw, pitch, hidden, material));
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
 		}
@@ -243,14 +233,15 @@ public class WarpConfig {
 	public void saveConfig() {
 		try {
 			if (!configFile.exists()) {
-				configFile.mkdirs();
+				if(!configFile.mkdirs()) throw new IOException("Can NOT create folder: " + configFile.getName());
 			}
-			List<String> files = new ArrayList<String>();
+			List<String> files = new ArrayList<>();
 			for (String key : warpMap.keySet()) {
 				try {
 					Warp warp = warpMap.get(key);
 					YamlConfiguration warpConfig = new YamlConfiguration();
 					Location location = warp.getLocation();
+					if(location.getWorld() == null) continue;
 					warpConfig.set("name", warp.getName());
 					warpConfig.set("icon", warp.getMaterial().name());
 					warpConfig.set("world", location.getWorld().getName());
@@ -262,13 +253,15 @@ public class WarpConfig {
 					warpConfig.set("hidden", warp.isHidden());
 					warpConfig.save(new File(configFile, warp.getName() + ".yml"));
 					files.add(warp.getName() + ".yml");
-				} catch (IllegalArgumentException e) {
-					continue;
+				} catch (Throwable t) {
+					// 收声
 				}
 			}
-			for (File file : configFile.listFiles()) {
+			File[] filelist = configFile.listFiles();
+			if(filelist == null) return;
+			for (File file : filelist) {
 				if (!files.contains(file.getName())) {
-					file.delete();
+					if(!file.delete()) throw new IOException("Can NOT delete file: " + file.getName());
 				}
 			}
 		} catch (IOException e) {

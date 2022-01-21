@@ -108,7 +108,6 @@ public class GuiBlockSmitch implements IGui {
 			}
 			if (event.getRawSlot() == 16) {
 				player.sendMessage("§7[§9末日社团§7] §c锻造系统暂未开放");
-				return;
 			}
 		}
 		

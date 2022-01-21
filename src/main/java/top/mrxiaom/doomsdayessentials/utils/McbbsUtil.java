@@ -107,13 +107,19 @@ public class McbbsUtil {
 		connection.setRequestProperty("user-agent",
 				"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36 Homo/114514.1919810 Edg/92.0.902.78");
 		BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), charset));
-		String line, content = "", uid = "", name = "", time = "", operation = "", term = "";
+		String line;
+		StringBuilder content = new StringBuilder();
+		String uid = "";
+		String name = "";
+		String time = "";
+		String operation = "";
+		String term = "";
 		while ((line = reader.readLine()) != null)
-			content += line;
+			content.append(line);
 		int i, j = 0, l = 0;
 		if ((i = content.indexOf("<table class=\"list\"")) < 0)
 			return list;
-		content = content.substring(i, content.indexOf("</table>", i)).replace("<td >", "<td>");
+		content = new StringBuilder(content.substring(i, content.indexOf("</table>", i)).replace("<td >", "<td>"));
 		i = content.indexOf("<td>");
 		while (i >= 0) {
 			i += 4;
@@ -140,7 +146,7 @@ public class McbbsUtil {
 						// 时限
 						term = text;
 						list.add(new ThreadOperation(uid, name, operation, time, term));
-						uid = name = operation = time = term = "";
+						uid = name = operation = time = "";
 					}
 				}
 				l++;
@@ -300,10 +306,11 @@ public class McbbsUtil {
 		connection.setRequestProperty("user-agent",
 				"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36 Homo/114514.1919810 Edg/92.0.902.78");
 		BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), charset));
-		String line, content = "";
+		String line;
+		StringBuilder content = new StringBuilder();
 		while ((line = reader.readLine()) != null)
-			content += line;
-		if (content.contains("<title>提示信息 -") && !content.contains("的个人资料"))
+			content.append(line);
+		if (content.toString().contains("<title>提示信息 -") && !content.toString().contains("的个人资料"))
 			return null;
 		String showUid = content.substring(content.indexOf("(UID: ") + 6,
 				content.indexOf(")", content.indexOf("(UID: ")));
@@ -401,7 +408,7 @@ public class McbbsUtil {
 
 	public static int strToInt(String s, int nullReturnValue) {
 		try {
-			return Integer.valueOf(s);
+			return Integer.parseInt(s);
 		} catch (NumberFormatException ex) {
 			return nullReturnValue;
 		}

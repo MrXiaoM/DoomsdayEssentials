@@ -14,11 +14,10 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.api.IGui;
 import top.mrxiaom.doomsdayessentials.configs.ParkourConfig.Parkour;
-import top.mrxiaom.doomsdayessentials.utils.NMSUtil;
+import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,12 +36,12 @@ public class GuiParkours implements IGui {
 
 	private static String getProcessBar(int process, int total, char processChar, int totalLength, char backColor,
 			char foreColor) {
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		double percent = (double) process / (double) total * (double) totalLength;
 		for (int i = 0; i < totalLength; i++) {
-			result += "§" + (i < percent ? foreColor : backColor) + processChar;
+			result.append(ChatColor.COLOR_CHAR).append(i < percent ? foreColor : backColor).append(processChar);
 		}
-		return result;
+		return result.toString();
 	}
 	@Override
 	public Player getPlayer() {
@@ -64,12 +63,7 @@ public class GuiParkours implements IGui {
 			// 进行中: 皮革靴子
 			// 已完成: 粘液块
 
-			ItemStack item = new ItemStack(checkpoint == -1 ? Material.GRASS_BLOCK
-					: checkpoint + 1 >= checkpoints.size() ? Material.SLIME_BLOCK : Material.LEATHER_BOOTS);
-			ItemMeta im = item.hasItemMeta() ? item.getItemMeta()
-					: NMSUtil.getMetaFormMaterial(item.getType());
-			im.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&b" + parkour.getDisplayName()));
-			List<String> lore = new ArrayList<String>();
+			List<String> lore = new ArrayList<>();
 			for (String s : parkour.getDescription()) {
 				lore.add(ChatColor.translateAlternateColorCodes('&', s));
 			}
@@ -80,22 +74,15 @@ public class GuiParkours implements IGui {
 			lore.add("");
 			lore.add("§a左键 §7| §f传送到该关卡起点");
 			lore.add("§0" + parkour.getRes());
-			im.setLore(lore);
-			item.setItemMeta(im);
+			ItemStack item = ItemStackUtil.buildItem(checkpoint == -1 ? Material.GRASS_BLOCK
+							: checkpoint + 1 >= checkpoints.size() ? Material.SLIME_BLOCK : Material.LEATHER_BOOTS,
+					ChatColor.translateAlternateColorCodes('&', "&b" + parkour.getDisplayName()),
+					lore);
 			inv.setItem(i, item);
 		}
 
-		ItemStack itemFrame = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-		ItemMeta im = itemFrame.hasItemMeta() ? itemFrame.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemFrame.getType());
-		im.setDisplayName(ChatColor.WHITE + "*");
-		itemFrame.setItemMeta(im);
-
-		ItemStack itemBack = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-		ItemMeta imBack = itemBack.hasItemMeta() ? itemBack.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemBack.getType());
-		imBack.setDisplayName(ChatColor.RED + "返回传送菜单");
-		itemBack.setItemMeta(imBack);
+		ItemStack itemFrame = ItemStackUtil.buildItem(Material.WHITE_STAINED_GLASS_PANE, "&f*");
+		ItemStack itemBack = ItemStackUtil.buildItem(Material.RED_STAINED_GLASS_PANE, "&c返回传送菜单");
 
 		inv.setItem(45, itemFrame);
 		inv.setItem(46, itemFrame);
@@ -119,14 +106,13 @@ public class GuiParkours implements IGui {
 			if (inv.getItem(event.getRawSlot()) == null) {
 				return;
 			}
-
+			// 跑酷关卡
 			if (event.getRawSlot() < 45) {
 				ItemStack item = inv.getItem(event.getRawSlot());
 				player.closeInventory();
-				if (item.getItemMeta() != null && item.getItemMeta().getLore() != null) {
-					List<String> lore = item.getItemMeta().getLore();
-					if (lore.size() > 0)
-						;
+				if (item != null) {
+					List<String> lore = ItemStackUtil.getItemLore(item);
+					if (lore.isEmpty()) return;
 					String res = lore.get(lore.size() - 1).substring(2);
 					if (res.length() > 0) {
 						ClaimedResidence residence = ResidenceApi.getResidenceManager().getByName(res);
@@ -143,11 +129,11 @@ public class GuiParkours implements IGui {
 			}
 			// 返回菜单
 			if (event.getRawSlot() == 49) {
-				if (inv.getItem(49).getType().equals(Material.RED_STAINED_GLASS_PANE)) {
+				ItemStack item49 = inv.getItem(49);
+				if (item49 != null && item49.getType().equals(Material.RED_STAINED_GLASS_PANE)) {
 					player.closeInventory();
 					Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "dm open 传送 " + player.getName());
 				}
-				return;
 			}
 		}
 	}

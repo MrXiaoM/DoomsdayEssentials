@@ -1,7 +1,7 @@
 package top.mrxiaom.doomsdayessentials.gui;
 
+import com.google.common.collect.Lists;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -17,10 +17,13 @@ import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.api.IGui;
 import top.mrxiaom.doomsdayessentials.configs.WarpConfig.Warp;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
+import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 import top.mrxiaom.doomsdayessentials.utils.NMSUtil;
+import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class GuiWarps implements IGui {
 	final Main plugin;
@@ -52,54 +55,28 @@ public class GuiWarps implements IGui {
 			Warp warp = warpList.get(i);
 			Location location = warp.getLocation();
 			ItemStack item = new ItemStack(warp.getMaterial());
-			ItemMeta im = item.hasItemMeta() ? item.getItemMeta()
-					: NMSUtil.getMetaFormMaterial(item.getType());
+			ItemMeta im = Objects.requireNonNullElse(item.getItemMeta(), NMSUtil.getMetaFormMaterial(item.getType()));
 			im.setDisplayName(I18n.t("warp.gui.items.name").replace("%warp%", warp.getName()));
-			List<String> lore = new ArrayList<String>();
-			lore.add(I18n.t("warp.gui.items.world").replace("%world%", location.getWorld().getName()));
+			List<String> lore = new ArrayList<>();
+			lore.add(I18n.t("warp.gui.items.world").replace("%world%", location.getWorld() != null ? location.getWorld().getName() : "???"));
 			im.setLore(lore);
 			item.setItemMeta(im);
 			inv.setItem(i, item);
 		}
 
-		ItemStack itemFrame = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-		ItemMeta im = itemFrame.hasItemMeta() ? itemFrame.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemFrame.getType());
-		im.setDisplayName(ChatColor.WHITE + "*");
-		itemFrame.setItemMeta(im);
+		String pages = "&0" + page;
 
-		ItemStack itemBack = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-		ItemMeta imBack = itemBack.hasItemMeta() ? itemBack.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemBack.getType());
-		imBack.setDisplayName(ChatColor.RED + "返回传送菜单");
-		itemBack.setItemMeta(imBack);
+		ItemStack itemFrame = ItemStackUtil.buildItem(Material.WHITE_STAINED_GLASS_PANE, "&f*");
 
-		ItemStack itemPrevPage = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-		ItemMeta imPrevPage = itemPrevPage.hasItemMeta() ? itemPrevPage.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemPrevPage.getType());
-		imPrevPage.setDisplayName(I18n.t("warp.gui.prev-page"));
-		List<String> lorePP = new ArrayList<String>();
-		if (page == 1) {
-			lorePP.add(I18n.t("warp.gui.no-prev-page"));
-		}
-		lorePP.add(ChatColor.BLACK + "" + page);
-		imPrevPage.setLore(lorePP);
+		ItemStack itemBack = ItemStackUtil.buildItem(Material.RED_STAINED_GLASS_PANE, I18n.t("warp.gui.back"));
 
-		itemPrevPage.setItemMeta(imPrevPage);
+		ItemStack itemPrevPage = ItemStackUtil.buildItem(Material.GREEN_STAINED_GLASS_PANE, I18n.t("warp.gui.prev-page"),
+				page <= 1 ? Lists.newArrayList(I18n.t("warp.gui.no-prev-page"), pages) : Lists.newArrayList(pages));
 
-		ItemStack itemNextPage = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-		ItemMeta imNextPage = itemNextPage.hasItemMeta() ? itemNextPage.getItemMeta()
-				: NMSUtil.getMetaFormMaterial(itemNextPage.getType());
-		imNextPage.setDisplayName(I18n.t("warp.gui.next-page"));
-		List<String> loreNP = new ArrayList<String>();
-		if (page == maxPages) {
-			loreNP.add(I18n.t("warp.gui.no-next-page"));
-		}
-		loreNP.add(ChatColor.BLACK + "" + page);
-		imNextPage.setLore(loreNP);
-		itemNextPage.setItemMeta(imNextPage);
+		ItemStack itemNextPage = ItemStackUtil.buildItem(Material.GREEN_STAINED_GLASS_PANE, I18n.t("warp.gui.next-page"),
+				page >= maxPages ? Lists.newArrayList(I18n.t("warp.gui.no-next-page"), pages) : Lists.newArrayList(pages));
 
-		inv.setItem(45, page == 1 ? itemFrame : itemPrevPage);
+		inv.setItem(45, page <= 1 ? itemFrame : itemPrevPage);
 		inv.setItem(46, itemFrame);
 		inv.setItem(47, itemFrame);
 		inv.setItem(48, itemFrame);
@@ -107,7 +84,7 @@ public class GuiWarps implements IGui {
 		inv.setItem(50, itemFrame);
 		inv.setItem(51, itemFrame);
 		inv.setItem(52, itemFrame);
-		inv.setItem(53, page == maxPages ? itemFrame : itemNextPage);
+		inv.setItem(53, page >= maxPages ? itemFrame : itemNextPage);
 		return inv;
 	}
 
@@ -123,16 +100,17 @@ public class GuiWarps implements IGui {
 
 			if (event.getRawSlot() < 45) {
 				ItemStack item = inv.getItem(event.getRawSlot());
-				if (item.hasItemMeta()) {
-					player.closeInventory();
-					Bukkit.dispatchCommand(player, "warp " + item.getItemMeta().getDisplayName().replace("§e", ""));
-				}
+				String displayName = ItemStackUtil.getItemDisplayName(item);
+				player.closeInventory();
+				Bukkit.dispatchCommand(player, "warp " + Util.removeColor(displayName));
+
 				return;
 			}
 
 			// 返回菜单
 			if (event.getRawSlot() == 49) {
-				if (inv.getItem(49).getType().equals(Material.RED_STAINED_GLASS_PANE)) {
+				ItemStack item49 = inv.getItem(49);
+				if (item49 != null && item49.getType().equals(Material.RED_STAINED_GLASS_PANE)) {
 					player.closeInventory();
 					Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "dm open 传送 " + player.getName());
 				}
@@ -156,7 +134,6 @@ public class GuiWarps implements IGui {
 				}
 				page = page + 1;
 				plugin.getGuiManager().openGui(this);
-				return;
 			}
 		}
 	}

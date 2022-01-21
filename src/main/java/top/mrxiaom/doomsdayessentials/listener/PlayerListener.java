@@ -7,12 +7,10 @@ import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.events.experience.McMMOPlayerExperienceEvent;
 import com.plotsquared.core.events.PlayerTeleportToPlotEvent;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.World.Environment;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -179,8 +177,8 @@ public class  PlayerListener implements Listener {
 		nf.setMaximumFractionDigits(1);
 		nf.setRoundingMode(RoundingMode.UP);
 		health = Double.parseDouble(nf.format(health));
-
-		player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(health);
+		AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+		if(maxHealth != null) maxHealth.setBaseValue(health);
 		// 升级之前在四十级以下 或 降级之后在40级以下 时进行通知
 		if ((now > old && old < 40) || (now < old && now < 40)) {
 			player.sendMessage("§7[§9末日社团§7] §6你的等级" + (now > old ? "§a提升" : "§c下降") + "§6到 " + now + " 了， "
@@ -191,11 +189,10 @@ public class  PlayerListener implements Listener {
 	@EventHandler
 	public void onPlayerHeal(EntityRegainHealthEvent event) {
 		if (event.getEntity() instanceof Player) {
-			Player player = Bukkit.getPlayer(((Player) event.getEntity()).getName());
-			if (player != null && player.isOnline() && !player.isDead()) {
+			Player player = (Player) event.getEntity();
+			if (player.isOnline() && !player.isDead()) {
 				if (player.getHealth() - event.getAmount() <= 4) {
-					if (plugin.getPlayerConfig().getConfig().getConfigurationSection(player.getName())
-							.getBoolean("curse", false)) {
+					if (plugin.getPlayerConfig().getConfig().getBoolean(player.getName() + ".curse", false)) {
 						player.sendTitle("§5诅咒", "§7§l§o但这需要付出代价…", 20, 60, 20);
 						player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 100, 0, true));
 						player.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 2, true));
@@ -209,11 +206,10 @@ public class  PlayerListener implements Listener {
 	@EventHandler
 	public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
 		if (event.getEntity() instanceof Player) {
-			Player player = Bukkit.getPlayer(((Player) event.getEntity()).getName());
-			if (player != null && player.isOnline() && !player.isDead()) {
+			Player player = (Player) event.getEntity();
+			if (player.isOnline() && !player.isDead()) {
 				if (player.getHealth() + event.getFinalDamage() > 4) {
-					if (plugin.getPlayerConfig().getConfig().getConfigurationSection(player.getName())
-							.getBoolean("curse", false)) {
+					if (plugin.getPlayerConfig().getConfig().getBoolean(player.getName() + ".curse", false)) {
 						player.sendTitle("§5诅咒", "§c§l§o禁忌神正给予你力量", 20, 60, 20);
 						player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 30, 4, true));
 					}
@@ -269,20 +265,23 @@ public class  PlayerListener implements Listener {
 			return;
 		}
 		ItemStack item = event.getItem();
-		ItemMeta im = item.getItemMeta();
-		if (im == null || !im.hasLore()) {
+		if(item == null) return;
+		String displayName = ItemStackUtil.getItemDisplayName(item);
+		List<String> lore = ItemStackUtil.getItemLore(item);
+		//ItemMeta im = item.getItemMeta();
+		if (lore.isEmpty()) {
 			return;
 		}
-		String s = im.getLore().get(im.getLore().size() - 1).toLowerCase();
+		String s = lore.get(lore.size() - 1).toLowerCase();
 		// 塔罗牌
 		if (s.toLowerCase().startsWith("§t§a§r§o§t")) {
 			if (isRightClicked) {
 				event.setCancelled(true);
-				String card = s.substring(10).replace("§", "");
-				if (event.getHand().equals(EquipmentSlot.HAND)) {
+				String card = ChatColor.translateAlternateColorCodes('&', s.substring(10));
+				if (event.getHand() != null && event.getHand().equals(EquipmentSlot.HAND)) {
 					player.getInventory().setItemInMainHand((item.getAmount() - 1 > 0) ? item : null);
 				}
-				if (event.getHand().equals(EquipmentSlot.OFF_HAND)) {
+				if (event.getHand() != null && event.getHand().equals(EquipmentSlot.OFF_HAND)) {
 					player.getInventory().setItemInOffHand((item.getAmount() - 1 > 0) ? item : null);
 				}
 				this.useTarotCard(player, card);
@@ -290,7 +289,7 @@ public class  PlayerListener implements Listener {
 		}
 		// 枪械
 		if (s.toLowerCase().startsWith("§g§u§n")) {
-			if (!event.getHand().equals(EquipmentSlot.HAND)) {
+			if (event.getHand() != null && !event.getHand().equals(EquipmentSlot.HAND)) {
 				return;
 			}
 			if ((event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.LEFT_CLICK_BLOCK))
@@ -308,6 +307,7 @@ public class  PlayerListener implements Listener {
 				String id = args[0].replace("§", "");
 				
 				NMSItemStack nms = NMSItemStack.fromBukkitItemStack(item);
+				if(nms == null) return;
 				int bullets = nms.getNBTTagInt("bullets", 0);
 				if (bullets < 1) {
 					player.sendMessage("§7[§9末日社团§7]§c 你的枪里没有子弹了 §7(Shift+左键填充子弹)");
@@ -319,7 +319,7 @@ public class  PlayerListener implements Listener {
 					return;
 				}
 				Gun gun = config.get(id);
-				if (plugin.getPlayerCooldownManager().isGunCooldown(player.getName(), id)) {
+				if (gun == null || plugin.getPlayerCooldownManager().isGunCooldown(player.getName(), id)) {
 					return;
 				}
 				plugin.getPlayerCooldownManager().setGunCooldown(player.getName(), id, gun.getDelay());
@@ -329,7 +329,7 @@ public class  PlayerListener implements Listener {
 				player.getInventory().setItemInMainHand(nms.toBukkitItemStack());
 				this.shoot(player, gun.getDamage(), gun.getSpeed(), gun.getSpread(), gun.getSound(), gun.getVolume(),
 						gun.getPitch());
-				Main.showPlayerBullets(player, im.getDisplayName(), bullets);
+				Main.showPlayerBullets(player, displayName, bullets);
 			}
 		}
 	}
@@ -424,10 +424,9 @@ public class  PlayerListener implements Listener {
 			return;
 		}
 		if (card.equalsIgnoreCase("6")) {
+			AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
 			// 治疗4生命
-			player.setHealth((player.getHealth() + 4 > player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()
-					? player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()
-					: (player.getHealth() + 4)));
+			player.setHealth((Math.min(player.getHealth() + 4, maxHealth != null ? maxHealth.getValue() : 20)));
 			player.sendTitle("§eVI§7 - §e恋人", "§o有情人终成眷属", 10, 100, 10);
 			return;
 		}
@@ -439,11 +438,10 @@ public class  PlayerListener implements Listener {
 			return;
 		}
 		if (card.equalsIgnoreCase("8")) {
-			// 治疗2生命，+1复活针，+100新币
-			player.setHealth((player.getHealth() + 4 > player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()
-					? player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()
-					: (player.getHealth() + 4)));
-			plugin.getPlayerConfig().addNeedle(player.getName(), 1);
+			// 治疗4生命，+100新币
+			AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+			// 治疗4生命
+			player.setHealth((Math.min(player.getHealth() + 4, maxHealth != null ? maxHealth.getValue() : 20)));
 			plugin.getEcoApi().depositPlayer(player, 100);
 			player.sendTitle("§eVIII§7 - §e正义", "§o末日里还存在正义吗?", 10, 100, 10);
 			return;
@@ -465,7 +463,8 @@ public class  PlayerListener implements Listener {
 			return;
 		}
 		if (card.equalsIgnoreCase("11")) {
-			player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() / 3 * 2);
+			AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+			player.setHealth((maxHealth != null ? maxHealth.getValue() : 20) / 3 * 2);
 			player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 15 * 20, 2));
 			player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 15 * 20, 3));
 			player.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, 8 * 20, 1));
@@ -521,6 +520,7 @@ public class  PlayerListener implements Listener {
 		Player player = event.getPlayer();
 		Location from = event.getFrom();
 		Location to = event.getTo();
+		if(to == null) return;
 		if(!player.isFlying() && to.getY() < 0) {
 			for(int i = 0; i < player.getInventory().getSize(); i++) {
 				ItemStack item = player.getInventory().getItem(i);
@@ -533,7 +533,8 @@ public class  PlayerListener implements Listener {
 					}
 					player.setNoDamageTicks(60);
 					player.setFallDistance(0);
-					player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+					AttributeInstance maxHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+					player.setHealth(maxHealth != null ? maxHealth.getValue() : 20);
 					player.teleport(new Location(Bukkit.getWorld("spawn"), 192.5, 64, -64.5, 180, 0));
 					player.sendTitle("§9§o虚无之境", "§d你已被送回主城", 10, 40, 10);
 					break;
@@ -608,8 +609,6 @@ public class  PlayerListener implements Listener {
 			return;
 		Player player = event.getPlayer();
 		ItemStack item = player.getInventory().getItemInMainHand();
-		if (item == null)
-			return;
 		ItemMeta im = item.getItemMeta();
 		if (im == null || !im.hasLore() || im.getLore() == null)
 			return;

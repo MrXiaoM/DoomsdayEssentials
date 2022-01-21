@@ -29,7 +29,6 @@ public abstract class AbstractCommand {
 	
 	/**
 	 * 将命令转换成可在Bukkit注册的命令
-	 * @return
 	 */
 	public PluginCommand toPluginCommand() {
 		try {

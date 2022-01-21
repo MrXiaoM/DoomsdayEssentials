@@ -68,6 +68,7 @@ public class SpaceUtil {
 		Vector unit = v.clone();
 		List<Block> result = new ArrayList<>();
 		for (int i = 0; i <= length; i++) {
+			if(loc.getWorld() == null) continue;
 			Block b = loc.getWorld().getBlockAt(loc.getBlockX() + v.getBlockX(), loc.getBlockY() + v.getBlockY() + 1,
 					loc.getBlockZ() + v.getBlockZ());
 			result.add(b);
@@ -123,7 +124,7 @@ public class SpaceUtil {
 			return false;
 		Sign sign = (Sign) block.getState();
 		for (String s : sign.getLines()) {
-			if (s != null && s.contains(content))
+			if (s.contains(content))
 				return true;
 		}
 		return false;
@@ -134,7 +135,7 @@ public class SpaceUtil {
 			return false;
 		Sign sign = (Sign) block.getState();
 		for (String s : sign.getLines()) {
-			if (s != null && s.toLowerCase().contains(content.toLowerCase()))
+			if (s.toLowerCase().contains(content.toLowerCase()))
 				return true;
 		}
 		return false;
@@ -145,7 +146,7 @@ public class SpaceUtil {
 			return false;
 		Sign sign = (Sign) block.getState();
 		for (String s : sign.getLines()) {
-			if (s != null && s.startsWith(content))
+			if (s.startsWith(content))
 				return true;
 		}
 		return false;
@@ -156,7 +157,7 @@ public class SpaceUtil {
 			return false;
 		Sign sign = (Sign) block.getState();
 		for (String s : sign.getLines()) {
-			if (s != null && s.toLowerCase().startsWith(content.toLowerCase()))
+			if (s.toLowerCase().startsWith(content.toLowerCase()))
 				return true;
 		}
 		return false;

@@ -88,7 +88,7 @@ public class CommandSeen extends ICommand {
 			sender.sendMessage("§7[§9末日社团§7] §6玩家 §b" + playerName + " §6已§4离线 " + time);
 			try {
 				List<Punishment> pList = PunishmentManager.get().getPunishments(SQLQuery.SELECT_ALL_PUNISHMENTS_LIMIT,
-						new java.lang.Object[] { 150 });
+						150);
 				for (Punishment p : pList) {
 					if (p.getName().equalsIgnoreCase(playerName)) {
 						sender.sendMessage("§7[§9末日社团§7] §6该玩家正在被处罚中\n" + "§7[§9末日社团§7] 处罚类型: §c"

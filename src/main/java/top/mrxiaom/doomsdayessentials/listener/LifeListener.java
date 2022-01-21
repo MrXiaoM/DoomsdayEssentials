@@ -31,9 +31,9 @@ import java.util.Map;
 
 public class LifeListener implements Listener {
 	final Main olugin;
-	private final Map<String, DeathDetail> forceRespawn = new HashMap<String, DeathDetail>();
-	private final List<String> banKick = new ArrayList<String>();
-	private final List<String> respawnTokenTemp = new ArrayList<String>();
+	private final Map<String, DeathDetail> forceRespawn = new HashMap<>();
+	private final List<String> banKick = new ArrayList<>();
+	private final List<String> respawnTokenTemp = new ArrayList<>();
 	public LifeListener(Main plugin) {
 		this.olugin = plugin;
 		Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -90,8 +90,7 @@ public class LifeListener implements Listener {
 	
 	@EventHandler
 	public void onGravePlayerDeath(GravePlayerDeathEvent event) {
-		if (event.getEntity() != null && event.getEntity().getType() != null
-				&& !event.getEntity().getType().equals(EntityType.PLAYER))
+		if (event.getEntity() == null || !event.getEntity().getType().equals(EntityType.PLAYER))
 			return;
 		Player player = (Player) event.getEntity();
 		if (getPVPArea(player) != null || this.hasRespawnToken(player)) {
@@ -112,7 +111,7 @@ public class LifeListener implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onPlayerDeath(PlayerDeathEvent e) {
-		Player p = (Player) e.getEntity();
+		Player p = e.getEntity();
 		String worldName = p.getWorld().getName();
 		// 在pvp场地死亡不扣复活针
 		ClaimedResidence pvp = getPVPArea(p);
@@ -155,8 +154,9 @@ public class LifeListener implements Listener {
 		String playerName = player.getName();
 		event.setRespawnLocation(new Location(Bukkit.getWorld("spawn"), 192.5, 64, -64.5, 180, 0));
 		
-			World fromWorld = player.getLocation().getWorld();
-			World toWorld = event.getRespawnLocation().getWorld();
+		World fromWorld = player.getLocation().getWorld();
+		World toWorld = event.getRespawnLocation().getWorld();
+		if(fromWorld != null && toWorld != null) {
 			// 如果来自开放世界
 			if (fromWorld.getName().equalsIgnoreCase(olugin.getOpenWorldListener().openWorldName)
 					&& !toWorld.getName().equalsIgnoreCase(olugin.getOpenWorldListener().openWorldName)) {
@@ -164,12 +164,12 @@ public class LifeListener implements Listener {
 				olugin.getOpenWorldListener().switchInventory(event.getPlayer(), InventoryType.vanilla);
 			}
 			// 如果来自原版世界
-			else if (toWorld.getName().equalsIgnoreCase(olugin.getOpenWorldListener().openWorldName)
+			if (toWorld.getName().equalsIgnoreCase(olugin.getOpenWorldListener().openWorldName)
 					&& !fromWorld.getName().equalsIgnoreCase(olugin.getOpenWorldListener().openWorldName)) {
 				// 切换为开放世界背包
 				olugin.getOpenWorldListener().switchInventory(event.getPlayer(), InventoryType.openworld);
 			}
-
+		}
 		
 		if (this.forceRespawn.containsKey(playerName)) {
 			DeathDetail detail = this.forceRespawn.get(playerName);
@@ -190,7 +190,6 @@ public class LifeListener implements Listener {
 		if (banKick.contains(playerName)) {
 			player.kickPlayer(I18n.tn("respawnneedle.death.ban-message"));
 			banKick.remove(playerName);
-			return;
 		}
 	}
 
