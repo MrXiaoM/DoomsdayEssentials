@@ -26,7 +26,6 @@ public class ReviveMe implements Listener {
         this.cache = YamlConfiguration.loadConfiguration(this.cacheFile);
         this.configFile = new File(plugin.getDataFolder(), "reviveme.yml");
         this.config = YamlConfiguration.loadConfiguration(this.configFile);
-        onEnable();
     }
 
     public ReviveManager getManager(){
@@ -42,22 +41,20 @@ public class ReviveMe implements Listener {
     }
 
     public void onEnable() {
-        if (!this.configFile.exists()) {
-            this.reloadConfig();
-            this.config.options().copyDefaults(true);
-            this.saveConfig();
-        }
+        this.reloadConfig();
 
         Bukkit.getPluginManager().registerEvents(this, plugin);
         Bukkit.getPluginManager().registerEvents(new EventsListener(), plugin);
         Bukkit.getConsoleSender().sendMessage("§aReviveMe enable");
         if (reviveManagerFile.exists()) {
-            manager = (ReviveManager) Util.readObjectFromFile(reviveManagerFile).orElse(null);
-            if(manager == null) manager = new ReviveManager();
+            //manager = (ReviveManager) Util.readObjectFromFile(reviveManagerFile).orElse(null);
+            //if(manager == null)
+            manager = new ReviveManager();
         }
         else {
             manager = new ReviveManager();
         }
+        manager.onStart();
 
         if (this.config.getString("relivedHealth") == null) {
             this.config.set("relivedHealth", 0.5D);
@@ -102,11 +99,26 @@ public class ReviveMe implements Listener {
     }
 
     public void reloadConfig(){
-
+        try{
+            if(!configFile.exists()){
+                plugin.saveResource("reviveme.yml", true);
+            }
+            config = YamlConfiguration.loadConfiguration(configFile);
+        }catch(Throwable t){
+            t.printStackTrace();
+        }
     }
 
     public void saveConfig(){
-
+        try {
+            if(config == null){
+                plugin.saveResource("reviveme.yml", true);
+                return;
+            }
+            config.save(configFile);
+        }catch (Throwable t){
+            t.printStackTrace();
+        }
     }
 
     public void debug(String message) {

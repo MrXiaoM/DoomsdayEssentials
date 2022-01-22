@@ -217,7 +217,12 @@ public class LifeListener implements Listener {
 		@Override
 		public void run() {
 			Player player = this.plugin.getServer().getPlayer(this.playerName);
-			NMSUtil.respawnPlayer(player);
+			try {
+				player.spigot().respawn();
+			} catch(Throwable t){
+				t.printStackTrace();
+				NMSUtil.respawnPlayer(player);
+			}
 		}
 	}
 }

@@ -40,6 +40,7 @@ public class BotMsgListener implements Listener {
 
     @EventHandler
     public void onPlayerLogin(PlayerLoginEvent event){
+        if(event.getPlayer().isOp()) return;
         String tag = Util.removeColor(plugin.getTagConfig().getPlayerTag(event.getPlayer().getName()));
         Bot.getApi().getGroup(951534513L).sendMessage(tag + " " + event.getPlayer().getName() + " 上线啦!");
     }

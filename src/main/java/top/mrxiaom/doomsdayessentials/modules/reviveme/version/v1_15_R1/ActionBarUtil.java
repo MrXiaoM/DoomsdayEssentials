@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ActionBarUtil implements IActionBarUtil {
-    private static final Map PENDING_MESSAGES = new HashMap();
+    private static final Map<Player, BukkitTask> PENDING_MESSAGES = new HashMap<>();
 
     public void sendActionBarMessage(Player bukkitPlayer, String message) {
         this.sendRawActionBarMessage(bukkitPlayer, "{\"text\": \"" + message + "\"}");
@@ -47,8 +47,7 @@ public class ActionBarUtil implements IActionBarUtil {
 
     public void cancelPendingMessages(Player bukkitPlayer) {
         if (PENDING_MESSAGES.containsKey(bukkitPlayer)) {
-            ((BukkitTask) PENDING_MESSAGES.get(bukkitPlayer)).cancel();
+            PENDING_MESSAGES.get(bukkitPlayer).cancel();
         }
-
     }
 }

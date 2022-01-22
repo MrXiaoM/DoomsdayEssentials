@@ -18,23 +18,22 @@ import top.mrxiaom.doomsdayessentials.modules.reviveme.utils.Spigboard;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.utils.SpigboardEntry;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.utils.VectorUtils;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.version.ISendPlay;
+import top.mrxiaom.doomsdayessentials.utils.NMSUtil;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import java.io.File;
 import java.util.*;
 
 public class ReviveManager {
-    ReviveMe plugin = ReviveMe.getInstance();
     ISendPlay isendPlay = null;
     IActionBarUtil iactionbarutil = null;
     String packageName = Bukkit.getServer().getClass().getPackage().getName();
-    String spigot = packageName.substring(packageName.lastIndexOf(46) + 1);
+    String spigot = NMSUtil.getNMSVersion();
     public Map<Player, Integer> relivingCount = new HashMap<>();
     public Map<Player, Player> relivingPlayer = new HashMap<>();
     public Map<Player, Player> relivingPlayerOther = new HashMap<>();
     public List<Player> playersPose = new ArrayList<>();
     public Map<Player, Spigboard> board1 = new HashMap<>();
-    //public Map<Player, Spigboard> board2 = new HashMap<>();
     public Map<Player, EntityDamageEvent> damageEvents = new HashMap<>();
     public Map<Player, Float> oldSpeed = new HashMap<>();
     public List<String> disableWorlds = new ArrayList<>();
@@ -48,21 +47,21 @@ public class ReviveManager {
     public int secondvalue = 0;
     public List<Player> debugPlayers = new ArrayList<>();
     public List<Player> forcedDeath = new ArrayList<>();
-    String boardTitle = plugin.getConfig().getString("scoreboard.title");
-    String boardStatus = plugin.getConfig().getString("scoreboard.status");
-    String boardWaiting = plugin.getConfig().getString("scoreboard.waiting");
-    String boardReliving = plugin.getConfig().getString("scoreboard.reliving");
-    String boardDeathIn = plugin.getConfig().getString("scoreboard.deathIn");
-    String boardInvulnerableFor = plugin.getConfig().getString("scoreboard.invulnerableFor");
-    String boardVulnerable = plugin.getConfig().getString("scoreboard.vulnerable");
-    float speed = Util.getFloatFromConfig(plugin.getConfig(), "playersConfig.speed", 0.04F);
-    String title = plugin.getConfig().getString("title.title");
-    String subTitle = plugin.getConfig().getString("title.subTitle");
+    String boardTitle = "&4&l[&e&l我已重伤倒地&4&l]";
+    String boardStatus = "&f状态: ";
+    String boardWaiting = "&c等死中";
+    String boardReliving = "&a救助中";
+    String boardDeathIn = "&f死亡倒数 &a<TIME>";
+    String boardInvulnerableFor = "&f无敌时间 &a<TIME>";
+    String boardVulnerable = "&c脆弱";
+    float speed = 0.04F;
+    String title = "&f状态 : <STATUS> <BAR>";
+    String subTitle = "&f死亡倒计时: &a<DEATHTIME> &f<INVULNERABILITY>";
     int relivingTime = 10;
     boolean firstTotem = false;
-    boolean potionEnable = plugin.getConfig().getBoolean("potion.enable");
-    String potionEffect = plugin.getConfig().getString("potion.effect");
-    int potionLevel = plugin.getConfig().getInt("potion.level");
+    boolean potionEnable = true;
+    String potionEffect = "BLINDNESS";
+    int potionLevel = 1;
 
     int invulnerability;
     boolean enableWorldsEnable;
@@ -70,14 +69,18 @@ public class ReviveManager {
     public ReviveManager() {
         
     }
+
+    FileConfiguration cfg;
     public void onStart() {
-        disableWorlds = plugin.getConfig().getStringList("disableWorlds");
+        ReviveMe reviveMe = ReviveMe.getInstance();
+        cfg = reviveMe.getConfig();
+        disableWorlds = cfg.getStringList("disableWorlds");
 
         saveNewConfig("permissions.revivePlayerEnablePermission", false);
         saveNewConfig("permissions.reviveVictimEnablePermission", false);
         saveNewConfig("totem-first", false);
-        plugin.saveConfig();
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin.getPlugin(), () -> {
+        ReviveMe.getInstance().saveConfig();
+        Bukkit.getScheduler().scheduleSyncRepeatingTask(ReviveMe.getInstance().getPlugin(), () -> {
             for (int i = 0; i < playersPose.size(); ++i) {
                 Player p = playersPose.get(i);
                 List<Player> var3 = VectorUtils.getNear(100.0D, p);
@@ -108,26 +111,26 @@ public class ReviveManager {
             var2.printStackTrace();
         }
 
-        enableWorldsEnable = plugin.getConfig().getBoolean("enableWorldsEnable");
-        disableWorldsEnable = plugin.getConfig().getBoolean("disbleWorldsEnable");
-        invulnerability = plugin.getConfig().getInt("delays.invulnerabilityDelay");
-        enableWorlds = plugin.getConfig().getStringList("enableWorlds");
-        disableWorlds = plugin.getConfig().getStringList("disableWorlds");
-        if (plugin.getConfig().getString("relivingTime") == null) {
-            plugin.getConfig().set("relivingTime", "10");
+        enableWorldsEnable = cfg.getBoolean("enableWorldsEnable");
+        disableWorldsEnable = cfg.getBoolean("disbleWorldsEnable");
+        invulnerability = cfg.getInt("delays.invulnerabilityDelay");
+        enableWorlds = cfg.getStringList("enableWorlds");
+        disableWorlds = cfg.getStringList("disableWorlds");
+        if (cfg.getString("relivingTime") == null) {
+            cfg.set("relivingTime", "10");
         }
 
-        relivingTime = plugin.getConfig().getInt("relivingTime");
-        firstTotem = plugin.getConfig().getBoolean("totem-first");
-        potionEnable = plugin.getConfig().getBoolean("potion.enable");
-        potionEffect = plugin.getConfig().getString("potion.effect").toLowerCase();
-        potionLevel = plugin.getConfig().getInt("potion.level");
-        disable_message = plugin.getConfig().getBoolean("newVersionPremiumMessageDisable", false);
+        relivingTime = cfg.getInt("relivingTime");
+        firstTotem = cfg.getBoolean("totem-first");
+        potionEnable = cfg.getBoolean("potion.enable");
+        potionEffect = cfg.getString("potion.effect").toLowerCase();
+        potionLevel = cfg.getInt("potion.level");
+        disable_message = cfg.getBoolean("newVersionPremiumMessageDisable", false);
     }
 
     public void startPose(Player p, String cause) {
         debug("Downed, " + cause);
-        int deathd = plugin.getConfig().getInt("delays.deathDelay");
+        int deathd = cfg.getInt("delays.deathDelay");
         p.setSwimming(true);
         p.setSprinting(true);
         playersPose.add(p);
@@ -144,11 +147,11 @@ public class ReviveManager {
             vehicle.eject();
         }
 
-        if (plugin.getConfig().getBoolean("info.title")) {
-            p.sendTitle(plugin.getConfig().getString("title.title").replace("<STATUS>", boardWaiting).replace("<BAR>", "§7██████████").replace("&", "§"), plugin.getConfig().getString("title.subTitle").replace("<DEATHTIME>", getDeathCountText(deathd)).replace("<INVULNERABILITY>", boardInvulnerableFor.replace("&", "§").replace("<TIME>", getDeathCountText(invulnerability))).replace("&", "§"), 1, 200, 1);
+        if (cfg.getBoolean("info.title")) {
+            p.sendTitle(cfg.getString("title.title").replace("<STATUS>", boardWaiting).replace("<BAR>", "§7██████████").replace("&", "§"), cfg.getString("title.subTitle").replace("<DEATHTIME>", getDeathCountText(deathd)).replace("<INVULNERABILITY>", boardInvulnerableFor.replace("&", "§").replace("<TIME>", getDeathCountText(invulnerability))).replace("&", "§"), 1, 200, 1);
         }
 
-        if (plugin.getConfig().getBoolean("info.scoreboard")) {
+        if (cfg.getBoolean("info.scoreboard")) {
             Spigboard b1;
             if (!board1.containsKey(p)) {
                 b1 = new Spigboard(boardTitle.replace("&", "§"));
@@ -180,8 +183,8 @@ public class ReviveManager {
             }
         }
 
-        plugin.cache.set("players." + p.getName() + ".oldSpeed", oldSpeed.get(p));
-        plugin.saveCache();
+        ReviveMe.getInstance().cache.set("players." + p.getName() + ".oldSpeed", oldSpeed.get(p));
+        ReviveMe.getInstance().saveCache();
         setPotion(p);
     }
 
@@ -193,11 +196,11 @@ public class ReviveManager {
         debug("Revived, " + cause);
         float ospeed = 0.19F;
         boolean aospeed = false;
-        if (plugin.cacheFile.exists() && plugin.cache.getString("players." + p.getName() + ".oldSpeed") != null) {
-            ospeed = (float) plugin.cache.getDouble("players." + p.getName() + ".oldSpeed");
+        if (ReviveMe.getInstance().cacheFile.exists() && ReviveMe.getInstance().cache.getString("players." + p.getName() + ".oldSpeed") != null) {
+            ospeed = (float) ReviveMe.getInstance().cache.getDouble("players." + p.getName() + ".oldSpeed");
             aospeed = true;
-            plugin.cache.set("players." + p.getName() + ".oldSpeed", null);
-            plugin.saveCache();
+            ReviveMe.getInstance().cache.set("players." + p.getName() + ".oldSpeed", null);
+            ReviveMe.getInstance().saveCache();
         }
 
         p.setWalkSpeed(oldSpeed.get(p));
@@ -217,25 +220,25 @@ public class ReviveManager {
         invulnerabilityDelay.remove(p);
         relivingList.remove(p);
 
-        if (plugin.getConfig().getBoolean("info.scoreboard")) {
+        if (cfg.getBoolean("info.scoreboard")) {
             p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
         }
 
         deathDelay.remove(p);
-        if (plugin.getConfig().getBoolean("info.title")) {
+        if (cfg.getBoolean("info.title")) {
             p.sendTitle("", "");
         }
 
         List<Player> others = VectorUtils.getNear(100.0D, p);
         isendPlay.playStand(p, others);
-        if (plugin.cacheFile.exists() && plugin.cache.getString("players." + p.getName() + ".oldSpeed") != null) {
-            plugin.cache.set("players." + p.getName() + ".oldSpeed", null);
-            plugin.saveCache();
+        if (ReviveMe.getInstance().cacheFile.exists() && ReviveMe.getInstance().cache.getString("players." + p.getName() + ".oldSpeed") != null) {
+            ReviveMe.getInstance().cache.set("players." + p.getName() + ".oldSpeed", null);
+            ReviveMe.getInstance().saveCache();
         }
 
         double health = 0.5D;
-        if (plugin.getConfig().getString("relivedHealth") != null) {
-            health = plugin.getConfig().getDouble("relivedHealth");
+        if (cfg.getString("relivedHealth") != null) {
+            health = cfg.getDouble("relivedHealth");
         }
 
         if (!p.isDead()) {
@@ -260,7 +263,7 @@ public class ReviveManager {
 
     public void sendActionBar(Player p, String text, int duration, Boolean time) {
         if (time) {
-            iactionbarutil.sendActionBarMessage(p, text, duration, plugin.getPlugin());
+            iactionbarutil.sendActionBarMessage(p, text, duration, ReviveMe.getInstance().getPlugin());
         } else {
             iactionbarutil.sendActionBarMessage(p, text);
         }
@@ -279,9 +282,9 @@ public class ReviveManager {
     }
 
     public void startReliving(Player p, Player p2) {
-        p.sendMessage(plugin.getConfig().getString("messages.reliving.player").replace("&", "§").replace("<VICTIM>", p2.getName()));
-        p2.sendMessage(plugin.getConfig().getString("messages.reliving.victim").replace("&", "§").replace("<PLAYER>", p.getName()));
-        if (plugin.getConfig().getBoolean("info.scoreboard")) {
+        p.sendMessage(cfg.getString("messages.reliving.player").replace("&", "§").replace("<VICTIM>", p2.getName()));
+        p2.sendMessage(cfg.getString("messages.reliving.victim").replace("&", "§").replace("<PLAYER>", p.getName()));
+        if (cfg.getBoolean("info.scoreboard")) {
             Spigboard b1 = board1.get(p2);
             b1.add(p);
         }
@@ -294,9 +297,9 @@ public class ReviveManager {
 
     public void cancelReliving(Player p, Player p2) {
         if (relivingCount.containsKey(p2) && relivingPlayer.containsKey(p)) {
-            p.sendMessage(plugin.getConfig().getString("messages.cancelReliving.player").replace("&", "§").replace("<VICTIM>", p2.getName()));
-            p2.sendMessage(plugin.getConfig().getString("messages.cancelReliving.victim").replace("&", "§").replace("<PLAYER>", p.getName()));
-            if (plugin.getConfig().getBoolean("info.scoreboard")) {
+            p.sendMessage(cfg.getString("messages.cancelReliving.player").replace("&", "§").replace("<VICTIM>", p2.getName()));
+            p2.sendMessage(cfg.getString("messages.cancelReliving.victim").replace("&", "§").replace("<PLAYER>", p.getName()));
+            if (cfg.getBoolean("info.scoreboard")) {
                 Spigboard b1 = board1.get(p2);
                 SpigboardEntry score = b1.getEntry("count");
                 SpigboardEntry score2 = b1.getEntry("status");
@@ -353,7 +356,7 @@ public class ReviveManager {
             Player p2 = relivingPlayerOther.get(p);
             if (p2 != null) {
                 int value = relivingCount.get(p);
-                if (plugin.getConfig().getBoolean("info.scoreboard")) {
+                if (cfg.getBoolean("info.scoreboard")) {
                     Spigboard b1 = board1.get(p);
                     SpigboardEntry score = b1.getEntry("count");
                     SpigboardEntry score2 = b1.getEntry("status");
@@ -367,16 +370,16 @@ public class ReviveManager {
 
                 p2.spawnParticle(Particle.HEART, p.getLocation(), 1);
                 Random r = new Random();
-                invulnerability = plugin.getConfig().getInt("sounds.reliving");
+                invulnerability = cfg.getInt("sounds.reliving");
                 if (invulnerability > 9) {
                     invulnerability = 1;
                 }
-                p2.playNote(p2.getLocation(), Instrument.values()[invulnerability], Note.natural(1 + r.nextInt(20), Note.Tone.C));
-                p.playNote(p2.getLocation(), Instrument.values()[invulnerability], Note.natural(1 + r.nextInt(20), Note.Tone.C));
-
-                //p2.playNote(p2.getLocation(), (byte) invulnerability, (byte) (r.nextInt(20) + 1));
-                //p.playNote(p2.getLocation(), (byte) invulnerability, (byte) (r.nextInt(20) + 1));
-                if (plugin.getConfig().getBoolean("info.title")) {
+                //p2.playNote(p2.getLocation(), Instrument.values()[invulnerability], Note.natural(1 + r.nextInt(20), Note.Tone.F));
+                //p.playNote(p2.getLocation(), Instrument.values()[invulnerability], Note.natural(1 + r.nextInt(20), Note.Tone.F));
+                // 能用就行，who care
+                p2.playNote(p2.getLocation(), (byte) invulnerability, (byte) (r.nextInt(20) + 1));
+                p.playNote(p2.getLocation(), (byte) invulnerability, (byte) (r.nextInt(20) + 1));
+                if (cfg.getBoolean("info.title")) {
                     p2.sendTitle(getCountText(value), "", 1, 20, 1);
                 }
 
@@ -384,14 +387,14 @@ public class ReviveManager {
                     relivingCount.remove(p);
                     relivingPlayer.remove(p2);
                     endPose(p, "For player. code: 008");
-                    p.sendMessage(plugin.getConfig().getString("messages.revivedSuccessfully.victim").replace("&", "§").replace("<PLAYER>", p2.getName()));
-                    p2.sendMessage(plugin.getConfig().getString("messages.revivedSuccessfully.player").replace("&", "§").replace("<VICTIM>", p.getName()));
-                    if (plugin.getConfig().getBoolean("info.scoreboard")) {
+                    p.sendMessage(cfg.getString("messages.revivedSuccessfully.victim").replace("&", "§").replace("<PLAYER>", p2.getName()));
+                    p2.sendMessage(cfg.getString("messages.revivedSuccessfully.player").replace("&", "§").replace("<VICTIM>", p.getName()));
+                    if (cfg.getBoolean("info.scoreboard")) {
                         p2.setScoreboard(Bukkit.getServer().getScoreboardManager().getMainScoreboard());
                     }
 
-                    p.playSound(p.getLocation(), Sound.valueOf(plugin.getConfig().getString("sounds.revivedSuccessfully").toUpperCase()), 1.0F, 1.0F);
-                    p.playSound(p.getLocation(), Sound.valueOf(plugin.getConfig().getString("sounds.revivedSuccessfully").toUpperCase()), 1.0F, 1.0F);
+                    p.playSound(p.getLocation(), Sound.valueOf(cfg.getString("sounds.revivedSuccessfully").toUpperCase()), 1.0F, 1.0F);
+                    p.playSound(p.getLocation(), Sound.valueOf(cfg.getString("sounds.revivedSuccessfully").toUpperCase()), 1.0F, 1.0F);
                     p2.resetTitle();
                 }
             }
@@ -402,7 +405,7 @@ public class ReviveManager {
             if (value >= 0) {
                 if (!relivingList.contains(p)) {
                     deathDelay.put(p, value - 1);
-                    if (plugin.getConfig().getBoolean("info.scoreboard")) {
+                    if (cfg.getBoolean("info.scoreboard")) {
                         Spigboard b1 = board1.get(p);
                         SpigboardEntry score4 = b1.getEntry("deathCount");
 
@@ -417,7 +420,7 @@ public class ReviveManager {
                 forceDeath(p);
             }
 
-            if (plugin.getConfig().getBoolean("info.title")) {
+            if (cfg.getBoolean("info.title")) {
                 String status = boardWaiting;
                 String bar = "§7██████████";
                 if (relivingList.contains(p)) {
@@ -433,11 +436,11 @@ public class ReviveManager {
                 }
 
                 p.sendTitle(
-                        plugin.getConfig().getString("title.title")
+                        cfg.getString("title.title")
                                 .replace("<STATUS>", status)
                                 .replace("<BAR>", bar)
                                 .replace("&", "§"),
-                        plugin.getConfig().getString("title.subTitle")
+                        cfg.getString("title.subTitle")
                                 .replace("<DEATHTIME>", getDeathCountText(value))
                                 .replace("<INVULNERABILITY>", boardInvulnerableFor.replace("&", "§").replace("<TIME>", getDeathCountText(invulnerability)))
                                 .replace("&", "§"),
@@ -450,7 +453,7 @@ public class ReviveManager {
                 int value = invulnerabilityDelay.get(p);
                 if (value >= 1) {
                     invulnerabilityDelay.put(p, value - 1);
-                    if (plugin.getConfig().getBoolean("info.scoreboard")) {
+                    if (cfg.getBoolean("info.scoreboard")) {
                         Spigboard b1 = board1.get(p);
                         SpigboardEntry score4 = b1.getEntry("invulnerableCount");
 
@@ -461,7 +464,7 @@ public class ReviveManager {
                     }
                 } else {
                     invulnerabilityDelay.remove(p);
-                    if (plugin.getConfig().getBoolean("info.scoreboard")) {
+                    if (cfg.getBoolean("info.scoreboard")) {
                         Spigboard b1 = board1.get(p);
                         SpigboardEntry score4 = b1.getEntry("invulnerableCount");
 
@@ -484,6 +487,16 @@ public class ReviveManager {
     }
 
     public void forceDeath(Player p) {
+        boolean totem = equipTotem(p);
+        if (totem) {
+            usedTotem.add(p);
+            forcedDeath.add(p);
+            p.damage(p.getHealth() + 20.0D);
+            endPose(p, "ForceDeath usedTotem. code: 009");
+        } else {
+            p.setHealth(0.0D);
+            endPose(p, "ForceDeath NotUsedTotem. code: 010");
+        }
         EntityDamageEvent e = damageEvents.get(p);
         if (e != null) {
             e.setDamage(20.0D);
@@ -495,18 +508,6 @@ public class ReviveManager {
             p.setLastDamageCause(e);
             p.setLastDamage(e.getFinalDamage());
         }
-
-        boolean totem = equipTotem(p);
-        if (totem) {
-            usedTotem.add(p);
-            forcedDeath.add(p);
-            p.damage(p.getHealth() + 20.0D);
-            endPose(p, "ForceDeath usedTotem. code: 009");
-        } else {
-            p.setHealth(0.0D);
-            endPose(p, "ForceDeath NotUsedTotem. code: 010");
-        }
-
     }
 
     public boolean equipTotem(Player p) {
@@ -524,7 +525,7 @@ public class ReviveManager {
     public String getCountText(double value) {
         int count = (int) (value / (double) relivingTime * 10.0D);
         StringBuilder text = new StringBuilder("██████████");
-        if (count < text.length())
+        if (count <= 10)
             text.insert(count, "§7");
         text.insert(0, "§a");
         return text.toString();
@@ -553,10 +554,10 @@ public class ReviveManager {
     }
 
     public void saveNewConfig(String text, boolean value) {
-        File configfile = new File(plugin.getDataFolder(), "reviveme.yml");
+        File configfile = new File(ReviveMe.getInstance().getDataFolder(), "reviveme.yml");
         FileConfiguration config = YamlConfiguration.loadConfiguration(configfile);
         if (config.getString(text) == null) {
-            plugin.getConfig().set(text, value);
+            cfg.set(text, value);
         }
 
     }
@@ -566,12 +567,12 @@ public class ReviveManager {
         if (p.hasPermission(permission)) {
             haspermission = true;
         } else if (!permission.equalsIgnoreCase("ReviveMe.shotdown") && !permission.equalsIgnoreCase("ReviveMe.itemstealVictim")) {
-            p.sendMessage(plugin.getConfig().getString("messages.noPermission")
+            p.sendMessage(cfg.getString("messages.noPermission")
                     .replace("&", "§")
                     .replace("<PERMISSION>", permission));
             if (p instanceof Player) {
                 Player player = (Player) p;
-                player.playSound(player.getLocation(), Sound.valueOf(plugin.getConfig().getString("sounds.noPermission").toUpperCase()), 1.0F, 1.0F);
+                player.playSound(player.getLocation(), Sound.valueOf(cfg.getString("sounds.noPermission").toUpperCase()), 1.0F, 1.0F);
             }
         }
 
@@ -579,15 +580,29 @@ public class ReviveManager {
     }
 
     public void onReload() {
-        enableWorldsEnable = plugin.getConfig().getBoolean("enableWorldsEnable");
-        disableWorldsEnable = plugin.getConfig().getBoolean("disbleWorldsEnable");
-        invulnerability = plugin.getConfig().getInt("delays.invulnerabilityDelay");
-        enableWorlds = plugin.getConfig().getStringList("enableWorlds");
-        disableWorlds = plugin.getConfig().getStringList("disableWorlds");
-        firstTotem = plugin.getConfig().getBoolean("totem-first");
-        potionEnable = plugin.getConfig().getBoolean("potion.enable");
-        potionEffect = plugin.getConfig().getString("potion.effect");
-        potionLevel = plugin.getConfig().getInt("potion.level");
+        enableWorldsEnable = cfg.getBoolean("enableWorldsEnable");
+        disableWorldsEnable = cfg.getBoolean("disbleWorldsEnable");
+        invulnerability = cfg.getInt("delays.invulnerabilityDelay");
+        enableWorlds = cfg.getStringList("enableWorlds");
+        disableWorlds = cfg.getStringList("disableWorlds");
+        firstTotem = cfg.getBoolean("totem-first");
+        potionEnable = cfg.getBoolean("potion.enable");
+        potionEffect = cfg.getString("potion.effect");
+        potionLevel = cfg.getInt("potion.level");
+
+        boardTitle = cfg.getString("scoreboard.title");
+        boardStatus = cfg.getString("scoreboard.status");
+        boardWaiting = cfg.getString("scoreboard.waiting");
+        boardReliving = cfg.getString("scoreboard.reliving");
+        boardDeathIn = cfg.getString("scoreboard.deathIn");
+        boardInvulnerableFor = cfg.getString("scoreboard.invulnerableFor");
+        boardVulnerable = cfg.getString("scoreboard.vulnerable");
+        speed = Util.getFloatFromConfig(cfg, "playersConfig.speed", 0.04F);
+        title = cfg.getString("title.title");
+        subTitle = cfg.getString("title.subTitle");
+        potionEnable = cfg.getBoolean("potion.enable");
+        potionEffect = cfg.getString("potion.effect");
+        potionLevel = cfg.getInt("potion.level");
     }
 
     public void setPotion(Player p) {

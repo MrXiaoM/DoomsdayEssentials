@@ -41,7 +41,7 @@ public class CommandReviveMe extends ICommand {
 	}
 
 	private boolean disable(CommandSender s, String[] a) {
-		this.plugin.getConfig().set("newVersionPremiumMessageDisable", true);
+		this.plugin.getModuleReviveMe().getConfig().set("newVersionPremiumMessageDisable", true);
 		this.plugin.saveConfig();
 		plugin.getModuleReviveMe().getManager().disable_message = true;
 		s.sendMessage("§cMessage disabled :c");
@@ -52,7 +52,7 @@ public class CommandReviveMe extends ICommand {
 		if (plugin.getModuleReviveMe().getManager().hasPermission(s, "ReviveMe.reload")) {
 			this.plugin.reloadConfig();
 			plugin.getModuleReviveMe().getManager().onReload();
-			s.sendMessage(ChatColor.translateAlternateColorCodes('&', this.plugin.getConfig().getString("messages.reload")));
+			s.sendMessage(ChatColor.translateAlternateColorCodes('&', this.plugin.getModuleReviveMe().getConfig().getString("messages.reload")));
 		}
 
 		return true;

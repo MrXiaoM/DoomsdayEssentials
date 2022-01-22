@@ -41,6 +41,7 @@ public class CommandLC extends ICommand {
 			if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
 				plugin.getPlayerConfig().reloadConfig();
 				plugin.reloadConfig();
+				plugin.getModuleReviveMe().getManager().onReload();
 				sender.sendMessage(I18n.t("respawnneedle.reloaded"));
 				return true;
 			}

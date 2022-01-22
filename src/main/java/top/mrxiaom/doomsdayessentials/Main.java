@@ -186,7 +186,7 @@ public class Main extends JavaPlugin {
 		this.openWorldListener = new OpenWorldListener(this);
 		this.controlListener = new ControlListener(this);
 		this.botMsgListener = new BotMsgListener(this);
-		this.moduleReviveMe = new ReviveMe(this);
+		(this.moduleReviveMe = new ReviveMe(this)).onEnable();
 	}
 	private void initSkill() {
 		this.skillSakuzyoBeam = new SakuzyoBeam(this);
@@ -355,7 +355,7 @@ public class Main extends JavaPlugin {
 		this.getMarketConfig().reloadConfig();
 		this.getMcbbsConfig().reloadConfig();
 		this.getChapterManager().reloadConfig();
-
+		this.getModuleReviveMe().reloadConfig();
 		
 		this.getLogger().info("配置文件已重载");
 	}
@@ -363,8 +363,10 @@ public class Main extends JavaPlugin {
 	public void onDisable() {
 		this.disabled = true;
 		instance = null;
-		this.getModuleReviveMe().getManager().reliveAll();
-		Util.writeObjectToFile(this.getModuleReviveMe().getManager(), this.getModuleReviveMe().getManagerDataFile());
+		if(this.getModuleReviveMe() != null && this.getModuleReviveMe().getManager() != null) {
+			this.getModuleReviveMe().getManager().reliveAll();
+			//Util.writeObjectToFile(this.getModuleReviveMe().getManager(), this.getModuleReviveMe().getManagerDataFile());
+		}
 		this.getRandomTPConfig().saveCache();
 		if(this.protocolManager != null) this.protocolManager.removePacketListeners(this);
 		Bukkit.getScheduler().cancelTasks(this);
@@ -919,6 +921,6 @@ public class Main extends JavaPlugin {
 	}
 	public ProtocolManager getProtocolManager(){return protocolManager;}
 	public DeathListener getDeathListener(){return deathListener;}
-	public CmdManager getCmdManager(){return cmdManager;}
-	public ReviveMe getModuleReviveMe(){return moduleReviveMe;}
+	public CmdManager getCmdManager() { return cmdManager;}
+	public ReviveMe getModuleReviveMe() { return this.moduleReviveMe;}
 }
