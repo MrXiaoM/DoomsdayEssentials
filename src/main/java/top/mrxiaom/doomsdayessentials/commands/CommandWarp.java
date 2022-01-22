@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.configs.WarpConfig.Warp;
+import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMeApi;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
@@ -58,6 +59,10 @@ public class CommandWarp extends ICommand {
 		}
 		if (args.length >= 1) {
 			Player player = (Player) sender;
+			if (ReviveMeApi.isPlayerDowned(player)){
+				player.sendMessage(I18n.t("reviveme.no-command",true));
+				return true;
+			}
 			String playerName = player.getName();
 			String warpName = args[0];
 			if (!plugin.getWarpConfig().contains(warpName)) {

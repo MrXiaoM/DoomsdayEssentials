@@ -25,7 +25,7 @@ public class AutoMineChecker implements Listener{
 		final BukkitTask task;
 		final BossBar bar;
 		final Player player;
-		Task(Player player){
+		Task(Player player) {
 			this.player = player;
 			this.bar = Bukkit.createBossBar(I18n.t("anti-automine.san-low-bossbar").replace("%percent%", "100"), BarColor.GREEN, BarStyle.SEGMENTED_10);
 			this.bar.addPlayer(player);
@@ -69,20 +69,21 @@ public class AutoMineChecker implements Listener{
 
 	/**
 	 * 反自带挖矿检查任务
+	 * 暂时停用
 	 * UUID: 玩家UUID
 	 * Task: 任务实例
 	 */
 	private final Map<UUID, Task> tasks = new HashMap<>();
 	public AutoMineChecker(Main plugin) {
 		this.plugin = plugin;
-		Bukkit.getPluginManager().registerEvents(this, plugin);
+		//Bukkit.getPluginManager().registerEvents(this, plugin);
 	}
 	
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
 		Player player = event.getPlayer();
 		// 开放世界不触发
-		if(!player.getWorld().getName().equalsIgnoreCase("openworld")
+		if(!player.getWorld().getName().equalsIgnoreCase("openworld") && !player.getWorld().getName().equalsIgnoreCase("plotworld")
 			&& !tasks.containsKey(player.getUniqueId()) && ItemStackUtil.isOre(event.getBlock().getType())) {
 			if(new Random().nextInt(1000) < 950) return;
 			tasks.put(player.getUniqueId(), new Task(player));

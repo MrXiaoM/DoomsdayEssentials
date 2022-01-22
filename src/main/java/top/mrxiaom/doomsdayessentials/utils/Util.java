@@ -20,6 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nullable;
+import javax.swing.text.html.Option;
 import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -62,9 +63,42 @@ public class Util {
 		return nullValue;
 	}
 
-	/*
-	* 全球市场 ServerMarket 将物品发送到玩家邮箱
-	* */
+	public static void writeObjectToFile(Object obj, File file)
+	{
+		try {
+			FileOutputStream out = new FileOutputStream(file);
+			ObjectOutputStream objOut=new ObjectOutputStream(out);
+			objOut.writeObject(obj);
+			objOut.flush();
+			objOut.close();
+			System.out.println("write object success!");
+		} catch (IOException e) {
+			System.out.println("write object failed");
+			e.printStackTrace();
+		}
+	}
+
+	public static Optional<Object> readObjectFromFile(File file)
+	{
+		try {
+			FileInputStream in = new FileInputStream(file);
+			ObjectInputStream objIn = new ObjectInputStream(in);
+			Object temp = objIn.readObject();
+			objIn.close();
+			System.out.println("read object success!");
+			return Optional.of(temp);
+		} catch (IOException e) {
+			System.out.println("read object failed");
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return Optional.empty();
+	}
+
+	/**
+	 * 全球市场 ServerMarket 将物品发送到玩家邮箱
+	 **/
 	public static void sendItemToMail(String player, String sender, ItemStack item) {
 		SaleItem si = new SaleItem(UUID.randomUUID().toString(), "xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxxxxxx", sender, item, PayType.VAULT, 0, System.currentTimeMillis());
 		ServerMarket.getInstance().getApi().getPlayerData(player).addItem(si);

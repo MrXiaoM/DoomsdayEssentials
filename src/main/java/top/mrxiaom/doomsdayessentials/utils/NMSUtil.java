@@ -6,6 +6,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Pose;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -270,7 +271,11 @@ public class NMSUtil {
 			t.printStackTrace();
 		}
 	}
-	
+
+	public static void setEntityPose(Entity entity, Pose pose) {
+		setEntityPose(entity, pose.name());
+	}
+
 	public static void setEntityPose(Entity entity, String pose) {
 		try {
 			Class<?> classCraftEntity = Class.forName("org.bukkit.craftbukkit." + getNMSVersion() + ".entity.CraftEntity");

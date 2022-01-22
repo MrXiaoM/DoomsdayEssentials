@@ -5,6 +5,8 @@ import org.bukkit.entity.Player;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.gui.GuiWarps;
+import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMeApi;
+import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
 public class CommandWarps extends ICommand {
@@ -18,6 +20,10 @@ public class CommandWarps extends ICommand {
 			return Util.noPlayer(sender);
 		}
 		Player player = (Player) sender;
+		if (ReviveMeApi.isPlayerDowned(player)){
+			player.sendMessage(I18n.t("reviveme.no-command",true));
+			return true;
+		}
 		plugin.getGuiManager().openGui(new GuiWarps(plugin, player, 1, (args.length != 0 && args[0].equalsIgnoreCase("menu"))));
 		return true;
 	}

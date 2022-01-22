@@ -5,6 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
+import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMeApi;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
@@ -37,6 +38,10 @@ public class CommandTpa extends ICommand {
 		}
 		if (args.length == 1) {
 			Player player = (Player) sender;
+			if (ReviveMeApi.isPlayerDowned(player)){
+				player.sendMessage(I18n.t("reviveme.no-command",true));
+				return true;
+			}
 			if (player.getName().equalsIgnoreCase(args[0])) {
 				player.sendMessage(I18n.t("teleport.self", true));
 				return true;

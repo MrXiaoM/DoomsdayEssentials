@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
+import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMeApi;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
@@ -38,6 +39,10 @@ public class CommandHome extends ICommand {
 			return Util.noPlayer(sender);
 		}
 		Player player = (Player) sender;
+		if (ReviveMeApi.isPlayerDowned(player)){
+			player.sendMessage(I18n.t("reviveme.no-command",true));
+			return true;
+		}
 		String playerName = player.getName();
 		String homeName = args.length != 0 ? args[0] : "1";
 		if (!plugin.getHomeConfig().hasHome(playerName, homeName)) {

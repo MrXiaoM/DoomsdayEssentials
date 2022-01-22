@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.gui.GuiBackPoints;
+import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMeApi;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
@@ -21,6 +22,10 @@ public class CommandBack extends ICommand {
 			return Util.noPlayer(sender);
 		}
 		Player player = (Player) sender;
+		if (ReviveMeApi.isPlayerDowned(player)){
+			player.sendMessage(I18n.t("reviveme.no-command",true));
+			return true;
+		}
 		String playerName = player.getName();
 		if (args.length == 1 && args[0].equalsIgnoreCase("gui")) {
 			plugin.getGuiManager().openGui(new GuiBackPoints(plugin, player));

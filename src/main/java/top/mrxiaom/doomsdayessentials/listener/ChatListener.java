@@ -61,11 +61,18 @@ public class ChatListener implements Listener {
 		public void onPacketReceiving(PacketEvent event) {
 			if (event.getPacketType() != PacketType.Play.Client.CHAT)
 				return;
-			String msg = event.getPacket().getStrings().read(0);
+			PacketContainer packet = event.getPacket();
+			String msg = packet.getStrings().read(0);
 			if (Util.removeColor(msg).contains("${")){
 				event.setCancelled(true);
 				return;
 			}
+			// 命令补全，重定向 /cancel 到 cancel
+			if (checkCommandPromptChat(event.getPlayer()) && msg.toLowerCase().startsWith("/cancel")){
+				packet.getStrings().write(0, "cancel");
+				return;
+			}
+			// 忽略命令
 			if(msg.startsWith("/")) return;
 			if(onPlayerChat(event.getPlayer(), msg)) event.setCancelled(true);
 		}

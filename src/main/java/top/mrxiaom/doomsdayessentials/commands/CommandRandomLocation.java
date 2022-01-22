@@ -10,6 +10,7 @@ import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.TeleportMode;
 import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.TeleportResult;
 import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.Zone;
+import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMeApi;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
@@ -23,6 +24,10 @@ public class CommandRandomLocation extends ICommand {
 
 	@Override
 	public boolean onCommand(CommandSender sender, String label, String[] args, boolean isPlayer) {
+		if(isPlayer && ReviveMeApi.isPlayerDowned((Player) sender)){
+			sender.sendMessage(I18n.t("reviveme.no-command",true));
+			return true;
+		}
 		if (label.equalsIgnoreCase("rloc")) {
 			return onCommandRLoc(sender, args, isPlayer);
 		}

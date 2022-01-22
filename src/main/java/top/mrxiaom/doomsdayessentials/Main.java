@@ -46,6 +46,8 @@ import top.mrxiaom.doomsdayessentials.configs.MarketConfig.MarketData;
 import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.TeleportMode;
 import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.Zone;
 import top.mrxiaom.doomsdayessentials.listener.*;
+import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveManager;
+import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMe;
 import top.mrxiaom.doomsdayessentials.placeholder.*;
 import top.mrxiaom.doomsdayessentials.skills.IAmNoob;
 import top.mrxiaom.doomsdayessentials.skills.SakuzyoBeam;
@@ -89,6 +91,7 @@ public class Main extends JavaPlugin {
 	PlaceholderMCBBS papiMcbbs;
 	// 事件监听器
 	PlayerListener playerListener;
+	DeathListener deathListener;
 	LifeListener lifeListener;
 	LoginListener loginListener;
 	ChatListener chatListener;
@@ -133,6 +136,7 @@ public class Main extends JavaPlugin {
 	AutoMineChecker autoMineChecker;
 	GuiManager guiManager;
 	ChapterManager chapterManager;
+	ReviveMe moduleReviveMe;
 	// 技能
 	SakuzyoBeam skillSakuzyoBeam;
 	SelfAttack skillSelfAttack;
@@ -171,6 +175,7 @@ public class Main extends JavaPlugin {
 	}
 	private void initListener() {
 		this.playerListener = new PlayerListener(this);
+		this.deathListener = new DeathListener(this);
 		this.lifeListener = new LifeListener(this);
 		this.loginListener = new LoginListener(this);
 		this.tagConfig = new TagConfig(this);
@@ -181,6 +186,7 @@ public class Main extends JavaPlugin {
 		this.openWorldListener = new OpenWorldListener(this);
 		this.controlListener = new ControlListener(this);
 		this.botMsgListener = new BotMsgListener(this);
+		this.moduleReviveMe = new ReviveMe(this);
 	}
 	private void initSkill() {
 		this.skillSakuzyoBeam = new SakuzyoBeam(this);
@@ -203,7 +209,7 @@ public class Main extends JavaPlugin {
 		// 20 秒检查一次传送点
 		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateRandomTPCache, 400, 400);
 		this.getServer().getScheduler().runTaskTimer(this, this::checkMarketOutdate, 7200L, 7200L);
-		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::mcbbsChecker, 1200L, 1200L);
+		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::mcbbsChecker, 6000L, 6000L);
 		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::onBotSecond, 20, 20);
 	}
 	private void hookDependPlugins() {
@@ -349,6 +355,7 @@ public class Main extends JavaPlugin {
 		this.getMarketConfig().reloadConfig();
 		this.getMcbbsConfig().reloadConfig();
 		this.getChapterManager().reloadConfig();
+
 		
 		this.getLogger().info("配置文件已重载");
 	}
@@ -356,6 +363,8 @@ public class Main extends JavaPlugin {
 	public void onDisable() {
 		this.disabled = true;
 		instance = null;
+		this.getModuleReviveMe().getManager().reliveAll();
+		Util.writeObjectToFile(this.getModuleReviveMe().getManager(), this.getModuleReviveMe().getManagerDataFile());
 		this.getRandomTPConfig().saveCache();
 		if(this.protocolManager != null) this.protocolManager.removePacketListeners(this);
 		Bukkit.getScheduler().cancelTasks(this);
@@ -389,7 +398,7 @@ public class Main extends JavaPlugin {
 			return;
 		}
 		Calendar c = Calendar.getInstance();
-		int hour = c.get(Calendar.HOUR);
+		int hour = c.get(Calendar.HOUR_OF_DAY);
 		int minute = c.get(Calendar.MINUTE);
 		int second = c.get(Calendar.SECOND);
 		if(minute == 0 && second == 0 && (hour >= 7 || hour == 0)) {
@@ -909,4 +918,7 @@ public class Main extends JavaPlugin {
 		return chapterManager;
 	}
 	public ProtocolManager getProtocolManager(){return protocolManager;}
+	public DeathListener getDeathListener(){return deathListener;}
+	public CmdManager getCmdManager(){return cmdManager;}
+	public ReviveMe getModuleReviveMe(){return moduleReviveMe;}
 }

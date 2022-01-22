@@ -2,6 +2,7 @@ package top.mrxiaom.doomsdayessentials.bot;
 
 import com.ranull.graves.inventory.GraveInventory;
 import fr.xephi.authme.api.v3.AuthMeApi;
+import me.albert.amazingbot.bot.Bot;
 import me.albert.amazingbot.events.GroupMessageEvent;
 import me.albert.amazingbot.events.PrivateMessageEvent;
 import me.leoko.advancedban.manager.PunishmentManager;
@@ -18,6 +19,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerLoginEvent;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.TimeUtil;
@@ -35,6 +37,12 @@ public class BotMsgListener implements Listener {
     }
 
     public final Map<String, Long> requestMap = new HashMap<>();
+
+    @EventHandler
+    public void onPlayerLogin(PlayerLoginEvent event){
+        String tag = Util.removeColor(plugin.getTagConfig().getPlayerTag(event.getPlayer().getName()));
+        Bot.getApi().getGroup(951534513L).sendMessage(tag + " " + event.getPlayer().getName() + " 上线啦!");
+    }
 
     @EventHandler
     public void onFriendMessage(PrivateMessageEvent e){
@@ -64,7 +72,6 @@ public class BotMsgListener implements Listener {
             } else {
                 event.getFriend().sendMessage(quote.plus(I18n.t("bot.no-need-needle")));
             }
-            return;
         }
     }
 
