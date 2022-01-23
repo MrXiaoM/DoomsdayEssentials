@@ -39,7 +39,7 @@ public class CommandLC extends ICommand {
 	public boolean onCommand(CommandSender sender, String label, String[] args, boolean isPlayer) {
 		if (sender.isOp()) {
 			if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
-				plugin.getPlayerConfig().reloadConfig();
+				//plugin.getPlayerConfig().reloadConfig();
 				plugin.reloadConfig();
 				plugin.getModuleReviveMe().getManager().onReload();
 				sender.sendMessage(I18n.t("respawnneedle.reloaded"));
@@ -54,6 +54,27 @@ public class CommandLC extends ICommand {
 			            CriterionTriggers.q.a(((org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer)player).getHandle());
 					}
 				}
+			}
+			if(isPlayer && args.length == 3 && args[0].equalsIgnoreCase("note")){
+				Player player = (Player) sender;
+				Instrument instrument = Util.valueOf(Instrument.class, args[1], null);
+				if(instrument == null){
+					StringBuilder values = new StringBuilder();
+					for(Instrument i : Instrument.values()){
+						values.append(", ").append(i.name().toUpperCase());
+					}
+					values.delete(0, 2);
+					player.sendMessage("乐器不正确，只能用 " + values);
+					return true;
+				}
+				int note = Util.strToInt(args[2], -1);
+				if(note < 0){
+					player.sendMessage("输入 音调不正确");
+					return true;
+				}
+				player.playNote(player.getLocation(), instrument, new Note(1));
+				player.sendMessage("已播放 " + instrument.name().toUpperCase() + ":" + note);
+				return true;
 			}
 			if(isPlayer && args.length >= 2 && args[0].equalsIgnoreCase("warpicon")){
 				if(!plugin.getWarpConfig().contains(args[1])) {

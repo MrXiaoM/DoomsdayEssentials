@@ -18,11 +18,7 @@ public class DelayTask implements IChapterTask<Event>{
 	final Map<String, BukkitTask> tasks = new HashMap<>();
 	@Override
 	public void start(Player player) {
-		tasks.put(player.getName(), Bukkit.getScheduler().runTaskLater(Main.getInstance(), new Runnable() {
-			public void run() {
-				next(player);
-			}
-		}, ticks));
+		tasks.put(player.getName(), Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> next(player), ticks));
 	}
 	@Override
 	public String toString() {

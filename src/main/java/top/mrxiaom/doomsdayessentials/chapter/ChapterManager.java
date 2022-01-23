@@ -10,6 +10,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import top.mrxiaom.doomsdayessentials.Main;
 
 import javax.annotation.Nullable;
@@ -31,6 +34,15 @@ public class ChapterManager implements Listener {
 		this.configDir = new File(this.mainDir, "config");
 		this.playerDir = new File(this.mainDir, "players");
 		Bukkit.getPluginManager().registerEvents(this, plugin);
+		plugin.getLogger().info("剧情管理器已加载");
+	}
+
+	public Map<String, ProcessChapter> getPlayerProcessChapters(){
+		return playerProcessChapters;
+	}
+
+	public boolean isPlayerProcessingChapter(String player){
+		return playerProcessChapters.containsKey(player);
 	}
 
 	@EventHandler
@@ -56,6 +68,18 @@ public class ChapterManager implements Listener {
 	@EventHandler
 	public void onNPCClickEvent(NPCClickEvent event) {
 		executeEvent(event.getClicker(), event);
+	}
+	@EventHandler
+	public void onPlayerIntractEvent(PlayerInteractEvent event) {
+		executeEvent(event.getPlayer(), event);
+	}
+	@EventHandler
+	public void onPlayerSwapHandItemsEvent(PlayerSwapHandItemsEvent event) {
+		executeEvent(event.getPlayer(), event);
+	}
+	@EventHandler
+	public void onPlayerMove(PlayerMoveEvent event){
+		executeEvent(event.getPlayer(), event);
 	}
 
 	@SuppressWarnings({"unchecked"})
@@ -100,6 +124,14 @@ public class ChapterManager implements Listener {
 			}
 		}
 	}
+
+	public void end(Player player){
+		String playerName = player.getName();
+		if(playerProcessChapters.containsKey(playerName)) {
+			playerProcessChapters.get(playerName).end();
+			playerProcessChapters.remove(playerName);
+		}
+	}
 	
 	/**
 	 * 开启章节
@@ -137,6 +169,7 @@ public class ChapterManager implements Listener {
 					plugin.getLogger().warning("无法加载章节文件 /chapter/config/" + file.getName());
 				}
 				else {
+					plugin.getLogger().info("已载入剧情 " + chapter.getId() + " " + chapter.getName());
 					this.chapters.add(chapter);
 				}
 			});

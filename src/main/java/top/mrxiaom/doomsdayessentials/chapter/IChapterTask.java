@@ -1,6 +1,7 @@
 package top.mrxiaom.doomsdayessentials.chapter;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -171,6 +172,23 @@ public interface IChapterTask<T extends Event> {
 				}
 			}
 		}
+		if (text.startsWith("teleport:")) {
+			if (text.contains(",")) {
+				String[] args = text.substring(9).split(",");
+				if (args.length > 3) {
+					try {
+						World world = Bukkit.getWorld(args[0]);
+						if (world == null) throw new IllegalArgumentException("世界 " + args[0] + " 不存在");
+						int x = Integer.parseInt(args[1]);
+						int y = Integer.parseInt(args[2]);
+						int z = Integer.parseInt(args[3]);
+						return new TeleportTask(world, x, y, z);
+					} catch (Throwable t) {
+						handleError(text, t);
+					}
+				}
+			}
+		}
 		if(text.startsWith("talk:")){
 			if (text.contains(":")){
 				String[] args = text.substring(5).split(":");
@@ -190,7 +208,14 @@ public interface IChapterTask<T extends Event> {
 							for (int i = 2; i < args.length; i++) {
 								message.append(":").append(args[i]);
 							}
-							return new MsgTask(sender, message.toString());
+							String msg = ChatColor.translateAlternateColorCodes('&', message.toString()
+									.replace(",", "，")
+									.replace("?", "？")
+									.replace("，", "，`````")
+									.replace("。", "。`````")
+									.replace("？", "？`````"));
+							if(msg.endsWith("`````")) msg = msg.substring(0, msg.length() - 5);
+							return new MsgTask(ChatColor.translateAlternateColorCodes('&', sender), msg);
 						}
 					} catch (Throwable t){
 						return handleError(text, t);
