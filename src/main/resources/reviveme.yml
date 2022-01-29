@@ -14,23 +14,6 @@ enableWorlds:
 info:
   scoreboard: true
   title: false
-  chat: false(not implemented)
-messages:
-  reliving:
-    player: '&a你正在救助 &2<VICTIM>.'
-    victim: '&a<PLAYER> 正在救助你'
-  revivedSuccessfully:
-    player: '&a你已成功拯救 &2<VICTIM>.'
-    victim: '&a你已成功被 &2<PLAYER> &a拯救.'
-  cancelReliving:
-    player: '&c你停止了救助 &4<VICTIM>.'
-    victim: '&c<PLAYER> 停止救助了你'
-  shotDown:
-    player: '&a你把 <VICTIM> &a击倒了'
-    victim: '&c你被 <PLAYER> &c击倒了'
-  reload: '&a配置文件已重载'
-  blockedCommand: '&c你现在不能执行这个命令'
-  noPermission: '&c你没有权限 <PERMISSION>'
 permissions:
   revivePlayerEnablePermission: false
   reviveVictimEnablePermission: false
@@ -74,19 +57,8 @@ commands-blacklist:
   - ftp
   - warp
   - spawn
-scoreboard:
-  title: '&4&l[&e&l我已重伤倒地&4&l]'
-  status: '&f状态: '
-  waiting: '&c等死中'
-  reliving: '&a救助中'
-  deathIn: '&f死亡倒数 &a<TIME>'
-  invulnerableFor: '&f无敌时间 &a<TIME>'
-  vulnerable: '&c脆弱'
 playersConfig:
   speed: 0.04
-title:
-  title: '&f状态 : <STATUS> <BAR>'
-  subTitle: '&f死亡倒计时: &a<DEATHTIME> &f<INVULNERABILITY>'
 potion:
   enable: true
   effect: BLINDNESS

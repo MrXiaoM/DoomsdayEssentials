@@ -241,15 +241,22 @@ public class Util {
 				+ (second < 10 ? "0" : "") + second;
 	}
 
-	protected static String getThrowableMessage(Throwable e) {
-		String result = "" + e.getClass().getName() + " : " + e.getMessage();
-		for (int i = 0; i < 10; i++) {
-			if (i < e.getStackTrace().length) {
-				result = result + "\n" + e.getStackTrace()[i];
-			} else
-				break;
+	public static String getThrowableMessage(Throwable t){
+		return getThrowableMessage(t, "");
+	}
+
+	public static String getThrowableMessage(Throwable t, String prefix) {
+		int length = t.getStackTrace().length;
+		StringBuilder result = new StringBuilder(prefix + t.getClass().getName() + " : " + t.getMessage());
+		for (int i = 0; i < Math.min(10, length); i++) {
+			StackTraceElement element = t.getStackTrace()[i];
+			result.append("\n").append(prefix).append("  at ").append(element.getClassName()).append(".").append(element.getMethodName())
+					.append("(").append(element.getFileName()).append(":").append(element.getLineNumber()).append(")");
 		}
-		return result;
+		if(length >= 10){
+			result.append("\n").append(prefix).append("…等共 ").append(length).append(" 项");
+		}
+		return result.toString();
 	}
 
 	public static boolean checkCustomNpc(Entity entity) {

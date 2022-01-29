@@ -10,7 +10,7 @@ import top.mrxiaom.doomsdayessentials.chapter.IChapterTask;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DelayTask implements IChapterTask<Event>{
+public class DelayTask implements IChapterTask<IChapterTask.NoEvent>{
 	final int ticks;
 	public DelayTask(int ticks) {
 		this.ticks = ticks;
@@ -36,15 +36,5 @@ public class DelayTask implements IChapterTask<Event>{
 	@Override
 	public String display() {
 		return "";
-	}
-
-	@Override
-	public void execute(Player player, Event event) {
-		// do nothing.
-	}
-
-	@Override
-	public boolean hasEvent() {
-		return false;
 	}
 }

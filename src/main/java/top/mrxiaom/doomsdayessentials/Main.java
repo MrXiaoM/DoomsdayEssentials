@@ -15,7 +15,6 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.ranull.graves.Graves;
 import com.ranull.graves.manager.GraveManager;
 import me.albert.amazingbot.bot.Bot;
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.coreprotect.CoreProtectAPI;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
@@ -46,7 +45,6 @@ import top.mrxiaom.doomsdayessentials.configs.MarketConfig.MarketData;
 import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.TeleportMode;
 import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.Zone;
 import top.mrxiaom.doomsdayessentials.listener.*;
-import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveManager;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMe;
 import top.mrxiaom.doomsdayessentials.placeholder.*;
 import top.mrxiaom.doomsdayessentials.skills.IAmNoob;
@@ -130,7 +128,6 @@ public class Main extends JavaPlugin {
 	ProtocolManager protocolManager;
 	// 其他功能
 	CmdManager cmdManager;
-	KeyConfig keyManager;
 	TagConfig tagConfig;
 	PlayerCooldownManager playerCooldownManager;
 	AutoMineChecker autoMineChecker;
@@ -145,9 +142,9 @@ public class Main extends JavaPlugin {
 
 	public boolean bindingDebug = true;
 	private List<String> fireWorldBlackList;
-	private final List<Material> pistonBlackList = new ArrayList<Material>();
-	private List<String> notice = new ArrayList<String>();
-	private List<String> tips = new ArrayList<String>();
+	private final List<Material> pistonBlackList = new ArrayList<>();
+	private List<String> notice = new ArrayList<>();
+	private List<String> tips = new ArrayList<>();
 	private int fireTime;
 	private int noticeCountdown = 300;
 	private static final long cleanTimerDefault = 900L;
@@ -323,7 +320,6 @@ public class Main extends JavaPlugin {
 		if (this.getChatListener() != null) this.getChatListener().reloadConfig();
 
 		if (this.getWhitelistConfig() == null) this.whitelistConfig = new WhitelistConfig(this);
-		if (this.getKeyManager() == null) this.keyManager = new KeyConfig(this);
 		if (this.getBindConfig() == null) this.bindConfig = new BindConfig(this);
 		if (this.getHomeConfig() == null) this.homeConfig = new HomeConfig(this);
 		if (this.getPlayerConfig() == null) this.playerConfig = new PlayerConfig(this);
@@ -340,7 +336,6 @@ public class Main extends JavaPlugin {
 		if (this.getChapterManager() == null) this.chapterManager = new ChapterManager(this);
 
 		this.getWhitelistConfig().reloadConfig();
-		this.getKeyManager().reloadConfig();
 		this.getBindConfig().reloadConfig();
 		this.getHomeConfig().reloadConfig();
 		this.getPlayerConfig().reloadConfig();
@@ -362,34 +357,21 @@ public class Main extends JavaPlugin {
 
 	public void onDisable() {
 		this.disabled = true;
-		instance = null;
 		if(this.getModuleReviveMe() != null && this.getModuleReviveMe().getManager() != null) {
 			this.getModuleReviveMe().getManager().reliveAll();
-			//Util.writeObjectToFile(this.getModuleReviveMe().getManager(), this.getModuleReviveMe().getManagerDataFile());
 		}
-		this.getRandomTPConfig().saveCache();
-		if(this.protocolManager != null) this.protocolManager.removePacketListeners(this);
 		Bukkit.getScheduler().cancelTasks(this);
 		this.playerListener.enable = false;
 		this.getRandomTPConfig().saveCache();
-		if (this.papiRespawnNeedle != null && this.papiRespawnNeedle.isRegistered()) {
-			this.papiRespawnNeedle.unregister();
-		}
-		if (this.papiTitle != null && this.papiTitle.isRegistered()) {
-			this.papiTitle.unregister();
-		}
-		if (this.papiPlayerPoints != null && this.papiPlayerPoints.isRegistered()) {
-			this.papiPlayerPoints.unregister();
-		}
-		if (this.papiMcMMO != null && this.papiMcMMO.isRegistered()) {
-			this.papiMcMMO.unregister();
-		}
-		if (this.papiSettings != null && this.papiSettings.isRegistered()) {
-			this.papiSettings.unregister();
-		}
-		if(this.papiMcbbs != null && this.papiMcbbs.isRegistered()){
-			this.papiMcbbs.unregister();
-		}
+		if(this.protocolManager != null) this.protocolManager.removePacketListeners(this);
+		if (this.papiRespawnNeedle != null && this.papiRespawnNeedle.isRegistered()) this.papiRespawnNeedle.unregister();
+		if (this.papiTitle != null && this.papiTitle.isRegistered()) this.papiTitle.unregister();
+		if (this.papiPlayerPoints != null && this.papiPlayerPoints.isRegistered()) this.papiPlayerPoints.unregister();
+		if (this.papiMcMMO != null && this.papiMcMMO.isRegistered()) this.papiMcMMO.unregister();
+		if (this.papiSettings != null && this.papiSettings.isRegistered())  this.papiSettings.unregister();
+		if (this.papiMcbbs != null && this.papiMcbbs.isRegistered()) this.papiMcbbs.unregister();
+
+		instance = null;
 		this.getLogger().info("基础插件 DoomsdayEssentials 已卸载");
 		System.gc();
 	}
@@ -405,22 +387,18 @@ public class Main extends JavaPlugin {
 		int second = c.get(Calendar.SECOND);
 		if(minute == 0 && second == 0 && (hour >= 7 || hour == 0)) {
 			botCooldown = 60;
-			if(this.getConfig().contains("chat.group.notice")) {
-				List<String> list = this.getConfig().getStringList("chat.group.notice");
-				if(list.size() > 0) {
-					StringBuilder msg = new StringBuilder();
-					for (int i = 0; i < list.size(); i++)
-					{
-						msg.append(list.get(i)
-								.replace("%hour%", (hour < 10 ? "0" : "") + hour)
-								.replace("%minute%", (minute < 10 ? "0":"") +minute)
-								.replace("%second%", (second < 10 ? "0":"")+second)
-						).append(i < list.size() - 1 ? "\n" : "");
-					}
-					Bot.getApi().getGroup(951534513L).sendMessage(msg.toString());
-				}
+			if (!this.getConfig().contains("chat.group.notice")) return;
+			List<String> list = this.getConfig().getStringList("chat.group.notice");
+			if (list.isEmpty()) return;
+			StringBuilder msg = new StringBuilder();
+			for (int i = 0; i < list.size(); i++) {
+				msg.append(list.get(i)
+						.replace("%hour%", (hour < 10 ? "0" : "") + hour)
+						.replace("%minute%", (minute < 10 ? "0" : "") + minute)
+						.replace("%second%", (second < 10 ? "0" : "") + second)
+				).append(i < list.size() - 1 ? "\n" : "");
 			}
-
+			Bot.getApi().getGroup(951534513L).sendMessage(msg.toString());
 		}
 	}
 
@@ -429,18 +407,16 @@ public class Main extends JavaPlugin {
 			List<ThreadOperation> list = McbbsUtil.getThreadOperation(threadId);
 			if(!this.mcbbsConfig.isNowMatchedLastDate() && list.size() > this.mcbbsConfig.getLastSize()) {
 				// mcbbs 的操作是最新的在最前，所以要倒着取
-				for(int i = list.size() - this.mcbbsConfig.getLastSize() - 1; i >= 0; i--) {
+				for (int i = list.size() - this.mcbbsConfig.getLastSize() - 1; i >= 0; i--) {
 					ThreadOperation to = list.get(i);
 					// 服务器提升卡
-					if(to.getOperation().equals(Operation.UP_SERVER)) {
-						String player = this.mcbbsConfig.getUidPlayer();
-						if(player != null) {
-							this.mcbbsConfig.setLastDateToNow(player);
-							Util.sendItemToMail(player, "末日社团", this.mcbbsConfig.genReward());
-							Util.alert(I18n.tn("mcbbs.alert-reward").replace("%player%", player));
-							break;
-						}
-					}
+					if (!to.getOperation().equals(Operation.UP_SERVER)) continue;
+					String player = this.mcbbsConfig.getUidPlayer();
+					if (player == null) continue;
+					this.mcbbsConfig.setLastDateToNow(player);
+					Util.sendItemToMail(player, "末日社团", this.mcbbsConfig.genReward());
+					Util.alert(I18n.tn("mcbbs.alert-reward").replace("%player%", player));
+					break;
 				}
 			}
 			this.mcbbsConfig.setLastSize(list.size());
@@ -524,16 +500,42 @@ public class Main extends JavaPlugin {
 		return this.fireWorldBlackList.contains(name.toLowerCase());
 	}
 
-	public void checkPoints(final Player p) {
-		p.sendMessage(I18n.t("points.checking", true));
-		int mcrmb_p = Util.look_MCRMB(p);
+	public String checkPoints(OfflinePlayer p) {
+		int mcrmb_p = Util.look_MCRMB(p.getName());
 		if (mcrmb_p > 0) {
-			Util.buy_MCRMB(p, mcrmb_p, "将 Mcrmb 点券转换成 PlayerPoints 点券【共转换" + mcrmb_p + "点券】");
+			boolean needle = false;
+			if(this.getPlayerConfig().getNeedle(p.getName()) < 0 && mcrmb_p >= 2){
+				Util.buy_MCRMB(p.getName(), mcrmb_p, "购买紧急复活针 *1 【花费2点券】");
+				this.getPlayerConfig().addNeedle(p.getName(), 1);
+				needle = true;
+				mcrmb_p -= 2;
+			}
+			Util.buy_MCRMB(p.getName(), mcrmb_p, "将 Mcrmb 点券转换成 PlayerPoints 点券【共转换" + mcrmb_p + "点券】");
 			this.playerPointsApi.give(p.getUniqueId(), mcrmb_p);
-			p.sendMessage(I18n.t("points.success", true).replace("%points%", String.valueOf(mcrmb_p)));
+			int point = this.playerPointsApi.look(p.getUniqueId());
+			return "转换完毕! 已转换为 " + mcrmb_p + " 点券" + (needle?"和 1 支紧急复活针":"") + "，你现在有 " + point + " 点券";
 		} else {
-			p.sendMessage(I18n.t("points.no-need", true));
+			return "没有需要到账转换的点券";
 		}
+	}
+
+	public void checkPoints(final Player p) {
+		Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+			p.sendMessage(I18n.t("points.checking", true));
+			int mcrmb_p = Util.look_MCRMB(p);
+
+			if (mcrmb_p > 0) {
+				if (this.getPlayerConfig().getNeedle(p.getName()) < 0 && mcrmb_p >= 2) {
+					Util.buy_MCRMB(p, mcrmb_p, "购买紧急复活针 *1 【花费2点券】");
+					mcrmb_p -= 2;
+				}
+				Util.buy_MCRMB(p, mcrmb_p, "将 Mcrmb 点券转换成 PlayerPoints 点券【共转换" + mcrmb_p + "点券】");
+				this.playerPointsApi.give(p.getUniqueId(), mcrmb_p);
+				p.sendMessage(I18n.t("points.success", true).replace("%points%", String.valueOf(mcrmb_p)));
+			} else {
+				p.sendMessage(I18n.t("points.no-need", true));
+			}
+		});
 	}
 	
 	public String getWorldAlias(World world) {
@@ -568,7 +570,7 @@ public class Main extends JavaPlugin {
 		}
 		// 诅咒
 		if (player.getHealth() <= 4) {
-			if (this.getPlayerConfig().getConfig().getConfigurationSection(player.getName()).getBoolean("curse")) {
+			if (this.getPlayerConfig().getConfig().getBoolean(player.getName() + ".curse", false)) {
 				player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 30, 4, true));
 			}
 		}
@@ -594,6 +596,7 @@ public class Main extends JavaPlugin {
 			this.onCleanSecond();
 			this.onNoticeSecond();
 		}
+		if(botMsgListener.cooldown > 0) botMsgListener.cooldown--;
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			this.handlePlayerStatus(player);
 			Location loc = player.getLocation();
@@ -631,7 +634,7 @@ public class Main extends JavaPlugin {
 								player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0F, 1.0F);
 							} else {
 								((Damageable) im).setDamage(((Damageable) im).getDamage() + 1);
-								itemStack.setItemMeta((ItemMeta) im);
+								itemStack.setItemMeta(im);
 								player.getInventory().setHelmet(itemStack);
 							}
 						} else {
@@ -667,6 +670,7 @@ public class Main extends JavaPlugin {
 			noticeCountdown--;
 		} else {
 			noticeCountdown = 300;
+			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "amazingbot");
 			if (!notice.isEmpty()) {
 				String alert = ChatColor.translateAlternateColorCodes('&', notice.get(new Random().nextInt(notice.size()))
 						.replace("\\n", "\n").replace("\r", "").replace("　", " "));
@@ -809,10 +813,6 @@ public class Main extends JavaPlugin {
 
 	public TagConfig getTagConfig() {
 		return this.tagConfig;
-	}
-
-	public KeyConfig getKeyManager() {
-		return this.keyManager;
 	}
 
 	public PlayerListener getPlayerListener() {

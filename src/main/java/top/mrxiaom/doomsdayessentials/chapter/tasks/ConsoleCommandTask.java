@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import top.mrxiaom.doomsdayessentials.chapter.IChapterTask;
 
-public class ConsoleCommandTask implements IChapterTask<Event>{
+public class ConsoleCommandTask implements IChapterTask<IChapterTask.NoEvent>{
 	final String cmd;
 	public ConsoleCommandTask(String cmd) {
 		this.cmd = cmd;
@@ -28,15 +28,5 @@ public class ConsoleCommandTask implements IChapterTask<Event>{
 	@Override
 	public String display() {
 		return "";
-	}
-
-	@Override
-	public void execute(Player player, Event event) {
-		// do nothing.
-	}
-
-	@Override
-	public boolean hasEvent() {
-		return false;
 	}
 }

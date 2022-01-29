@@ -85,14 +85,15 @@ public class ChapterManager implements Listener {
 	@SuppressWarnings({"unchecked"})
 	public void executeEvent(Player player, Event event) {
 		String playerName = player.getName();
-		if(playerProcessChapters.containsKey(playerName)) {
+		if (playerProcessChapters.containsKey(playerName)) {
 			ProcessChapter chapter = playerProcessChapters.get(playerName);
 			IChapterTask task = chapter.getConfig().getTask(chapter.getTaskIndex());
-			if(task == null || !task.hasEvent()) return;
-			if(task.eventClass() != null && task.eventClass().isAssignableFrom(event.getClass())) {
+			if (task == null || !task.hasEvent() || task.eventClass() == null) return;
+
+			if (task.eventClass().isAssignableFrom(event.getClass())) {
 				task.execute(player, event);
 			}
-			else if(task.moreEvents().length > 0){
+			else if (task.moreEvents().length > 0){
 				for (Class c : task.moreEvents()) {
 					if (c != null && c.isAssignableFrom(event.getClass())) {
 						task.execute(player, event);

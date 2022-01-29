@@ -8,18 +8,46 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TagConfig {
+	public static class Tag {
+		final String display;
+		final Material material;
+	 	final List<String> lore;
+
+		public Tag(@NotNull String display, Material material, List<String> lore) {
+			this.display = display;
+			this.material = material;
+			this.lore = lore;
+		}
+
+		public String getDisplay() {
+			return display;
+		}
+
+		public Material getMaterial() {
+			return material;
+		}
+
+		public List<String> getLore() {
+			return lore;
+		}
+
+		@Override
+		public String toString(){
+			return this.getDisplay();
+		}
+	}
+
 	private final Main plugin;
 	private final File configFile;
 	private FileConfiguration config;
@@ -31,7 +59,8 @@ public class TagConfig {
 	private String tagGuiTitle;
 	private boolean isUseCommand;
 	private int defaultTitleId = 1001;
-	private Map<Integer, String> titleMap;
+
+	private Map<Integer, Tag> titleMap;
 
 	public TagConfig(Main plugin) {
 		this.plugin = plugin;
@@ -47,7 +76,7 @@ public class TagConfig {
 		if (config == null) {
 			plugin.getLogger().info(I18n.t("title.LoadFail"));
 		}
-		else{
+		else {
 			tagGuiTitle = ChatColor.translateAlternateColorCodes('&', config.getString("title", "&b称号列表"));
 			allTagGuiTitle = ChatColor.translateAlternateColorCodes('&', config.getString("listtitle", "&a所有称号展示"));
 			defaultTitleId = config.getInt("defaultTitleId");
@@ -56,14 +85,16 @@ public class TagConfig {
 			cost = config.getDouble("cost");
 		}
 		titleMap = new HashMap<>();
-		List<String> tagKeys = Lists.newArrayList(config.getConfigurationSection("titles").getKeys(false));
+		List<String> tagKeys = Lists.newArrayList(config.getConfigurationSection("tags").getKeys(false));
 		Collections.sort(tagKeys);
 		for (String id : tagKeys) {
 			try {
 				int intId = Util.strToInt(id, -1);
 				if(intId < 0) continue;
-				String tag = config.getString("titles." + id);
-				titleMap.put(intId, tag);
+				String tag = config.getString("tags." + id + ".display");
+				Material material = Util.valueOf(Material.class, config.getString("tags." + id + ".material", "NAME_TAG"), Material.NAME_TAG);
+				List<String> lore = config.contains("tags." + id + ".lore") ? config.getStringList("tags." + id + ".lore") : new ArrayList<>();
+				titleMap.put(intId, new Tag(tag, material, lore));
 			} catch (Throwable t) {
 				plugin.getLogger().warning("载入称号(id=" + id + ")时出现异常: " + t.getLocalizedMessage());
 			}
@@ -96,28 +127,28 @@ public class TagConfig {
 		return this.tagGuiTitle;
 	}
 
-	public Map<Integer, String> getTagMap() {
-		return this.titleMap;
-	}
 
 	public FileConfiguration getConfig() {
 		return this.config;
 	}
 
+	public Map<Integer, Tag> getTagsMap() {
+		return this.titleMap;
+	}
 	public boolean isTagExist(int id) {
 		return this.titleMap.containsKey(id);
 	}
 
-	public Map<Integer, String> getPlayerTags(OfflinePlayer player) {
+	public Map<Integer, Tag> getPlayerTags(OfflinePlayer player) {
 		return this.getPlayerTags(player.getName());
 	}
 	
-	public Map<Integer, String> getPlayerTags(Player player) {
+	public Map<Integer, Tag> getPlayerTags(Player player) {
 		return this.getPlayerTags(player.getName());
 	}
 
-	public Map<Integer, String> getPlayerTags(String player) {
-		Map<Integer, String> listTitle = new HashMap<Integer, String>();
+	public Map<Integer, Tag> getPlayerTags(String player) {
+		Map<Integer, Tag> listTitle = new HashMap<>();
 		for (Integer titleId : titleMap.keySet()) {
 			if (hasTag(player, titleId)) {
 				listTitle.put(titleId, titleMap.get(titleId));
@@ -125,24 +156,12 @@ public class TagConfig {
 		}
 		return listTitle;
 	}
-
-	public String getTagFromID(int id) {
+	@Nullable
+	public Tag getTagFromID(int id) {
 		if (titleMap.containsKey(id)) {
 			return titleMap.get(id);
 		}
-		return "";
-	}
-
-	public List<String> getTagDisplayLore(int id) {
-		List<String> L = config.getStringList("lore." + id);
-		for (int i = 0; i < L.size(); i++) {
-			L.set(i, L.get(i).replace("&", "§"));
-		}
-		return L;
-	}
-
-	public Material getTagDisplayItemMaterial(int id) {
-		return Util.valueOf(Material.class, config.getString("itemid." + id + ".Material", "NAME_TAG"), Material.NAME_TAG);
+		return null;
 	}
 
 	public static String packId(int i) {
@@ -171,16 +190,16 @@ public class TagConfig {
 	}
 
 	public boolean hasTag(Player player, int id) {
-		return plugin.getPermsApi().has(player, "udtitle.t." + String.valueOf(id));
+		return plugin.getPermsApi().has(player, "udtitle.t." + id);
 	}
 
 	public boolean hasTag(OfflinePlayer player, int id) {
-		return plugin.getPermsApi().playerHas("", player, "udtitle.t." + String.valueOf(id));
+		return plugin.getPermsApi().playerHas("", player, "udtitle.t." + id);
 	}
 	
 	@SuppressWarnings("deprecation")
 	public boolean hasTag(String player, int id) {
-		return plugin.getPermsApi().playerHas("", player, "udtitle.t." + String.valueOf(id));
+		return plugin.getPermsApi().playerHas("", player, "udtitle.t." + id);
 	}
 
 	public String getPlayerTag(String player) {
@@ -227,7 +246,7 @@ public class TagConfig {
 	public boolean setPlayerTag(String player, int id) {
 		for (Integer titleId : titleMap.keySet()) {
 			if (titleId == id) {
-				return setPlayerTag(player, titleMap.get(titleId));
+				return setPlayerTag(player, titleMap.get(titleId).getDisplay());
 			}
 		}
 		return false;
@@ -240,7 +259,7 @@ public class TagConfig {
 	public String setDefaultTag(String player) {
 		String defaultTag = "&7[&a玩家&7]&e";
 		if (this.titleMap.containsKey(this.defaultTitleId)) {
-			defaultTag = this.titleMap.get(this.defaultTitleId);
+			defaultTag = this.titleMap.get(this.defaultTitleId).getDisplay();
 		}
 		this.setPlayerTag(player, defaultTag);
 		return defaultTag;

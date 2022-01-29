@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import top.mrxiaom.doomsdayessentials.chapter.IChapterTask;
 
-public class TitleMsgTask implements IChapterTask<Event> {
+public class TitleMsgTask implements IChapterTask<IChapterTask.NoEvent> {
 	final String title;
 	final String subtitle;
 	final int fadeIn;
@@ -29,10 +29,6 @@ public class TitleMsgTask implements IChapterTask<Event> {
 	}
 
 	@Override
-	public void execute(Player player, Event event) {
-	}
-
-	@Override
 	public void start(Player player) {
 		player.sendTitle(PlaceholderAPI.setPlaceholders(player, title), PlaceholderAPI.setPlaceholders(player, subtitle), fadeIn, time, fadeOut);
 		next(player);
@@ -41,10 +37,4 @@ public class TitleMsgTask implements IChapterTask<Event> {
 	@Override
 	public void end(Player player) {
 	}
-
-	@Override
-	public boolean hasEvent() {
-		return false;
-	}
-
 }

@@ -216,14 +216,12 @@ messages:
   bot:
     usage:
       seen: '[末日社团] 用法: /seen <玩家名>'
-      exchange: '[礼包码] 用法: #兑换 玩家名 礼包码'
-    exchange: '你已成功为 %name% 兑换 复活针×1'
+      refresh: '[刷新点券] 用法: #刷新 玩家名'
     bind: '白名单申请成功! 名字: %name%'
     fail: '此玩家已经存在,请更换名称'
     length: '您输入的名字太长或太短'
     char: '名字只能使用英文数字和下划线!'
     binded: '您已经申请过白名单: %name%'
-    
     invalid-name: '错误: 无效的玩家名'
     unknown-player: '[末日社团] 错误: 玩家不存在'
     online-nodata: '[末日社团] 错误: 玩家在线，但无法找到在线数据'
@@ -468,3 +466,53 @@ messages:
       - ''
   reviveme:
     no-command: '&a你已重伤倒地， 不能进行这个操作'
+    reliving:
+      player: '&a你正在救助 &2<VICTIM>.'
+      victim: '&a<PLAYER> 正在救助你'
+    revivedSuccessfully:
+      player: '&a你已成功拯救 &2<VICTIM>.'
+      victim: '&a你已成功被 &2<PLAYER> &a拯救.'
+    cancelReliving:
+      player: '&c你停止了救助 &4<VICTIM>.'
+      victim: '&c<PLAYER> 停止救助了你'
+    shotDown:
+      player: '&a你把 <VICTIM> &a击倒了'
+      victim: '&c你被 <PLAYER> &c击倒了'
+    reload: '&a配置文件已重载'
+    blockedCommand: '&c你现在不能执行这个命令'
+    noPermission: '&c你没有权限 <PERMISSION>'
+    title: '&f状态 : <STATUS> <BAR>'
+    subtitle: '&f死亡倒计时: &a<DEATHTIME> &f<INVULNERABILITY>'
+    scoreboard:
+      title: '&4&l[&e&l我已重伤倒地&4&l]'
+      status: '&f状态: '
+      waiting: '&c等死中'
+      reliving: '&a救助中'
+      deathIn: '&f死亡倒数 &a<TIME>'
+      invulnerableFor: '&f无敌时间 &a<TIME>'
+      vulnerable: '&c脆弱'
+    disable: '&6管理员正在热更新功能， 你已被强制拯救'
+  ignore:
+    help:
+      - '&6屏蔽系统帮助 &7(除正则表达式外不区分大小写)'
+      - '&c如果你不知道什么是正则表达式，请忽略相应命令'
+      - '&6/ignore player <玩家名> §c屏蔽某人'
+      - '&6/ignore p <玩家名> §c同上'
+      - '&6/ignore playerregex <正则表达式> §c同上'
+      - '&6/ignore pr <正则表达式> §c同上'
+      - '&6/ignore message <关键词> §c添加屏蔽关键词，适用于聊天和私聊'
+      - '&6/ignore m <关键词> §c同上'
+      - '&6/ignore messageregex <正则表达式> §c同上'
+      - '&6/ignore mr <正则表达式> §c同上'
+      - '&6/ignore gui &c打开GUI来删除添加过的屏蔽条目'
+    ignored: '&6对方已将你屏蔽'
+    player:
+      success: '&6你屏蔽了&c %player%'
+      success-regex: '&6你已添加玩家名正则表达式屏蔽&c %player%'
+      fail: '&6你已经屏蔽过&c %player% &6了'
+      fail-regex: '&6你已经添加过这条正则表达式了'
+    message:
+      success: '&6你已添加屏蔽关键词&c %msg%'
+      success-regex: '&6你已添加聊天信息正则表达式屏蔽&c %msg%'
+      fail: '&6你已经屏蔽过关键词&c %msg% &6了'
+      fail-regex: '&6你已经添加过这条正则表达式了'

@@ -12,6 +12,102 @@ import java.util.List;
 
 public class I18n {
 	private static final boolean useCustomPrefix = false;
+	public static class Default{
+		private static YamlConfiguration defaultConfig = new YamlConfiguration();
+
+		public static void loadDefaultConfig(Main m) {
+			InputStream is = m.getResource("lang-zh.yml");
+			if (is == null) {
+				defaultConfig = new YamlConfiguration();
+				new NullPointerException("无法读取默认语言文件为").printStackTrace();
+				return;
+			}
+			defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(is));
+		}
+
+		public static boolean contains(String key) {
+			return config.contains("messages." + key);
+		}
+
+		public static String prefix() {
+			if(!useCustomPrefix) return ChatColor.translateAlternateColorCodes('&', "&7[&9末日社团&7] &6");
+			if (defaultConfig == null)
+				return "[notloaded]";
+			if (!defaultConfig.contains("prefix"))
+				return "[notfound:prefix]";
+			if (!defaultConfig.isString("prefix"))
+				return "[notstring:prefix]";
+			return ChatColor.translateAlternateColorCodes('&', config.getString("prefix", "[notfound:prefix]"));
+		}
+
+		public static String t(String key) {
+			return t(key, false);
+		}
+
+		public static String t(String key, boolean prefix) {
+			if (defaultConfig == null)
+				return "[notloaded]";
+			String prefixStr = "";
+			if (prefix) prefixStr = prefix();
+
+			if (!defaultConfig.contains("messages." + key))
+				return "[notfound:messages." + key + "]";
+			if (!defaultConfig.isString("messages." + key))
+				return "[notstring:messages." + key + "]";
+			return prefixStr
+					+ ChatColor.translateAlternateColorCodes('&', defaultConfig.getString("messages." + key).replace("\\n", "\n"));
+		}
+
+		public static String tn(String key) {
+			return tn(key, false);
+		}
+
+		public static String tn(String key, boolean prefix) {
+			if (defaultConfig == null)
+				return "[notloaded]";
+
+			String prefixStr = "";
+			if (prefix) prefixStr = prefix();
+
+			if (!defaultConfig.contains("messages." + key))
+				return "[notfound:messages." + key + "]";
+			if (!defaultConfig.isList("messages." + key))
+				return "[notlist:messages." + key + "]";
+			List<String> list = defaultConfig.getStringList("messages." + key);
+			StringBuilder result = new StringBuilder();
+			for (int i = 0; i < list.size(); i++) {
+				result.append(prefixStr).append(ChatColor.translateAlternateColorCodes('&', list.get(i))).append(i < list.size() - 1 ? "\n" : "");
+			}
+			return result.toString();
+		}
+
+		public static List<String> l(String key) {
+			return l(key, false);
+		}
+		public static List<String> l(String key, boolean prefix) {
+			if (defaultConfig == null)
+				return Lists.newArrayList("[notloaded]");
+			String prefixStr = "";
+			if (prefix) prefixStr = prefix();
+			if (!defaultConfig.contains("messages." + key))
+				return Lists.newArrayList("[notfound:messages." + key + "]");
+			if (!defaultConfig.isList("messages." + key))
+				return Lists.newArrayList("[notlist:messages." + key + "]");
+			List<String> result = new ArrayList<>();
+			for (String s : defaultConfig.getStringList("messages." + key)) {
+				result.add((prefix ? prefixStr : "") + ChatColor.translateAlternateColorCodes('&', s));
+			}
+			return result;
+		}
+
+		public static String[] array(String key) {
+			return array(key, false);
+		}
+
+		public static String[] array(String key, boolean prefix) {
+			return Default.l(key, prefix).parallelStream().toArray(String[]::new);
+		}
+	}
 	private static YamlConfiguration config = new YamlConfiguration();
 
 	public static void loadDefaultConfig(Main m) {
@@ -40,7 +136,7 @@ public class I18n {
 		if (config == null)
 			return "[notloaded]";
 		if (!config.contains("prefix"))
-			return "[notfound:prefix]";
+			return Default.prefix();
 		if (!config.isString("prefix"))
 			return "[notstring:prefix]";
 		return ChatColor.translateAlternateColorCodes('&', config.getString("prefix", "[notfound:prefix]"));
@@ -57,7 +153,7 @@ public class I18n {
 		if (prefix) prefixStr = prefix();
 
 		if (!config.contains("messages." + key))
-			return "[notfound:messages." + key + "]";
+			return Default.t(key, prefix);
 		if (!config.isString("messages." + key))
 			return "[notstring:messages." + key + "]";
 		return prefixStr
@@ -76,7 +172,7 @@ public class I18n {
 		if (prefix) prefixStr = prefix();
 
 		if (!config.contains("messages." + key))
-			return "[notfound:messages." + key + "]";
+			return Default.tn(key, prefix);
 		if (!config.isList("messages." + key))
 			return "[notlist:messages." + key + "]";
 		List<String> list = config.getStringList("messages." + key);
@@ -96,7 +192,7 @@ public class I18n {
 		String prefixStr = "";
 		if (prefix) prefixStr = prefix();
 		if (!config.contains("messages." + key))
-			return Lists.newArrayList("[notfound:messages." + key + "]");
+			return Default.l(key, prefix);
 		if (!config.isList("messages." + key))
 			return Lists.newArrayList("[notlist:messages." + key + "]");
 		List<String> result = new ArrayList<>();

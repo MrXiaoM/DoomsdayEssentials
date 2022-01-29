@@ -7,6 +7,7 @@ import top.mrxiaom.doomsdayessentials.Main;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -35,6 +36,99 @@ public class PlayerConfig {
 		return this.setNeedle(player, a + amount);
 	}
 
+	/**
+	 * 屏蔽某玩家
+	 * @param player 请求屏蔽的玩家
+	 * @param target 屏蔽目标
+	 * @param isRegex 是否为正则表达式
+	 * @return 是否已屏蔽成功
+	 */
+	public boolean ignoreAddPlayer(String player, String target, boolean isRegex){
+		List<String> keys = new ArrayList<>();
+		if (config.contains(player + ".ignore.players" + (isRegex ? "-regex" : "")))
+			keys = config.getStringList(player + ".ignore.players" + (isRegex ? "-regex" : ""));
+		if(keys.contains(target)) return false;
+		keys.add(target);
+		config.set(player + ".ignore.players" + (isRegex ? "-regex" : ""), keys);
+		return true;
+	}
+
+	/**
+	 * 获取已屏蔽的玩家列表
+	 * @param player 请求获取的玩家
+	 * @param isRegex 是否为正则表达式
+	 * @return 玩家列表
+	 */
+	public List<String> getIgnorePlayers(String player, boolean isRegex){
+		List<String> keys = new ArrayList<>();
+		if (config.contains(player + ".ignore.players" + (isRegex ? "-regex" : "")))
+			keys = config.getStringList(player + ".ignore.players" + (isRegex ? "-regex" : ""));
+		return keys;
+	}
+
+	/**
+	 * 取消屏蔽的玩家
+	 * @param player 请求屏蔽的玩家
+	 * @param target 屏蔽目标
+	 * @param isRegex 是否为正则表达式
+	 * @return 是否已取消成功
+	 */
+	public boolean ignoreRemovePlayer(String player, String target, boolean isRegex){
+		List<String> keys = new ArrayList<>();
+		if (config.contains(player + ".ignore.players" + (isRegex ? "-regex" : "")))
+			keys = config.getStringList(player + ".ignore.players" + (isRegex ? "-regex" : ""));
+		if(!keys.contains(target)) return false;
+		keys.remove(target);
+		config.set(player + ".ignore.players" + (isRegex ? "-regex" : ""), keys);
+		return true;
+	}
+
+	/**
+	 * 屏蔽某聊天关键词
+	 * @param player 请求屏蔽的玩家
+	 * @param target 要屏蔽的消息
+	 * @param isRegex 是否为正则表达式
+	 * @return 是否屏蔽成功
+	 */
+	public boolean ignoreAddMsg(String player, String target, boolean isRegex){
+		List<String> keys = new ArrayList<>();
+		if (config.contains(player + ".ignore.messages" + (isRegex ? "-regex" : "")))
+			keys = config.getStringList(player + ".ignore.messages" + (isRegex ? "-regex" : ""));
+		if(keys.contains(target)) return false;
+		keys.add(target);
+		config.set(player + ".ignore.messages" + (isRegex ? "-regex" : ""), keys);
+		return true;
+	}
+
+	/**
+	 * 获取某人的聊天屏蔽关键词
+	 * @param player 请求获取的玩家
+	 * @param isRegex 是否为正则表达式
+	 * @return 关键词列表
+	 */
+	public List<String> getIgnoreMsgs(String player, boolean isRegex){
+		List<String> keys = new ArrayList<>();
+		if (config.contains(player + ".ignore.messages" + (isRegex ? "-regex" : "")))
+			keys = config.getStringList(player + ".ignore.messages" + (isRegex ? "-regex" : ""));
+		return keys;
+	}
+
+	/**
+	 * 取消屏蔽某聊天关键词
+	 * @param player 请求屏蔽的玩家
+	 * @param target 屏蔽的消息
+	 * @param isRegex 是否为正则表达式
+	 * @return 是否取消成功
+	 */
+	public boolean ignoreRemoveMsg(String player, String target, boolean isRegex){
+		List<String> keys = new ArrayList<>();
+		if (config.contains(player + ".ignore.messages" + (isRegex ? "-regex" : "")))
+			keys = config.getStringList(player + ".ignore.messages" + (isRegex ? "-regex" : ""));
+		if(!keys.contains(target)) return false;
+		keys.remove(target);
+		config.set(player + ".ignore.messages" + (isRegex ? "-regex" : ""), keys);
+		return true;
+	}
 	public PlayerConfig removeNeedle(String player, int amount) {
 		int a = this.getNeedle(player);
 		return this.setNeedle(player, a - amount);

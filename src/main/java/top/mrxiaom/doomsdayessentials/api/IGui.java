@@ -8,10 +8,14 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import top.mrxiaom.doomsdayessentials.Main;
 
 public interface IGui {
 	Player getPlayer();
 	Inventory newInventory();
 	void onClick(InventoryAction action, ClickType click, InventoryType.SlotType slotType, int slot, ItemStack currentItem, ItemStack cursor, InventoryView view, InventoryClickEvent event);
 	void onClose(InventoryView view);
+	default void refresh(){
+		Main.getInstance().getGuiManager().openGui(this);
+	}
 }

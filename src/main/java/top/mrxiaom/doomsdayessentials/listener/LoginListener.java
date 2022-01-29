@@ -35,14 +35,12 @@ public class LoginListener implements Listener {
 		int id = TagConfig.extractId(prefix);
 		if (id >= 1) {
 			if (this.plugin.getTagConfig().hasTag(player, id)) {
-				String a = this.plugin.getTagConfig().getTagFromID(id);
-				if (!a.equals(prefix)) {
-					this.plugin.getTagConfig().setPlayerTag(player, a);
-					return;
+				TagConfig.Tag tag = this.plugin.getTagConfig().getTagFromID(id);
+				if (tag != null && !tag.getDisplay().equals(prefix)) {
+					this.plugin.getTagConfig().setPlayerTag(player, tag.getDisplay());
 				}
-				return;
 			}
-			this.plugin.getTagConfig().setDefaultTag(player);
+			else this.plugin.getTagConfig().setDefaultTag(player);
 		}
 		if (!AuthMeApi.getInstance().isRegistered(player.getName())) {
 			try {

@@ -5,6 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
+import top.mrxiaom.doomsdayessentials.configs.TagConfig;
 import top.mrxiaom.doomsdayessentials.gui.GuiTagListAll;
 import top.mrxiaom.doomsdayessentials.gui.GuiTagListPlayer;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
@@ -34,9 +35,9 @@ public class CommandTGui extends ICommand {
 					return true;
 				}
 				sender.sendMessage(I18n.t("title.List1"));
-				Map<Integer, String> titleMap = plugin.getTagConfig().getTagMap();
-				for (int id : titleMap.keySet()) {
-					sender.sendMessage("§4" + id + "§b:---:" + titleMap.get(id));
+				Map<Integer, TagConfig.Tag> tagsMap = plugin.getTagConfig().getTagsMap();
+				for (int id : tagsMap.keySet()) {
+					sender.sendMessage("§4" + id + "§b:---:" + tagsMap.get(id).getDisplay());
 				}
 				sender.sendMessage(I18n.t("title.List2"));
 			} else if (args[0].equalsIgnoreCase("reload")) {
@@ -48,10 +49,10 @@ public class CommandTGui extends ICommand {
 				OfflinePlayer player = Util.getOfflinePlayer(args[1]);
 				Map<Integer, String> playerAllTitle = new HashMap<>();
 				if (player != null) {
-					Map<Integer, String> titleMap = plugin.getTagConfig().getTagMap();
-					for (int titleId : titleMap.keySet()) {
+					Map<Integer, TagConfig.Tag> tagsMap = plugin.getTagConfig().getTagsMap();
+					for (int titleId : tagsMap.keySet()) {
 						if (plugin.getTagConfig().hasTag(player, titleId)) {
-							playerAllTitle.put(titleId, titleMap.get(titleId));
+							playerAllTitle.put(titleId, tagsMap.get(titleId).getDisplay());
 						}
 					}
 				}

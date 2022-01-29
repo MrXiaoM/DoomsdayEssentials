@@ -62,9 +62,4 @@ public class ClickBlockTask implements IChapterTask<PlayerInteractEvent> {
     public void end(Player player) {
 
     }
-
-    @Override
-    public boolean hasEvent() {
-        return true;
-    }
 }

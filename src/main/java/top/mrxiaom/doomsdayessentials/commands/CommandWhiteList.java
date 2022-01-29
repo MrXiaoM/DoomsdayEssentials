@@ -75,17 +75,6 @@ public class CommandWhiteList extends ICommand {
 			plugin.getWhitelistConfig().set(args[2], args[1]).saveConfig();
 			sender.sendMessage("§7[§9末日社团§7]§6 已添加§c " + args[2] + " §6为白名单");
 			return true;
-		} else if (args.length == 1 && args[0].equalsIgnoreCase("key")) {
-			if (!sender.hasPermission("amw.admin")) {
-				sender.sendMessage("§7[§9末日社团§7] §c你没有执行该命令的权限");
-				return true;
-			}
-			int amount = plugin.getKeyManager().getKeyAmount();
-			int used = plugin.getKeyManager().getUsedKeyAmount();
-
-			sender.sendMessage("§7[§9末日社团§7]§6 当前可用礼包码数量: §c" + (amount - used) + "\n" + "§7[§9末日社团§7]§6 已使用的礼包码数量: §c"
-					+ (used) + "\n" + "§7[§9末日社团§7]§6 礼包码总数: §c" + (amount) + "\n");
-			return true;
 		} else if (args.length == 2 && args[0].equalsIgnoreCase("check")) {
 			if (!sender.hasPermission("amw.admin")) {
 				sender.sendMessage("§7[§9末日社团§7] §c你没有执行该命令的权限");

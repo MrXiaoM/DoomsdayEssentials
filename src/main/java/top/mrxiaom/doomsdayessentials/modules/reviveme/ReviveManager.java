@@ -18,6 +18,7 @@ import top.mrxiaom.doomsdayessentials.modules.reviveme.utils.Spigboard;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.utils.SpigboardEntry;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.utils.VectorUtils;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.version.ISendPlay;
+import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.NMSUtil;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
@@ -81,8 +82,7 @@ public class ReviveManager {
         saveNewConfig("totem-first", false);
         ReviveMe.getInstance().saveConfig();
         Bukkit.getScheduler().scheduleSyncRepeatingTask(ReviveMe.getInstance().getPlugin(), () -> {
-            for (int i = 0; i < playersPose.size(); ++i) {
-                Player p = playersPose.get(i);
+            for (Player p : playersPose) {
                 List<Player> var3 = VectorUtils.getNear(100.0D, p);
             }
 
@@ -148,7 +148,13 @@ public class ReviveManager {
         }
 
         if (cfg.getBoolean("info.title")) {
-            p.sendTitle(cfg.getString("title.title").replace("<STATUS>", boardWaiting).replace("<BAR>", "§7██████████").replace("&", "§"), cfg.getString("title.subTitle").replace("<DEATHTIME>", getDeathCountText(deathd)).replace("<INVULNERABILITY>", boardInvulnerableFor.replace("&", "§").replace("<TIME>", getDeathCountText(invulnerability))).replace("&", "§"), 1, 200, 1);
+            p.sendTitle(I18n.t("reviveme.title")
+                            .replace("<STATUS>", boardWaiting)
+                            .replace("<BAR>", "§7██████████"),
+                    I18n.t("reviveme.subtitle")
+                            .replace("<DEATHTIME>", getDeathCountText(deathd))
+                            .replace("<INVULNERABILITY>", boardInvulnerableFor.replace("<TIME>", getDeathCountText(invulnerability))),
+                    1, 200, 1);
         }
 
         if (cfg.getBoolean("info.scoreboard")) {
@@ -282,8 +288,8 @@ public class ReviveManager {
     }
 
     public void startReliving(Player p, Player p2) {
-        p.sendMessage(cfg.getString("messages.reliving.player").replace("&", "§").replace("<VICTIM>", p2.getName()));
-        p2.sendMessage(cfg.getString("messages.reliving.victim").replace("&", "§").replace("<PLAYER>", p.getName()));
+        p.sendMessage(I18n.t("reviveme.reliving.player", true).replace("<VICTIM>", p2.getName()));
+        p2.sendMessage(I18n.t("reviveme.reliving.victim", true).replace("<PLAYER>", p.getName()));
         if (cfg.getBoolean("info.scoreboard")) {
             Spigboard b1 = board1.get(p2);
             b1.add(p);
@@ -297,8 +303,8 @@ public class ReviveManager {
 
     public void cancelReliving(Player p, Player p2) {
         if (relivingCount.containsKey(p2) && relivingPlayer.containsKey(p)) {
-            p.sendMessage(cfg.getString("messages.cancelReliving.player").replace("&", "§").replace("<VICTIM>", p2.getName()));
-            p2.sendMessage(cfg.getString("messages.cancelReliving.victim").replace("&", "§").replace("<PLAYER>", p.getName()));
+            p.sendMessage(I18n.t("reviveme.cancelReliving.player", true).replace("<VICTIM>", p2.getName()));
+            p2.sendMessage(I18n.t("reviveme.cancelReliving.victim", true).replace("<PLAYER>", p.getName()));
             if (cfg.getBoolean("info.scoreboard")) {
                 Spigboard b1 = board1.get(p2);
                 SpigboardEntry score = b1.getEntry("count");
@@ -306,7 +312,7 @@ public class ReviveManager {
 
                 try {
                     score.update("§7██████████");
-                    score2.update((boardStatus + boardWaiting).replace("&", "§"));
+                    score2.update(boardStatus + boardWaiting);
                 } catch (IllegalStateException ignored) {
                 }
 
@@ -323,11 +329,16 @@ public class ReviveManager {
 
     }
 
-    public void reliveAll() {
+    public void reliveAll(){
+        reliveAll(false);
+    }
+
+    public void reliveAll(boolean disable) {
         if (!playersPose.isEmpty()) {
             for (Player p : playersPose) {
                 relivingCount.remove(p);
                 endPose(p, "All. Code: 007");
+                if(disable && p.isOnline()) p.sendMessage(I18n.t("reviveme.disable", true));
             }
         }
 
@@ -363,7 +374,7 @@ public class ReviveManager {
 
                     try {
                         score.update(getCountText(value));
-                        score2.update((boardStatus + boardReliving).replace("&", "§"));
+                        score2.update(boardStatus + boardReliving);
                     } catch (IllegalStateException ignored) {
                     }
                 }
@@ -387,8 +398,8 @@ public class ReviveManager {
                     relivingCount.remove(p);
                     relivingPlayer.remove(p2);
                     endPose(p, "For player. code: 008");
-                    p.sendMessage(cfg.getString("messages.revivedSuccessfully.victim").replace("&", "§").replace("<PLAYER>", p2.getName()));
-                    p2.sendMessage(cfg.getString("messages.revivedSuccessfully.player").replace("&", "§").replace("<VICTIM>", p.getName()));
+                    p.sendMessage(I18n.t("reviveme.revivedSuccessfully.victim", true).replace("<PLAYER>", p2.getName()));
+                    p2.sendMessage(I18n.t("reviveme.revivedSuccessfully.player", true).replace("<VICTIM>", p.getName()));
                     if (cfg.getBoolean("info.scoreboard")) {
                         p2.setScoreboard(Bukkit.getServer().getScoreboardManager().getMainScoreboard());
                     }
@@ -436,14 +447,12 @@ public class ReviveManager {
                 }
 
                 p.sendTitle(
-                        cfg.getString("title.title")
+                        I18n.t("reviveme.title")
                                 .replace("<STATUS>", status)
-                                .replace("<BAR>", bar)
-                                .replace("&", "§"),
-                        cfg.getString("title.subTitle")
+                                .replace("<BAR>", bar),
+                        I18n.t("reviveme.subtitle")
                                 .replace("<DEATHTIME>", getDeathCountText(value))
-                                .replace("<INVULNERABILITY>", boardInvulnerableFor.replace("&", "§").replace("<TIME>", getDeathCountText(invulnerability)))
-                                .replace("&", "§"),
+                                .replace("<INVULNERABILITY>", boardInvulnerableFor.replace("<TIME>", getDeathCountText(invulnerability))),
                         1, 20, 1);
             }
         }
@@ -458,7 +467,7 @@ public class ReviveManager {
                         SpigboardEntry score4 = b1.getEntry("invulnerableCount");
 
                         try {
-                            score4.update(boardInvulnerableFor.replace("&", "§").replace("<TIME>", getDeathCountText(value)));
+                            score4.update(boardInvulnerableFor.replace("<TIME>", getDeathCountText(value)));
                         } catch (IllegalStateException ignored) {
                         }
                     }
@@ -469,7 +478,7 @@ public class ReviveManager {
                         SpigboardEntry score4 = b1.getEntry("invulnerableCount");
 
                         try {
-                            score4.update(boardVulnerable.replace("&", "§"));
+                            score4.update(boardVulnerable);
                         } catch (IllegalStateException ignored) {
                         }
                     }
@@ -567,8 +576,7 @@ public class ReviveManager {
         if (p.hasPermission(permission)) {
             haspermission = true;
         } else if (!permission.equalsIgnoreCase("ReviveMe.shotdown") && !permission.equalsIgnoreCase("ReviveMe.itemstealVictim")) {
-            p.sendMessage(cfg.getString("messages.noPermission")
-                    .replace("&", "§")
+            p.sendMessage(I18n.t("reviveme.noPermission")
                     .replace("<PERMISSION>", permission));
             if (p instanceof Player) {
                 Player player = (Player) p;
@@ -590,16 +598,16 @@ public class ReviveManager {
         potionEffect = cfg.getString("potion.effect");
         potionLevel = cfg.getInt("potion.level");
 
-        boardTitle = cfg.getString("scoreboard.title");
-        boardStatus = cfg.getString("scoreboard.status");
-        boardWaiting = cfg.getString("scoreboard.waiting");
-        boardReliving = cfg.getString("scoreboard.reliving");
-        boardDeathIn = cfg.getString("scoreboard.deathIn");
-        boardInvulnerableFor = cfg.getString("scoreboard.invulnerableFor");
-        boardVulnerable = cfg.getString("scoreboard.vulnerable");
+        boardTitle = I18n.t("reviveme.scoreboard.title");
+        boardStatus = I18n.t("reviveme.scoreboard.status");
+        boardWaiting = I18n.t("reviveme.scoreboard.waiting");
+        boardReliving = I18n.t("reviveme.scoreboard.reliving");
+        boardDeathIn = I18n.t("reviveme.scoreboard.deathIn");
+        boardInvulnerableFor = I18n.t("reviveme.scoreboard.invulnerableFor");
+        boardVulnerable = I18n.t("reviveme.scoreboard.vulnerable");
         speed = Util.getFloatFromConfig(cfg, "playersConfig.speed", 0.04F);
-        title = cfg.getString("title.title");
-        subTitle = cfg.getString("title.subTitle");
+        title = I18n.t("reviveme.title");
+        subTitle = I18n.t("reviveme.subtitle");
         potionEnable = cfg.getBoolean("potion.enable");
         potionEffect = cfg.getString("potion.effect");
         potionLevel = cfg.getInt("potion.level");

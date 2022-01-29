@@ -46,9 +46,4 @@ public class WalkTask implements IChapterTask<PlayerMoveEvent> {
     public void end(Player player) {
 
     }
-
-    @Override
-    public boolean hasEvent() {
-        return true;
-    }
 }

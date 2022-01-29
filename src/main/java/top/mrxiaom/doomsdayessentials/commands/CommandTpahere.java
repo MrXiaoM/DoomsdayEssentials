@@ -51,6 +51,10 @@ public class CommandTpahere extends ICommand {
 				player.sendMessage(I18n.t("not-online", true));
 				return true;
 			}
+			if(plugin.getChatListener().isIgnored(player, targetPlayer, null)) {
+				player.sendMessage(I18n.t("ignore.ignored", true));
+				return true;
+			}
 			if (!plugin.getPlayerCooldownManager().getTpRequestsSender(player).isEmpty()) {
 				player.sendMessage(I18n.t("teleport.has-requests"));
 				return true;

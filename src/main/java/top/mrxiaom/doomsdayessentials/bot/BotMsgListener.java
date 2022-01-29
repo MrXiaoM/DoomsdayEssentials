@@ -2,14 +2,13 @@ package top.mrxiaom.doomsdayessentials.bot;
 
 import com.ranull.graves.inventory.GraveInventory;
 import fr.xephi.authme.api.v3.AuthMeApi;
+import fr.xephi.authme.events.LoginEvent;
 import me.albert.amazingbot.bot.Bot;
 import me.albert.amazingbot.events.GroupMessageEvent;
-import me.albert.amazingbot.events.PrivateMessageEvent;
 import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.utils.Punishment;
 import me.leoko.advancedban.utils.SQLQuery;
 import net.mamoe.mirai.contact.Group;
-import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.message.data.QuoteReply;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -35,47 +34,15 @@ public class BotMsgListener implements Listener {
         this.plugin = main;
         Bukkit.getPluginManager().registerEvents(this, main);
     }
-
+    public int cooldown = 0;
     public final Map<String, Long> requestMap = new HashMap<>();
 
     @EventHandler
-    public void onPlayerLogin(PlayerLoginEvent event){
+    public void onAuthmeLogin(LoginEvent event) {
         if(event.getPlayer().isOp()) return;
         String tag = Util.removeColor(plugin.getTagConfig().getPlayerTag(event.getPlayer().getName()));
         Bot.getApi().getGroup(951534513L).sendMessage(tag + " " + event.getPlayer().getName() + " 上线啦!");
     }
-
-    @EventHandler
-    public void onFriendMessage(PrivateMessageEvent e){
-        FriendMessageEvent event = e.getEvent();
-        QuoteReply quote = new QuoteReply(event.getSource());
-        String exchangeKey = plugin.getConfig().getString("bot.exchange-key");
-        if (e.getMsg().startsWith(exchangeKey)) {
-            if (!e.getMsg().contains(" ")) {
-                event.getFriend().sendMessage(quote.plus(I18n.t("bot.usage.exchange")));
-                return;
-            }
-            String[] args = e.getMsg().split(" ");
-            if (!args[0].equals(exchangeKey))
-                return;
-            if (args.length != 3) {
-                event.getFriend().sendMessage(quote.plus(I18n.t("bot.usage.exchange")));
-                return;
-            }
-            String playerName = args[1];
-            String code = args[2];
-            if (plugin.getPlayerConfig().getNeedle(playerName) < 0) {
-                if (plugin.getKeyManager().canKeyBeUse(code)) {
-                    event.getFriend().sendMessage(quote.plus(plugin.getKeyManager().useKey(playerName, code)));
-                } else {
-                    event.getFriend().sendMessage(quote.plus(I18n.t("bot.code-not-found")));
-                }
-            } else {
-                event.getFriend().sendMessage(quote.plus(I18n.t("bot.no-need-needle")));
-            }
-        }
-    }
-
     @SuppressWarnings("deprecation")
     @EventHandler
     public void onGroupMessage(GroupMessageEvent e) {
@@ -86,7 +53,7 @@ public class BotMsgListener implements Listener {
                     + event.getSender().getId() + "): " + event.getMessage().contentToString().replace("\n", " \\n "));
         }
         FileConfiguration config = plugin.getConfig();
-        List<String> groups = (List<String>) config.getStringList("groups");
+        List<String> groups = config.getStringList("groups");
         if (!groups.contains(e.getGroupID().toString())) {
             return;
         }
@@ -94,29 +61,29 @@ public class BotMsgListener implements Listener {
         if (e.getMsg().trim().equalsIgnoreCase("确认绑定")) {
             boolean ok = false;
             boolean removeFlag = false;
-            String message = "【正在处理绑定请求】";
+            StringBuilder message = new StringBuilder("【正在处理绑定请求】");
             for (String player : requestMap.keySet()) {
                 long target = requestMap.get(player);
                 if (e.getUserID().equals(target)) {
                     ok = true;
                     if (!removeFlag) {
                         plugin.getWhitelistConfig().set(player, String.valueOf(target)).saveConfig();
-                        message += "\n你已成功绑定账号 " + player;
+                        message.append("\n你已成功绑定账号 ").append(player);
                         removeFlag = true;
                     } else {
-                        message += "\n当前QQ号已被绑定，你无法绑定账号 " + player;
+                        message.append("\n当前QQ号已被绑定，你无法绑定账号 ").append(player);
                     }
                     requestMap.remove(player);
                 }
             }
             if (ok) {
-                g.sendMessage(quote.plus(message));
+                g.sendMessage(quote.plus(message.toString()));
             }
             return;
         }
         if (e.getMsg().toLowerCase().startsWith("#切换坟墓状态")) {
             String type = e.getMsg().substring(7);
-            boolean flag = false;
+            boolean flag;
             if (type.equalsIgnoreCase("已保护")) {
                 flag = true;
             } else if (type.equalsIgnoreCase("未保护")) {
@@ -151,7 +118,7 @@ public class BotMsgListener implements Listener {
         }
         if (e.getMsg().toLowerCase().startsWith("/say ")) {
             String msg = Util.removeColor(e.getMsg().substring(5).replace("\n", ",").replace("\r", ""));
-            if (msg.trim().length() < 0) {
+            if (msg.trim().length() <= 0) {
                 g.sendMessage(quote.plus(I18n.t("bot.content")));
                 return;
             }
@@ -160,12 +127,10 @@ public class BotMsgListener implements Listener {
             }
             if (plugin.getConfig().contains("blacklist-words")) {
                 List<String> bw = plugin.getConfig().getStringList("blacklist-words");
-                if (bw != null) {
-                    for (String s : bw) {
-                        if (msg.toLowerCase().contains(s)) {
-                            g.sendMessage(quote.plus(I18n.t("bot.banwords")));
-                            return;
-                        }
+                for (String s : bw) {
+                    if (msg.toLowerCase().contains(s)) {
+                        g.sendMessage(quote.plus(I18n.t("bot.banwords")));
+                        return;
                     }
                 }
             }
@@ -180,22 +145,22 @@ public class BotMsgListener implements Listener {
             return;
         }
         if (e.getMsg().equalsIgnoreCase("/list")) {
-            String players = "";
-            Player[] onlinePlayers = Bukkit.getOnlinePlayers().stream().toArray(Player[]::new);
+            StringBuilder players = new StringBuilder();
+            Player[] onlinePlayers = Bukkit.getOnlinePlayers().toArray(Player[]::new);
             List<String> playersName = new ArrayList<>();
             for (Player p : onlinePlayers) {
                 playersName.add(p.getName());
             }
             Collections.sort(playersName);
             for (int i = 0; i < playersName.size(); i++) {
-                players += playersName.get(i) + (i < playersName.size() - 1 ? ", " : "");
+                players.append(playersName.get(i)).append(i < playersName.size() - 1 ? ", " : "");
             }
             event.getGroup().sendMessage(quote.plus(I18n.t("bot.online").replace("\\n", "\n")
-                    .replace("%count%", String.valueOf(playersName.size())).replace("%list%", players)));
+                    .replace("%count%", String.valueOf(playersName.size())).replace("%list%", players.toString())));
             return;
         }
         String seenKey = plugin.getConfig().getString("bot.seen-key");
-        if (e.getMsg().startsWith(seenKey)) {
+        if (seenKey != null && e.getMsg().startsWith(seenKey)) {
             if (!e.getMsg().contains(" ")) {
                 event.getGroup().sendMessage(quote.plus(I18n.t("bot.usage.seen")));
                 return;
@@ -220,7 +185,7 @@ public class BotMsgListener implements Listener {
             }
 
             OfflinePlayer targetPlayer = Util.getOfflinePlayer(playerName);
-            if (targetPlayer.isOnline()) {
+            if (targetPlayer != null && targetPlayer.isOnline()) {
                 if (!plugin.getUpdaterApi().getPlayerIPMap().containsKey(playerName)) {
                     event.getGroup().sendMessage(quote.plus(I18n.t("bot.online-nodata")));
                     return;
@@ -237,14 +202,14 @@ public class BotMsgListener implements Listener {
                 event.getGroup().sendMessage(
                         quote.plus(I18n.t("bot.online-time").replace("%player%", playerName).replace("%time%", time)));
                 return;
-            } else {
+            } else if(targetPlayer != null){
                 long now = Calendar.getInstance().getTimeInMillis();
                 long last = targetPlayer.getLastPlayed();
                 String time = TimeUtil.getChineseTime_Old(now - last, "", "");
                 String result = I18n.t("bot.offline-time").replace("%player%", playerName).replace("%time%", time);
                 try {
                     List<Punishment> pList = PunishmentManager.get()
-                            .getPunishments(SQLQuery.SELECT_ALL_PUNISHMENTS_LIMIT, new java.lang.Object[] { 150 });
+                            .getPunishments(SQLQuery.SELECT_ALL_PUNISHMENTS_LIMIT, 150);
                     for (Punishment p : pList) {
                         if (p.getName().equalsIgnoreCase(playerName)) {
                             result += "\n" + I18n.t("bot.offline-banned.title") + "\n"
@@ -264,30 +229,23 @@ public class BotMsgListener implements Listener {
                 return;
             }
         }
-        String exchangeKey = plugin.getConfig().getString("bot.exchange-key");
-        if (e.getMsg().startsWith(exchangeKey)) {
+        String refreshKey = plugin.getConfig().getString("bot.refresh-key");
+        if (refreshKey != null && e.getMsg().startsWith(refreshKey)) {
             if (!e.getMsg().contains(" ")) {
-                event.getGroup().sendMessage(quote.plus(I18n.t("bot.usage.exchange")));
+                event.getGroup().sendMessage(quote.plus(I18n.t("bot.usage.refresh")));
                 return;
             }
-            String[] args = e.getMsg().split(" ");
-            if (!args[0].equals(exchangeKey))
-                return;
-            if (args.length != 3) {
-                event.getGroup().sendMessage(quote.plus(I18n.t("bot.usage.exchange")));
+            OfflinePlayer player = Util.getOfflinePlayer(e.getMsg().split(" ")[1]);
+            if(player == null || player.getName() == null){
+                event.getGroup().sendMessage(quote.plus(I18n.t("bot.invalid-name")));
                 return;
             }
-            String playerName = args[1];
-            String code = args[2];
-            if (plugin.getPlayerConfig().getNeedle(playerName) < 0) {
-                if (plugin.getKeyManager().canKeyBeUse(code)) {
-                    event.getGroup().sendMessage(quote.plus(plugin.getKeyManager().useKey(playerName, code)));
-                } else {
-                    event.getGroup().sendMessage(quote.plus(I18n.t("bot.code-not-found")));
-                }
-            } else {
-                event.getGroup().sendMessage(quote.plus(I18n.t("bot.no-need-needle")));
+            if(cooldown > 0) {
+                event.getGroup().sendMessage(quote.plus("命令冷却中，请等待" + cooldown + "秒"));
+                return;
             }
+            cooldown = 15;
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> event.getGroup().sendMessage(quote.plus(Util.removeColor(plugin.checkPoints(player)))));
             return;
         }
         final String key = config.getString("keyword") + " ";
@@ -318,7 +276,7 @@ public class BotMsgListener implements Listener {
             event.getGroup().sendMessage(quote.plus(I18n.t("bot.fail")));
             return;
         }
-        plugin.getWhitelistConfig().set(name, (Object) e.getUserID().toString()).saveConfig();
+        plugin.getWhitelistConfig().set(name, e.getUserID().toString()).saveConfig();
         event.getGroup().sendMessage(quote.plus(I18n.t("bot.bind").replace("%name%", name)));
     }
 

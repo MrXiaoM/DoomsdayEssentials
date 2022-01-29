@@ -3,7 +3,6 @@ package top.mrxiaom.doomsdayessentials.modules.reviveme;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
@@ -16,6 +15,7 @@ import org.bukkit.event.entity.*;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.*;
 import org.spigotmc.event.entity.EntityMountEvent;
+import top.mrxiaom.doomsdayessentials.utils.I18n;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -68,11 +68,11 @@ public class EventsListener implements Listener {
                                     e2.getDamager();
                                     if (e2.getDamager() instanceof Player) {
                                         p2 = (Player) e2.getDamager();
-                                        p2.sendMessage(plugin.getConfig().getString("messages.shotDown.player").replace("<VICTIM>", p.getName()).replace("&", "§"));
-                                        p.sendMessage(plugin.getConfig().getString("messages.shotDown.victim").replace("<PLAYER>", p2.getName()).replace("&", "§"));
+                                        p2.sendMessage(I18n.t("reviveme.shotDown.player", true).replace("<VICTIM>", p.getName()));
+                                        p.sendMessage(I18n.t("reviveme.shotDown.victim", true).replace("<PLAYER>", p2.getName()));
                                     }
                                 } else {
-                                    p.sendMessage(plugin.getConfig().getString("messages.shotDown.victim").replace("<PLAYER>", e.getCause().toString()).replace("&", "§"));
+                                    p.sendMessage(I18n.t("reviveme.shotDown.victim", true).replace("<PLAYER>", e.getCause().toString()));
                                 }
                             }
                         } else {
@@ -83,11 +83,11 @@ public class EventsListener implements Listener {
                                 e2 = (EntityDamageByEntityEvent) e;
                                 if (e2.getDamager() instanceof Player) {
                                     p2 = (Player) e2.getDamager();
-                                    p2.sendMessage(plugin.getConfig().getString("messages.shotDown.player").replace("<VICTIM>", p.getName()).replace("&", "§"));
-                                    p.sendMessage(plugin.getConfig().getString("messages.shotDown.victim").replace("<PLAYER>", p2.getName()).replace("&", "§"));
+                                    p2.sendMessage(I18n.t("reviveme.shotDown.player", true).replace("<VICTIM>", p.getName()));
+                                    p.sendMessage(I18n.t("reviveme.shotDown.victim", true).replace("<PLAYER>", p2.getName()));
                                 }
                             } else {
-                                p.sendMessage(plugin.getConfig().getString("messages.shotDown.victim").replace("<PLAYER>", e.getCause().toString()).replace("&", "§"));
+                                p.sendMessage(I18n.t("reviveme.shotDown.victim", true).replace("<PLAYER>", e.getCause().toString()));
                             }
                         }
 
@@ -206,7 +206,7 @@ public class EventsListener implements Listener {
     public Player getPlayer(Player p) {
         Map<Player, Double> players = new HashMap<>();
         Player end = null;
-        Iterator var5 = p.getWorld().getPlayers().iterator();
+        Iterator<Player> var5 = p.getWorld().getPlayers().iterator();
 
         while (true) {
             Player p2;
@@ -219,11 +219,11 @@ public class EventsListener implements Listener {
                             var5 = players.keySet().iterator();
 
                             while (var5.hasNext()) {
-                                p2 = (Player) var5.next();
+                                p2 = var5.next();
                                 if (plugin.getManager().playersPose.contains(p2)) {
                                     if (end == null) {
                                         end = p2;
-                                    } else if ((Double) players.get(p2) < (Double) players.get(end)) {
+                                    } else if (players.get(p2) < players.get(end)) {
                                         end = p2;
                                     }
                                 }
@@ -232,7 +232,7 @@ public class EventsListener implements Listener {
                             return end;
                         }
 
-                        p2 = (Player) var5.next();
+                        p2 = var5.next();
                     } while (p2.equals(p));
 
                     distance = 1000.0D;
@@ -240,7 +240,7 @@ public class EventsListener implements Listener {
                         distance = p2.getLocation().distance(p.getLocation());
                     }
 
-                    p.getName().equalsIgnoreCase("FavioMC19");
+                    //p.getName().equalsIgnoreCase("FavioMC19");
                 } while (distance > 1.0D);
 
                 permission = "none";
@@ -373,7 +373,7 @@ public class EventsListener implements Listener {
                 }
 
                 if (blocked) {
-                    p.sendMessage(plugin.getConfig().getString("messages.blockedCommand").replace("&", "§"));
+                    p.sendMessage(I18n.t("reviveme.blockedCommand", true));
                     e.setCancelled(true);
                 }
             }

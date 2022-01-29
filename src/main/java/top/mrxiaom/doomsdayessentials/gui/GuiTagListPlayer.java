@@ -40,9 +40,9 @@ public class GuiTagListPlayer implements IGui{
 	@Override
 	public Inventory newInventory() {
 		Inventory inv = Bukkit.getServer().createInventory(null, 54,
-				"§f§a§6§0" + plugin.getTagConfig().getGuiTagListPlayerTitle() + "§r" + "§a-第" + page + "页");
+				plugin.getTagConfig().getGuiTagListPlayerTitle() + "§a-第" + page + "页");
 
-		Map<Integer, String> listAllTitle = plugin.getTagConfig().getPlayerTags(player.getName());
+		Map<Integer, TagConfig.Tag> listAllTitle = plugin.getTagConfig().getPlayerTags(player.getName());
 		int maxPages = listAllTitle.size() / 45;
 		int maxSlots = listAllTitle.size() % 45;
 		if (maxSlots == 0) {
@@ -60,10 +60,9 @@ public class GuiTagListPlayer implements IGui{
 			for(int i = nowPages * 45; i < nowPages * 45 + maxSlots; i++) {
 				if(i < 0 || i >= titleKeys.size()) break;
 				int titleId = titleKeys.get(i);
-				Material material = plugin.getTagConfig().getTagDisplayItemMaterial(titleId);
-				ItemStack item = ItemStackUtil.buildItem(material, TagConfig.packId(titleId)
-						+ ChatColor.translateAlternateColorCodes('&', "&r" + listAllTitle.get(titleId)),
-						plugin.getTagConfig().getTagDisplayLore(titleId));
+				ItemStack item = ItemStackUtil.buildItem(listAllTitle.get(titleId).getMaterial(),
+						TagConfig.packId(titleId) + ChatColor.translateAlternateColorCodes('&', "&r" + listAllTitle.get(titleId)),
+						listAllTitle.get(titleId).getLore());
 				inv.setItem(nowSlot, item);
 				nowSlot++;
 			}

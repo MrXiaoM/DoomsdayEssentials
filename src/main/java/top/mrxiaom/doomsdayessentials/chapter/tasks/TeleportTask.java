@@ -8,7 +8,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerMoveEvent;
 import top.mrxiaom.doomsdayessentials.chapter.IChapterTask;
 
-public class TeleportTask implements IChapterTask<Event> {
+public class TeleportTask implements IChapterTask<IChapterTask.NoEvent> {
     World world;
     int x;
     int y;
@@ -29,10 +29,6 @@ public class TeleportTask implements IChapterTask<Event> {
     }
 
     @Override
-    public void execute(Player player, Event event) {
-    }
-
-    @Override
     public void start(Player player) {
         try {
             player.teleport(new Location(world, x + (x < 0 ? -1 : 1) * 0.5D, y + 0.1D, z + (z < 0 ? -1 : 1) * 0.5D));
@@ -44,10 +40,5 @@ public class TeleportTask implements IChapterTask<Event> {
     @Override
     public void end(Player player) {
 
-    }
-
-    @Override
-    public boolean hasEvent() {
-        return false;
     }
 }

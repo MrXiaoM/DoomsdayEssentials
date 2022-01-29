@@ -27,7 +27,7 @@ bind-cost: 300.0
 
 bot:
   seen-key: '/seen'
-  exchange-key: '#兑换'
+  refresh-key: '#刷新'
 
 # PVP 场地领地名
 pvp-res:

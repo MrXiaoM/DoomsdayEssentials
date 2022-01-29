@@ -7,6 +7,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import think.rpgitems.item.ItemManager;
+import think.rpgitems.item.RPGItem;
+import think.rpgitems.power.Power;
+import think.rpgitems.power.impl.Consume;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.configs.BindConfig;
@@ -17,22 +20,27 @@ import top.mrxiaom.doomsdayessentials.utils.Util;
 import java.util.List;
 
 public class CommandBind extends ICommand {
-	public static final char[] ID_DICT = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
-			'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
-			'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'B', 'Q', 'R', 'S',
-			'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+	public static final char[] ID_DICT = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
 	public CommandBind(Main plugin) {
 		super(plugin, "bind", new String[] {});
 	}
 	public boolean isBindable(ItemStack item) {
-		if (plugin.getSkillSelfAttack().canItemStackRunSkill(item)
-				|| ItemManager.toRPGItem(item).orElse(null) != null)
-			return true;
 		if (item == null || item.getType() == Material.AIR)
 			return false;
 		if (item.getItemMeta() == null || item.getItemMeta().getLore() == null)
 			return false;
+		if (plugin.getSkillSelfAttack().canItemStackRunSkill(item))
+			return true;
+		RPGItem rpg;
+		if ((rpg = ItemManager.toRPGItem(item).orElse(null)) != null) {
+			for (Power power : rpg.getPowers()) {
+				if (power instanceof Consume) {
+					return false;
+				}
+			}
+			return true;
+		}
 		return false;
 	}
 	@Override

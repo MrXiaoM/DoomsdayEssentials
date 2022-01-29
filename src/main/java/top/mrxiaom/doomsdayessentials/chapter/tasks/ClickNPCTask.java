@@ -58,10 +58,4 @@ public class ClickNPCTask implements IChapterTask<NPCClickEvent>{
 		// TODO 自动生成的方法存根
 		
 	}
-
-	@Override
-	public boolean hasEvent() {
-		return true;
-	}
-
 }

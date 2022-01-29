@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import top.mrxiaom.doomsdayessentials.chapter.IChapterTask;
 
-public class PrivateMsgTask implements IChapterTask<Event> {
+public class PrivateMsgTask implements IChapterTask<IChapterTask.NoEvent> {
 	final String msg;
 	public PrivateMsgTask(String msg) {
 		this.msg = msg;
@@ -20,10 +20,6 @@ public class PrivateMsgTask implements IChapterTask<Event> {
 	}
 
 	@Override
-	public void execute(Player player, Event event) {
-	}
-
-	@Override
 	public void start(Player player) {
 		player.sendMessage(PlaceholderAPI.setPlaceholders(player, msg));
 		next(player);
@@ -32,10 +28,4 @@ public class PrivateMsgTask implements IChapterTask<Event> {
 	@Override
 	public void end(Player player) {
 	}
-
-	@Override
-	public boolean hasEvent() {
-		return false;
-	}
-
 }

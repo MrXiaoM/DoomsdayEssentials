@@ -1,13 +1,12 @@
 package top.mrxiaom.doomsdayessentials.chapter;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Sound;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.block.Action;
+import org.jetbrains.annotations.NotNull;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.chapter.tasks.*;
 import top.mrxiaom.doomsdayessentials.chapter.tasks.ClickNPCTask.ClickType;
@@ -15,17 +14,28 @@ import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface IChapterTask<T extends Event> {
+	class NoEvent extends Event{
+		static HandlerList handlerList = new HandlerList();
+		public @NotNull HandlerList getHandlers() {
+			return handlerList;
+		}
+	}
+
 	String display();
 
-	void execute(Player player, T event);
+	default void execute(Player player, T event) { }
 
-	void start(Player player);
+	default void start(Player player) { }
 
-	void end(Player player);
+	default void end(Player player) { }
 
-	boolean hasEvent();
+	default boolean hasEvent(){
+		return eventClass() != null;
+	}
 	@SuppressWarnings("unchecked")
 	default Class<? extends Event>[] moreEvents(){
 		return new Class[] { };
@@ -34,24 +44,33 @@ public interface IChapterTask<T extends Event> {
 	default Class<T> eventClass() {
 		try {
 			Class<T> cls = (Class<T>) ((ParameterizedType) this.getClass().getAnnotatedInterfaces()[0].getType()).getActualTypeArguments()[0];
-			if (!cls.getName().equals(Event.class.getName())) return cls;
+			String clsName = cls.getName();
+			if (!cls.getName().equals(Event.class.getName())
+				&& !cls.getName().equals(NoEvent.class.getName()))
+				return cls;
 		} catch(Throwable t) {
 			// 收声
 		}
 		return null;
 	}
 
+	/**
+	 * 转跳到某个任务。在执行目标任务的 start(Player); 前会先执行这个任务的 end(Player);
+	 **/
 	default void jump(Player player, int index) {
 		Main.getInstance().getChapterManager().jumpTo(player, index);
 	}
 
+	/**
+	 * 进行下一个任务。在执行下一个任务的 start(Player); 前会先执行这个任务的 end(Player);
+	 **/
 	default void next(Player player) {
 		Main.getInstance().getChapterManager().nextTask(player);
 	}
 
-	/*
-	* 从文本将剧情操作反序列化
-	* */
+	/**
+	 * 从文本将剧情操作反序列化
+	 **/
 	@Nullable
 	static IChapterTask<?> fromString(String text) {
 		if (text.startsWith("delay:")) {
@@ -64,6 +83,31 @@ public interface IChapterTask<T extends Event> {
 		}
 		if (text.startsWith("msg:")) {
 			return new PrivateMsgTask(text.substring(4));
+		}
+		if (text.startsWith("waititem:")){
+			if (text.contains(",")) {
+				String[] args = text.substring(9).split(",");
+				if (args.length >= 4) {
+					try {
+						Material material = Util.valueOf(Material.class, args[0], null);
+						if (material == null) throw new IllegalArgumentException("输入的 " + args[0] + " 不是有效的 Material");
+						List<String> lore = new ArrayList<>();
+						if (args.length > 4){
+							for (int i = 2; i < args.length - 2; i++){
+								lore.add(ChatColor.translateAlternateColorCodes('&', args[i]));
+							}
+						}
+						int count = Util.strToInt(args[args.length - 2], -1);
+						if(count < 1) throw new IllegalArgumentException("输入的 " + args[args.length - 2] +" 不是一个正整数");
+						return new WaitItemTask(material,
+								ChatColor.translateAlternateColorCodes('&', args[1]),
+								lore, count,
+								args[args.length - 1].equalsIgnoreCase("true"));
+					} catch (Throwable t) {
+						return handleError(text, t);
+					}
+				}
+			}
 		}
 		if (text.startsWith("clicknpc:")) {
 			if (text.contains(",")) {
@@ -227,9 +271,9 @@ public interface IChapterTask<T extends Event> {
 		return null;
 	}
 
-	/*
-	* 输出异常日志并恒返回 null
-	* */
+	/**
+	 * 输出异常日志并恒返回 null
+	 **/
 	static IChapterTask<?> handleError(String text, Throwable t){
 		Main.getInstance().getLogger().warning("[错误] 在读取任务 " + text + " 时发生一个错误");
 		t.printStackTrace();

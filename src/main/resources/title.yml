@@ -1,49 +1,196 @@
-
 ##title: 称号选择界面标题
 title: "&b称号管理"
 listtitle: "&b所有称号展示"
 #可以禁用GUI 只使用指令设置称号
 usegui: true
-# 默认称号
-defaultTitleId: 1001
-#设置本插件管理的称号
-#'ID':"称号名"
-titles:
-  '1000': '&7[&dLOVEMC&7]&e'
-  '1001': '&7[&a玩家&7]&e'
-  '1002': '&7[&2后起之秀&7]&e'
-  '1011': '&7[&a普通会员&7]'
-  '1012': '&7[&b高级会员&7]'
-  '2001': '&7[&c开荒者&7]&e'
-  '2002': '&7[&e开荒者&7]&e'
-  '2003': '&7<<&2中二病&7>>&e'
-#players:配置文件储存的玩家拥有的称号 以小写储存
-players: {}
+#StorageType: 玩家称号储存方式 0 配置文件,其他为权限判断
+#权限如  udtitle.t.<称号的数字ID>
+StorageType: 1
 #如果默认配置.无法设置称号.usecommand false改成true, cmd里填上修改称号的指令
 #其中 %player%会转换成玩家名字  %prefix%会转换成称号名.
 usecommand: false
 cmd: "manuaddv %player% prefix %prefix%"
 #玩家每次自己更换称号所花费的游戏币
 cost: 10
-lore:
+# 默认称号
+defaultTitleId: 1001
+#设置本插件管理的称号
+tags:
+  '1000':
+    material: NETHER_STAR
+    display: '&7[&d先驱者&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  内测期间给予服务器帮助'
+      - '&e  并向服务器申请获得的称号'
+  '1001':
+    display: '&7[&a萌新&7]&e'
+  '1011':
+    material: IRON_INGOT
+    display: '&7[&3&lVIP&7]&e'
+  '1012':
+    material: IRON_INGOT
+    display: '&7[&b&lVIP&7]&e'
+  '1013':
+    material: IRON_INGOT
+    display: '&7[&3&l普通会员&7]&e'
+  '1014':
+    material: IRON_INGOT
+    display: '&7[&b&l普通会员&7]&e'
+  '1015':
+    material: IRON_INGOT
+    display: '&7[&b&lV&3&lIP&7]&e'
+  '1021':
+    material: GOLD_INGOT
+    display: '&7[&e&lSVIP&7]&e'
+  '1022':
+    material: GOLD_INGOT
+    display: '&7[&6&lSVIP&7]&e'
+  '1023':
+    material: GOLD_INGOT
+    display: '&7[&e&l超级会员&7]&e'
+  '1024':
+    material: GOLD_INGOT
+    display: '&7[&6&l超级会员&7]&e'
+  '1025':
+    material: GOLD_INGOT
+    display: '&7[&6&lS&e&lVIP&7]&e'
   '2001':
-  - '&a获得途径:'
-  - '&e  较早一批玩家.经常上线开荒获得.'
-  - '&aQwQ'
+    material: DIAMOND_PICKAXE
+    display: '&7[&c开荒者&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  较早一批玩家.经常上线开荒获得.'
+      - '&aQwQ'
   '2002':
-  - '&a获得途径:'
-  - '&e  较早一批玩家.经常上线开荒获得.'
-  - '&aQwQ'
-#上面是设置GUI显示称号时的LORE
-#可以写上一些内容。比如 获得方法 。
-itemid:
-  '2001':
-    Material: DIAMOND_PICKAXE
-    Data: 0
-  '2002':
-    Material: DIAMOND_PICKAXE
-    Data: 0
-#这里是设置GUI显示称号的时候  的物品
-#Material: 物品的ID   Data:物品的子ID
-#谁主ID填数字还来问我为什么不行的请先死个妈
-#可以手动按上面的修复  注意空格等符合以免加载错误.
+    material: DIAMOND_PICKAXE
+    display: '&7[&e开荒者&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  较早一批玩家.经常上线开荒获得.'
+      - '&aQwQ'
+  '2003':
+    display: '&7<<&2中二病&7>>&e'
+  '2004':
+    material: WOODEN_AXE
+    display: '&7[&c创世&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  向服务器提供建筑/功能地图.'
+      - '&e  并被服务器采纳后获得'
+  '2005':
+    material: COMMAND_BLOCK
+    display: '&7[&b开发者&7]&d'
+    lore:
+      - '&a获得途径:'
+      - '&e  向服务器提供原创插件或者其他程序.'
+      - '&e  并被服务器采纳后获得'
+  '2006':
+    material: MELON_SLICE
+    display: '&7[&a瓜老板&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  在称号兑换处兑换获得'
+      - '&7  有一个人前来买瓜…'
+      - '&7  萨日朗! 萨日朗!'
+  '2007':
+    material: IRON_SWORD
+    display: '&7[&c萨日朗&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  在称号兑换处兑换获得'
+      - '&7  华强! 华强!'
+      - '&7  唯有这声称呼在老板耳边回旋'
+  '2008':
+    material: BLAZE_ROD
+    display: '&7[&c炎&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  在称号兑换处兑换获得'
+      - '&7  欢迎你， 来自地狱的使者'
+      - '&7  让那声音响彻天际吧'
+  '2333':
+    display: '&7[&3元老&7]&e'
+  '3005':
+    display: '&7[&6土豪&7]&e'
+  '3006':
+    display: '&7[&6富豪&7]&e'
+  '3007':
+    display: '&7[&c神豪&7]&e'
+  '3008':
+    material: PINK_DYE
+    display: '&7[&d樱&7]&e'
+  '3009':
+    display: '&7[&8倪哥&7]&e'
+  '3010':
+    material: BONE
+    display: '&7[&b真男人&7]&6'
+    lore:
+      - '&a获得途径:'
+      - '&e  死亡1000次后.由系统自动授予的传说级称号'
+  '3011':
+    display: '&8[&7骨灰&8]&e'
+  '3012':
+    material: DIAMOND
+    display: '&7[&c正版&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  通过服务器正版验证获得'
+      - '&7  (Mojang 和微软任一验证都可)'
+  '3013':
+    material: DIAMOND
+    display: '&7[&aMojang正版&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  通过服务器正版验证获得'
+      - '&7  (仅 Mojang 账号验证)'
+  '3014':
+    material: DIAMOND
+    display: '&7[&b微软正版&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  通过服务器正版验证获得'
+      - '&7  (仅微软账号验证)'
+  '3015':
+    display: '&7[&3大闲人&7]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  太闲了四处逛逛，满足条件获得'
+      - '&7  (彩蛋)'
+  '3016':
+    material: PUMPKIN_PIE
+    display: '&8[&e中秋&8]&f'
+    lore:
+      - '&a获得途径:'
+      - '&e  2021年中秋兑换活动获得'
+      - '&b使用该称号会使你的名字变成白色'
+  '3017':
+    material: PUMPKIN_PIE
+    display: '&8[&e中秋&8]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  2021年中秋兑换活动获得'
+  '3018':
+    material: RED_BANNER
+    display: '&6[&e&l五星&c&l红旗&6]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  2021年国庆兑换活动获得'
+      - '&e  祝祖国72岁生日快乐!'
+  '3019':
+    material: SPECTRAL_ARROW
+    display: '&8[&e正义&8]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  2021年国庆兑换活动获得'
+  '3020':
+    material: REDSTONE
+    display: '&8[&6&l2021&8]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  2021年国庆兑换活动获得'
+  '2406':
+    display: '&9[&4&l&n菜狗&9]&e'
+    lore:
+      - '&a获得途径:'
+      - '&e  菜到极致的传说级称号'

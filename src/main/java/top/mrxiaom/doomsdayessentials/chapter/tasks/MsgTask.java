@@ -50,7 +50,7 @@ public class MsgTask implements IChapterTask<PlayerSwapHandItemsEvent> {
             skipingPlayer.add(player.getName());
             return;
         }
-        end(player);
+        //end(player);
         next(player);
     }
 
@@ -66,7 +66,7 @@ public class MsgTask implements IChapterTask<PlayerSwapHandItemsEvent> {
             if(i + 1 <= message.length() && message.substring(i, i + 1).equalsIgnoreCase(String.valueOf(ChatColor.COLOR_CHAR))) i = Math.min(i + 1, message.length());
             String msg = message.substring(0, i);
             player.sendTitle(
-                    "§7§o| §r" + sender + " §7:",
+                    sender.equalsIgnoreCase("SYSTEM") ? "" : ("§7§o| §r" + sender + " §7:"),
                     msg.replace("`", "") + (msg.endsWith("`") ? " " : "") + (i < message.length() ? (ChatColor.getLastColors(sender) + "§l§k_") : ""),
                     0, 20, 10);
             if(i < message.length() && !msg.endsWith("`")){
@@ -92,7 +92,9 @@ public class MsgTask implements IChapterTask<PlayerSwapHandItemsEvent> {
     public void end(Player player) {
         playingPlayer.remove(player.getName());
         skipingPlayer.remove(player.getName());
-        player.sendTitle("§7§o| §r" + sender + " §7:", message.replace("`", ""), 0, 1, 10);
+        player.sendTitle(
+                sender.equalsIgnoreCase("SYSTEM") ? "" : ("§7§o| §r" + sender + " §7:"),
+                message.replace("`", ""), 0, 1, 10);
     }
 
     @Override

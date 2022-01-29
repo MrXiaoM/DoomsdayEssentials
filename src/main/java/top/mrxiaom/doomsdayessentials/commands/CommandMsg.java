@@ -22,9 +22,13 @@ public class CommandMsg extends ICommand {
 			String msgTemplateTo = plugin.getConfig().getString("chat.msg-to");
 
 			Player fromPlayer = isPlayer ? ((Player) sender) : null;
-			Player toPlayer = Bukkit.getPlayer(args[0]);
+			Player toPlayer = Util.getOnlinePlayer(args[0]);
 			if (toPlayer == null) {
 				sender.sendMessage(I18n.t("not-online", true));
+				return true;
+			}
+			if(fromPlayer != null && plugin.getChatListener().isIgnored(fromPlayer, toPlayer, null)) {
+				fromPlayer.sendMessage(I18n.t("ignore.ignored", true));
 				return true;
 			}
 			StringBuilder msg = new StringBuilder();

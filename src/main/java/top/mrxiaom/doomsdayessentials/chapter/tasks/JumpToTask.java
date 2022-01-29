@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import top.mrxiaom.doomsdayessentials.chapter.IChapterTask;
 
-public class JumpToTask implements IChapterTask<Event>{
+public class JumpToTask implements IChapterTask<IChapterTask.NoEvent>{
 	final int index;
 	public JumpToTask(int index) {
 		this.index = index;
@@ -24,13 +24,5 @@ public class JumpToTask implements IChapterTask<Event>{
 	@Override
 	public String display() {
 		return "";
-	}
-
-	@Override
-	public void execute(Player player, Event event) { }
-
-	@Override
-	public boolean hasEvent() {
-		return false;
 	}
 }
