@@ -5,6 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
+import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
 public class CommandWorkBench extends ICommand {
@@ -21,6 +22,10 @@ public class CommandWorkBench extends ICommand {
 			return Util.noPerm(sender);
 		}
 		Player player = (Player) sender;
+		if (plugin.getOpenWorldListener().isInOpenWorld(player)){
+			player.sendMessage(I18n.t("openworld.cmd-disallow", true));
+			return true;
+		}
 		player.openWorkbench(player.getLocation(), true);
 		player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
 		return true;

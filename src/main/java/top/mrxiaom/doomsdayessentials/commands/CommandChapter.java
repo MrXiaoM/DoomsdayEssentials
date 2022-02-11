@@ -8,6 +8,8 @@ import top.mrxiaom.doomsdayessentials.chapter.Chapter;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
+import java.util.Optional;
+
 public class CommandChapter extends ICommand {
     public CommandChapter(Main main){
         super(main, "chapter", new String[]{ "剧情" });
@@ -23,8 +25,8 @@ public class CommandChapter extends ICommand {
             return true;
         }
         if(args.length == 3 && args[0].equalsIgnoreCase("start")){
-            Player player = Util.getOnlinePlayer(args[1]);
-            if(player == null){
+            Optional<Player> player = Util.getOnlinePlayer(args[1]);
+            if(player.isEmpty()) {
                 sender.sendMessage(I18n.t("not-online",true));
                 return true;
             }
@@ -33,22 +35,22 @@ public class CommandChapter extends ICommand {
                 sender.sendMessage(I18n.t("chapter.not-found", true));
                 return true;
             }
-            if(plugin.getChapterManager().startChapter(player, chapter)){
+            if(plugin.getChapterManager().startChapter(player.get(), chapter)){
                 sender.sendMessage(I18n.t("chapter.processing", true));
             }
             else{
                 sender.sendMessage(I18n.t("chapter.start", true)
-                        .replace("%player%", player.getName())
+                        .replace("%player%", player.get().getName())
                         .replace("%name%", chapter.getName()));
             }
         }
         if(args.length == 2 && args[0].equalsIgnoreCase("stop")){
-            Player player = Util.getOnlinePlayer(args[1]);
-            if(player == null){
+            Optional<Player> player = Util.getOnlinePlayer(args[1]);
+            if (player.isEmpty()) {
                 sender.sendMessage(I18n.t("not-online",true));
                 return true;
             }
-            plugin.getChapterManager().end(player);
+            plugin.getChapterManager().end(player.get());
             sender.sendMessage("§a已执行停止剧情命令");
             return true;
         }

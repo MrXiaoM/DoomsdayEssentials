@@ -13,6 +13,7 @@ import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class CommandTGui extends ICommand {
 	public CommandTGui(Main plugin) {
@@ -46,12 +47,12 @@ public class CommandTGui extends ICommand {
 			}
 		} else if (args.length == 2) {
 			if (args[0].equalsIgnoreCase("list")) {
-				OfflinePlayer player = Util.getOfflinePlayer(args[1]);
+				Optional<OfflinePlayer> player = Util.getOfflinePlayer(args[1]);
 				Map<Integer, String> playerAllTitle = new HashMap<>();
-				if (player != null) {
+				if (player.isPresent()) {
 					Map<Integer, TagConfig.Tag> tagsMap = plugin.getTagConfig().getTagsMap();
 					for (int titleId : tagsMap.keySet()) {
-						if (plugin.getTagConfig().hasTag(player, titleId)) {
+						if (plugin.getTagConfig().hasTag(player.get(), titleId)) {
 							playerAllTitle.put(titleId, tagsMap.get(titleId).getDisplay());
 						}
 					}

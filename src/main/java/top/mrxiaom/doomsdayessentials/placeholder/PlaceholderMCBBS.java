@@ -21,10 +21,19 @@ public class PlaceholderMCBBS extends PlaceholderExpansion {
 	}
 
 	public String onRequest(OfflinePlayer player, String identifier) {
-		if(identifier.equalsIgnoreCase("is_claimed")) {
+		if (identifier.equalsIgnoreCase("is_bound")) {
+			return plugin.getMcbbsConfig().isPlayerBound(player.getName()) ? "yes" : "no";
+		}
+		if (identifier.equalsIgnoreCase("uid")) {
+			return plugin.getMcbbsConfig().isPlayerBound(player.getName()) ? plugin.getMcbbsConfig().getPlayerUid(player.getName()) : "未绑定";
+		}
+		if (identifier.equalsIgnoreCase("up_times")) {
+			return plugin.getMcbbsConfig().isPlayerBound(player.getName()) ? String.valueOf(plugin.getMcbbsConfig().getPlayerUpTimes(player.getName())) : "0";
+		}
+		if (identifier.equalsIgnoreCase("is_claimed")) {
 			return plugin.getMcbbsConfig().isNowMatchedLastDate() ? "yes" : "no";
 		}
-		if(identifier.equalsIgnoreCase("today_claimed")) {
+		if (identifier.equalsIgnoreCase("today_claimed")) {
 			if(!plugin.getMcbbsConfig().isNowMatchedLastDate()) return "";
 			return plugin.getMcbbsConfig().getLastPlayer();
 		}

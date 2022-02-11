@@ -34,6 +34,7 @@ import top.mrxiaom.doomsdayessentials.utils.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public class BlockListener implements Listener {
 	final Main plugin;
@@ -198,7 +199,7 @@ public class BlockListener implements Listener {
 							(flagEmptyInv || flagEmptyPotion ? " " : "") +
 							(flagEmptyInv ? "§2空" : "") + (flagEmptyPotion ? "§2效" : ""));
 					event.setLine(3, player.getName());
-					player.sendMessage(I18n.t("lcoks.success", true));
+					player.sendMessage(I18n.t("locks.success", true));
 				}
 			}
 		}
@@ -305,8 +306,8 @@ public class BlockListener implements Listener {
 					player.sendMessage(I18n.t("redstone-sign.no-money", true));
 					return;
 				}
-				OfflinePlayer owner = Util.getOfflinePlayer(sign.getLine(3));
-				if(owner == null) {
+				Optional<OfflinePlayer> owner = Util.getOfflinePlayer(sign.getLine(3));
+				if(owner.isEmpty()) {
 					event.setCancelled(true);
 					player.sendMessage(I18n.t("redstone-sign.no-owner", true));
 					return;
@@ -323,14 +324,14 @@ public class BlockListener implements Listener {
 				data.setPower(15);
 				redstone.setBlockData(data);
 				plugin.getEcoApi().withdrawPlayer(player, money);
-				plugin.getEcoApi().depositPlayer(owner, money);
+				plugin.getEcoApi().depositPlayer(owner.get(), money);
 				Bukkit.getScheduler().runTaskLater(plugin, () -> {
 					data.setPower(0);
 					redstone.setBlockData(data);
 				}, 2);
 				player.sendMessage(I18n.t("redstone-sign.used", true).replace("%money%", String.valueOf(money)));
-				if(owner.isOnline() && owner.getPlayer() != null) {
-					owner.getPlayer().sendMessage(I18n.t("redstone-sign.used-owner")
+				if(owner.get().isOnline() && owner.get().getPlayer() != null) {
+					owner.get().getPlayer().sendMessage(I18n.t("redstone-sign.used-owner")
 							.replace("%player%", player.getName())
 							.replace("%world%", block.getWorld().getName())
 							.replace("%x%", String.valueOf(block.getX()))
@@ -367,6 +368,7 @@ public class BlockListener implements Listener {
 			if(block.getType().equals(Material.IRON_DOOR)) {
 				Door door = (Door) block.getBlockData();
 				Block up = block.getRelative(BlockFace.UP, (door.getHalf().equals(Half.BOTTOM) ? 2 : 1));
+				Block blockDown = door.getHalf().equals(Half.BOTTOM) ? block : block.getRelative(BlockFace.DOWN);
 				if(up.getType().isAir()) return;
 				BlockFace doorFace = door.getFacing();
 				Block signBlock = up.getRelative(doorFace);
@@ -375,6 +377,7 @@ public class BlockListener implements Listener {
 					if(!ItemStackUtil.isWallSign(signBlock.getType())) return;
 				}
 				Sign sign = (Sign) signBlock.getState();
+				if (!sign.getLine(0).equalsIgnoreCase("§0[§d收费门§0]")) return;
 				double money = Util.strToDouble(sign.getLine(1).substring(4), -1.0D);
 				if(money < 0) {
 					block.breakNaturally();
@@ -387,18 +390,19 @@ public class BlockListener implements Listener {
 				boolean flagOut = line2.contains("§a出");
 				boolean flagEmptyInv = line2.contains("§2空");
 				boolean flagEmptyPotion = line2.contains("§2效");
-				OfflinePlayer owner = Util.getOfflinePlayer(sign.getLine(3));
-				if(owner == null) {
+				Optional<OfflinePlayer> owner = Util.getOfflinePlayer(sign.getLine(3));
+				if(owner.isEmpty()) {
 					player.sendMessage(I18n.t("locks.no-owner", true));
 					return;
 				}
 				if(!player.isSneaking()) {
+					String ownerName = owner.get().getName();
 					String rules = (flagIn ? "§e可以进入" : "§c不能进入") + "§a， " + (flagOut ? "§e可以出去" : "§c不能出去") 
 							+ (flagEmptyInv || flagEmptyPotion ? "§a， " : "")
 							+ (flagEmptyInv ? ("§e需要背包为空" + (flagEmptyPotion ? "§a， " : "")) : "")
 							+ (flagEmptyPotion ? "§e需要无药水效果" : "");
 					player.sendMessage(I18n.tn("locks.details", true)
-							.replace("%owner%", owner.getName() != null ? owner.getName(): "???")
+							.replace("%owner%", ownerName != null ? ownerName : "???")
 							.replace("%money%", String.format("%.2f", money))
 							.replace("%rules%", rules));
 					return;
@@ -426,16 +430,17 @@ public class BlockListener implements Listener {
 						return;
 					}
 					plugin.getEcoApi().withdrawPlayer(player, money);
-					plugin.getEcoApi().depositPlayer(owner, money);
+					plugin.getEcoApi().depositPlayer(owner.get(), money);
 				}
-				Location target = block.getRelative(doorFace, 1).getLocation();
+				Location target = blockDown.getRelative(action ? doorFace.getOppositeFace() : doorFace).getLocation();
 				player.teleport(new Location(block.getWorld(), target.getBlockX(), target.getBlockY() - (door.getHalf().equals(Half.BOTTOM) ? 0 : 1), target.getBlockZ()));
 				if(action) {
 					player.sendMessage(I18n.t("locks.used", true).replace("%money%", String.format("%.2f", money)));
-					if(owner.getPlayer() != null) {
-						owner.getPlayer().sendMessage(I18n.t("locks.used-owner", true)
+					Player ownerPlayer = owner.get().getPlayer();
+					if(ownerPlayer != null) {
+						ownerPlayer.sendMessage(I18n.t("locks.used-owner", true)
 							.replace("%money%", String.format("%.2f", money))
-							.replace("&player&", player.getName()));
+							.replace("%player%", player.getName()));
 					}
 				}else {
 					player.sendMessage(I18n.t("locks.used-leave", true));

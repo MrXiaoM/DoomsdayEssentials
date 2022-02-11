@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
+import top.mrxiaom.doomsdayessentials.utils.I18n;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public class CommandReviveMe extends ICommand {
 
 	private boolean disable(CommandSender s, String[] a) {
 		this.plugin.getModuleReviveMe().getConfig().set("newVersionPremiumMessageDisable", true);
-		this.plugin.saveConfig();
+		this.plugin.getModuleReviveMe().saveConfig();
 		plugin.getModuleReviveMe().getManager().disable_message = true;
 		s.sendMessage("§cMessage disabled :c");
 		return true;
@@ -50,9 +51,9 @@ public class CommandReviveMe extends ICommand {
 
 	public boolean reload(CommandSender s, String[] a) {
 		if (plugin.getModuleReviveMe().getManager().hasPermission(s, "ReviveMe.reload")) {
-			this.plugin.reloadConfig();
+			this.plugin.getModuleReviveMe().reloadConfig();
 			plugin.getModuleReviveMe().getManager().onReload();
-			s.sendMessage(ChatColor.translateAlternateColorCodes('&', this.plugin.getModuleReviveMe().getConfig().getString("messages.reload")));
+			s.sendMessage(ChatColor.translateAlternateColorCodes('&', I18n.t("reviveme.reload")));
 		}
 
 		return true;
@@ -109,7 +110,7 @@ public class CommandReviveMe extends ICommand {
 	public boolean help(CommandSender s, String[] a) {
 		PluginDescriptionFile pdf = this.plugin.getDescription();
 		String version = pdf.getVersion();
-		s.sendMessage("§3[§c*§3]    §c&l我已&e&l重伤倒地    §3[§c*§3]");
+		s.sendMessage("§3[§c*§3]    §c§l我已§e§l重伤倒地    §3[§c*§3]");
 		s.sendMessage("    §7版本: " + version);
 		s.sendMessage("§3| §e/reviveme help §3- 查看帮助");
 		s.sendMessage("§3| §e/reviveme revive §c<玩家> §3- 救助玩家");
@@ -143,7 +144,7 @@ public class CommandReviveMe extends ICommand {
 	public List<String> onTabComplete(CommandSender sender, String[] args, boolean isPlayer) {
 		List<String> playerList = new ArrayList<>();
 		if (args.length == 1) {
-			for (String text : Lists.newArrayList("Revive", "Down", "Reload", "Help", "debug", "mdisable")) {
+			for (String text : Lists.newArrayList("revive", "down", "reload", "help", "debug", "mdisable")) {
 				if (text.toLowerCase().startsWith(args[0].toLowerCase())) {
 					playerList.add(text);
 				}
@@ -152,7 +153,7 @@ public class CommandReviveMe extends ICommand {
 		}
 
 		if (args.length == 2) {
-			if (args[0].equalsIgnoreCase("Down")) {
+			if (args[0].equalsIgnoreCase("down")) {
 				for (Player p2 : Bukkit.getOnlinePlayers()) {
 					if (p2.getName().toLowerCase().startsWith(args[1].toLowerCase())) {
 						playerList.add(p2.getName());
@@ -161,7 +162,7 @@ public class CommandReviveMe extends ICommand {
 				return playerList;
 			}
 
-			if (args[0].equalsIgnoreCase("Revive")) {
+			if (args[0].equalsIgnoreCase("revive")) {
 				if (!plugin.getModuleReviveMe().getManager().playersPose.isEmpty()) {
 					for (Player p2 : plugin.getModuleReviveMe().getManager().playersPose) {
 						if (p2.getName().toLowerCase().startsWith(args[1].toLowerCase())) {

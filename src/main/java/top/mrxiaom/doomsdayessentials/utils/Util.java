@@ -7,6 +7,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.EnumWrappers.WorldBorderAction;
+import com.google.common.collect.Lists;
 import com.mcrmb.PayApi;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.Bukkit;
@@ -20,7 +21,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 
 import javax.annotation.Nullable;
-import javax.swing.text.html.Option;
 import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -29,7 +29,36 @@ import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
 public class Util {
+
 	public static final Logger logger = Logger.getLogger("ALERT");
+
+	public static String listToString(Collection<?> list){
+		return listToString(list, "");
+	}
+
+	public static String listToString(Collection<?> list, String empty){
+		return listToString(Lists.newArrayList(list), empty);
+	}
+
+	public static String listToString(Set<?> set) {
+		return listToString(set, "");
+	}
+	public static String listToString(Set<?> set, String empty) {
+		return listToString(Lists.newArrayList(set), empty);
+	}
+
+	public static String listToString(List<?> list){
+		return listToString(list, "");
+	}
+
+	public static String listToString(List<?> list, String empty){
+		if (list.isEmpty()) return empty;
+		StringBuilder result = new StringBuilder(list.get(0).toString());
+		for (int i = 1; i < list.size(); i++) {
+			result.append(", ").append(list.get(i));
+		}
+		return result.toString();
+	}
 
 	public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name) {
 		return valueOf(enumType, name, null);
@@ -102,10 +131,8 @@ public class Util {
 	public static void sendItemToMail(String player, String sender, ItemStack item) {
 		SaleItem si = new SaleItem(UUID.randomUUID().toString(), "xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxxxxxx", sender, item, PayType.VAULT, 0, System.currentTimeMillis());
 		ServerMarket.getInstance().getApi().getPlayerData(player).addItem(si);
-		Player p = Util.getOnlinePlayer(player);
-		if(p != null) {
-			p.sendMessage(I18n.t("mail-receive", true).replace("%item%", ItemStackUtil.getItemDisplayName(item)));
-		}
+		Optional<Player> p = Util.getOnlinePlayer(player);
+		p.ifPresent(value -> value.sendMessage(I18n.t("mail-receive", true).replace("%item%", ItemStackUtil.getItemDisplayName(item))));
 	}
 
 	public static int getIntegerMin(int... list) {
@@ -383,25 +410,23 @@ public class Util {
 		}
 		return result.toString();
 	}
-	
-	@Nullable
-	public static OfflinePlayer getOfflinePlayer(String name) {
+
+	public static Optional<OfflinePlayer> getOfflinePlayer(String name) {
 		for (OfflinePlayer player : Bukkit.getOfflinePlayers()) {
 			if (player.getName() != null && player.getName().equalsIgnoreCase(name)) {
-				return player;
+				return Optional.of(player);
 			}
 		}
-		return null;
+		return Optional.empty();
 	}
 
-	@Nullable
-	public static Player getOnlinePlayer(String name) {
+	public static Optional<Player> getOnlinePlayer(String name) {
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			if (player.getName().equalsIgnoreCase(name)) {
-				return player;
+				return Optional.of(player);
 			}
 		}
-		return null;
+		return Optional.empty();
 	}
 
 	public static void alert(String msg) {

@@ -22,6 +22,10 @@ public class CommandBack extends ICommand {
 			return Util.noPlayer(sender);
 		}
 		Player player = (Player) sender;
+		if (plugin.getOpenWorldListener().isInOpenWorld(player)){
+			player.sendMessage(I18n.t("openworld.cmd-disallow", true));
+			return true;
+		}
 		if (ReviveMeApi.isPlayerDowned(player)){
 			player.sendMessage(I18n.t("reviveme.no-command",true));
 			return true;

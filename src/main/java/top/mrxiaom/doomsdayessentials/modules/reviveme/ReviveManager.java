@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.utils.IActionBarUtil;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.utils.Spigboard;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.utils.SpigboardEntry;
@@ -385,11 +386,11 @@ public class ReviveManager {
                 if (invulnerability > 9) {
                     invulnerability = 1;
                 }
-                //p2.playNote(p2.getLocation(), Instrument.values()[invulnerability], Note.natural(1 + r.nextInt(20), Note.Tone.F));
-                //p.playNote(p2.getLocation(), Instrument.values()[invulnerability], Note.natural(1 + r.nextInt(20), Note.Tone.F));
+                p2.playNote(p2.getLocation(), Instrument.values()[invulnerability], new Note(r.nextInt(20) + 1));
+                p.playNote(p2.getLocation(), Instrument.values()[invulnerability], new Note(r.nextInt(20) + 1));
                 // 能用就行，who care
-                p2.playNote(p2.getLocation(), (byte) invulnerability, (byte) (r.nextInt(20) + 1));
-                p.playNote(p2.getLocation(), (byte) invulnerability, (byte) (r.nextInt(20) + 1));
+                //p2.playNote(p2.getLocation(), (byte) invulnerability, (byte) (r.nextInt(20) + 1));
+                //p.playNote(p2.getLocation(), (byte) invulnerability, (byte) (r.nextInt(20) + 1));
                 if (cfg.getBoolean("info.title")) {
                     p2.sendTitle(getCountText(value), "", 1, 20, 1);
                 }
@@ -414,6 +415,8 @@ public class ReviveManager {
         for (Player p : deathDelay.keySet()) {
             int value = deathDelay.get(p);
             if (value >= 0) {
+                if (Main.getInstance().getLifeListener().hasRespawnToken(p))
+                    NMSUtil.sendActionMsg(p, "§c§l你身上有重生令牌， 可按下 Shift 放弃治疗来触发原地重生");
                 if (!relivingList.contains(p)) {
                     deathDelay.put(p, value - 1);
                     if (cfg.getBoolean("info.scoreboard")) {
@@ -520,10 +523,8 @@ public class ReviveManager {
     }
 
     public boolean equipTotem(Player p) {
-        return (!p.getInventory().getItemInOffHand().getType().equals(Material.AIR)
-                && p.getInventory().getItemInOffHand().getType().equals(Material.TOTEM_OF_UNDYING))
-                || (!p.getInventory().getItemInMainHand().getType().equals(Material.AIR)
-                && p.getInventory().getItemInMainHand().getType().equals(Material.TOTEM_OF_UNDYING));
+        return p.getInventory().getItemInOffHand().getType().equals(Material.TOTEM_OF_UNDYING)
+                || p.getInventory().getItemInMainHand().getType().equals(Material.TOTEM_OF_UNDYING);
     }
 
     public int getValue(int value) {

@@ -16,6 +16,7 @@ import com.lenis0012.bukkit.marriage2.MPlayer;
 import com.lenis0012.bukkit.marriage2.MarriageAPI;
 import com.nisovin.shopkeepers.SKShopkeepersPlugin;
 import fr.xephi.authme.api.v3.AuthMeApi;
+import io.github.divios.dependencies.Core_lib.misc.ChatPrompt;
 import me.clip.placeholderapi.PlaceholderAPI;
 import me.leoko.advancedban.manager.PunishmentManager;
 import me.leoko.advancedban.manager.UUIDManager;
@@ -36,8 +37,11 @@ import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.NMSUtil;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -63,7 +67,7 @@ public class ChatListener {
 		}
 		@Override
 		public void onPacketReceiving(PacketEvent event) {
-			if (event.getPacketType() != PacketType.Play.Client.CHAT)
+			if (event.getPacketType() != PacketType.Play.Client.CHAT || event.isCancelled())
 				return;
 			Player player = event.getPlayer();
 			PacketContainer packet = event.getPacket();
@@ -71,6 +75,11 @@ public class ChatListener {
 			if (Util.removeColor(msg).contains("${")){
 				event.setCancelled(true);
 				return;
+			}
+			// 重定向命令前缀
+			if (msg.startsWith("、")) {
+				msg = "/" + msg.substring(1);
+				packet.getStrings().write(0, msg);
 			}
 			// 命令补全，重定向 /cancel 到 cancel
 			if (checkCommandPromptChat(event.getPlayer()) && msg.toLowerCase().startsWith("/cancel")){
@@ -170,7 +179,7 @@ public class ChatListener {
 		if (this.checkMute(player) || this.checkAuthmeChat(player) || this.checkQuickShopChat(player)
 				|| this.checkCommandPromptChat(player) || this.checkResidenceChat(player) 
 				|| this.checkMcMMOChat(player) || this.checkMarriageChat(player)
-				|| this.checkShopKeepersChat(player)) {
+				|| this.checkShopKeepersChat(player) || this.checkDailyShop(player)) {
 			return false;
 		}
 		if (msg.length() > 128) {
@@ -413,7 +422,23 @@ public class ChatListener {
 	public boolean checkMute(Player player) {
 		try {
 			return PunishmentManager.get().isMuted(UUIDManager.get().getUUID(player.getName()));
-		}catch(Throwable t) {
+		} catch(Throwable t) {
+			t.printStackTrace();
+		}
+		return false;
+	}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public boolean checkDailyShop(Player player) {
+		try {
+			Class<ChatPrompt> cls = ChatPrompt.class;
+			Field field = cls.getDeclaredField("prompts");
+			field.setAccessible(true);
+			Set<Player> players = (Set<Player>) (((Map) field.get(null)).keySet());
+			for (Player p : players) {
+				if (p!= null && p.getName().equalsIgnoreCase(player.getName())) return true;
+			}
+		} catch(Throwable t) {
 			t.printStackTrace();
 		}
 		return false;

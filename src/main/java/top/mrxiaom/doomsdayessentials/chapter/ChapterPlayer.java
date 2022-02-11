@@ -29,7 +29,7 @@ public class ChapterPlayer {
 	
 	@Nullable
 	public OfflinePlayer getPlayer() {
-		return Util.getOfflinePlayer(name);
+		return Util.getOfflinePlayer(name).orElse(null);
 	}
 	
 	public String getName() {

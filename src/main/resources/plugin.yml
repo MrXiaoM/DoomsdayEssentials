@@ -9,6 +9,7 @@ depend:
 - AmazingBot
 - AuthMe
 - Citizens
+- CMILib
 - CommandPrompter
 - Companions
 - CoreProtect
@@ -17,6 +18,7 @@ depend:
 - mcMMO
 - Mcrmb
 - Multiverse-Core
+- Multiverse-Inventories
 - MyPet
 - NBTAPI
 - PlaceholderAPI

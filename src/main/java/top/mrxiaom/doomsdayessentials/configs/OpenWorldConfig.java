@@ -90,16 +90,12 @@ public class OpenWorldConfig {
 
 	public static class OpenWorldPlayer {
 		private final String name;
-		private String itemsLast;
-		private String itemsOpenWorldLast;
 		private List<String> tasks;
 		private int level;
 
-		public OpenWorldPlayer(String name, String itemsLast, String itemsOpenWorldLast, List<String> tasks,
+		public OpenWorldPlayer(String name, List<String> tasks,
 				int level) {
 			this.name = name;
-			this.itemsLast = itemsLast;
-			this.itemsOpenWorldLast = itemsOpenWorldLast;
 			this.tasks = tasks;
 			this.level = level;
 		}
@@ -164,41 +160,9 @@ public class OpenWorldConfig {
 			return this.level;
 		}
 
-		public ItemStack[] getItemsLast() {
-			return ItemStackUtil.itemStackArrayFromBase64(itemsLast, true);
-		}
-
-		public ItemStack[] getItemsOpenWorldLast() {
-			return ItemStackUtil.itemStackArrayFromBase64(itemsOpenWorldLast, true);
-		}
-
-		public String getItemsLastString() {
-			return this.itemsLast;
-		}
-
-		public void setItemsLastString(String itemsLast) {
-			this.itemsLast = itemsLast;
-		}
-
-		public void setItemsLast(ItemStack[] itemList) {
-			this.itemsLast = ItemStackUtil.itemStackArrayToBase64(itemList);
-		}
-
-		public String getItemsOpenWorldLastString() {
-			return this.itemsOpenWorldLast;
-		}
-
-		public void setItemsOpenWorldLastString(String itemsOpenWorldLast) {
-			this.itemsOpenWorldLast = itemsOpenWorldLast;
-		}
-
-		public void setItemsOpenWorldLast(ItemStack[] itemList) {
-			this.itemsOpenWorldLast = ItemStackUtil.itemStackArrayToBase64(itemList);
-		}
-
 	}
 
-	private Map<String, OpenWorldPlayer> playersMap = new HashMap<String, OpenWorldPlayer>();
+	private Map<String, OpenWorldPlayer> playersMap = new HashMap<>();
 
 	public OpenWorldConfig(Main plugin) {
 		this.plugin = plugin;
@@ -214,11 +178,10 @@ public class OpenWorldConfig {
 		return playersMap;
 	}
 
-	public OpenWorldPlayer get(Player player, boolean isVanillaInv) {
+	public OpenWorldPlayer get(Player player) {
 		if (!this.contains(player.getName())) {
 			String s = ItemStackUtil.itemStackArrayToBase64(player.getInventory().getContents(), true);
-			OpenWorldPlayer owp = new OpenWorldPlayer(player.getName(), isVanillaInv ? s : "", isVanillaInv ? "" : s,
-					new ArrayList<>(), 0);
+			OpenWorldPlayer owp = new OpenWorldPlayer(player.getName(), new ArrayList<>(), 0);
 			this.set(player.getName(), owp);
 		}
 		return this.playersMap.get(player.getName());
@@ -252,10 +215,8 @@ public class OpenWorldConfig {
 					String name = kitConfig.getString("name");
 					int level = kitConfig.getInt("level");
 					List<String> tasks = kitConfig.getStringList("tasks");
-					String itemsLast = kitConfig.getString("items-last");
-					String itemsOpenWorldLast = kitConfig.getString("items-openworld-last");
 					this.playersMap.put(file.getName().substring(0, file.getName().length() - 4),
-							new OpenWorldPlayer(name, itemsLast, itemsOpenWorldLast, tasks, level));
+							new OpenWorldPlayer(name, tasks, level));
 				} catch (Throwable t) {
 					// 收声
 				}
@@ -276,8 +237,6 @@ public class OpenWorldConfig {
 					playerConfig.set("name", playerData.getName());
 					playerConfig.set("level", playerData.getLevel());
 					playerConfig.set("tasks", playerData.getTasks());
-					playerConfig.set("items-last", playerData.getItemsLastString());
-					playerConfig.set("items-openworld-last", playerData.getItemsOpenWorldLastString());
 					playerConfig.save(new File(configFile, key + ".yml"));
 					files.add(key + ".yml");
 				} catch (Throwable t) {

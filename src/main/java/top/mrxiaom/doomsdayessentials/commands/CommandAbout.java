@@ -7,6 +7,8 @@ import top.mrxiaom.doomsdayessentials.utils.TimeUtil;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 
 public class CommandAbout extends ICommand {
 	public CommandAbout(Main plugin) {
@@ -15,6 +17,7 @@ public class CommandAbout extends ICommand {
 
 	@Override
 	public boolean onCommand(CommandSender sender, String label, String[] args, boolean isPlayer) {
+		LocalDateTime time = LocalDateTime.of(2021, 2, 9, 20, 49);
 		sender.sendMessage("§7[§9末日社团§7] §cDoomsdayEssentials §6基础插件\n" +
 				"§7[§9末日社团§7] §6作者: §c懒怠的小猫§7/§cMrXiaoM\n" +
 				"§7[§9末日社团§7] §cDoomTeamApi §6基础接口\n" +
@@ -29,7 +32,7 @@ public class CommandAbout extends ICommand {
 				"§7[§9末日社团§7] §6部分配色方案来自插件 §cEssentials\n" +
 				"§7[§9末日社团§7] §6感谢大家一直以来对末日社团服务器的支持\n" +
 				"§7[§9末日社团§7] §6最后一次构建时间: §c" + Util.getDoomsdayEssneitialsUpdateTimeString() + "\n" +
-				"§7[§9末日社团§7] §6大约已运营 §c" + TimeUtil.getChineseTimeBetweenNow(LocalDateTime.of(2021, 2, 9, 20, 49)));
+				"§7[§9末日社团§7] §6大约已运营 §c" + time.until(LocalDateTime.now(), ChronoUnit.DAYS) + "§6天 或者 §c" + TimeUtil.getChineseTimeBetweenNow(time));
 
 		return true;
 	}

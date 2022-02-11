@@ -206,9 +206,13 @@ messages:
     has-requests: '你现有对方未处理的传送请求，请先使用 &c/tpcancel &6取消你的现有请求'
     sent: '你已成功向 &c%player% &6发送传送请求'
   cleaner:
-    clean-monster: '&7[&3末日清道夫&7] &a已清理 &e%count% &a只怪物'
-    clean-pre: '&7[&3末日清道夫&7] &a清道夫将在 &e%time% &a秒后清理怪物和掉落物'
-    clean-done: '&7[&3末日清道夫&7] &a已清理 &e%items% &a个掉落物， &e%monsters% &a只怪物'
+    clean-monster: '&7[&3末日清道夫&7] &aTPS低， 已清理 &e%count% &a只怪物'
+    clean-pre: '&a清道夫将在 &e%time% &a秒后清理怪物和掉落物'
+    idle: '&7清道夫闲置中'
+    loading-prefix: '&b'
+    loading: '清道夫正在初始化...'
+    cleaning: '&b正在清理...'
+    clean-done: '&a已清理 &e%items% &a个掉落物， &e%monsters% &a只怪物'
   points:
     checking: '正在检查你是否需要转换&c MCRMB &6点券为&c PlayerPoints &6点券'
     success: '你充值了&c %points% &6点券，已自动转换成&c PlayerPoints &6点券'
@@ -447,6 +451,7 @@ messages:
     error:
       prefix: '出现错误: &c%error%'  
       unallow: '切换背包错误-不允许的操作'
+    cmd-disallow: '&c不允许在开放世界执行此命令'
   anti-automine:
     san-low-title: '&7! &c异常 &7!'
     san-low-subtitle: '&e你感到精神涣散'
@@ -486,10 +491,10 @@ messages:
     scoreboard:
       title: '&4&l[&e&l我已重伤倒地&4&l]'
       status: '&f状态: '
-      waiting: '&c等死中'
-      reliving: '&a救助中'
+      waiting: '&c等死中 &7(按SHIFT放弃治疗)'
+      reliving: '&a救助中 &7(按SHIFT放弃治疗)'
       deathIn: '&f死亡倒数 &a<TIME>'
-      invulnerableFor: '&f无敌时间 &a<TIME>'
+      invulnerableFor: '&f无敌 &a<TIME> &f秒'
       vulnerable: '&c脆弱'
     disable: '&6管理员正在热更新功能， 你已被强制拯救'
   ignore:
@@ -516,3 +521,13 @@ messages:
       success-regex: '&6你已添加聊天信息正则表达式屏蔽&c %msg%'
       fail: '&6你已经屏蔽过关键词&c %msg% &6了'
       fail-regex: '&6你已经添加过这条正则表达式了'
+  gamemode:
+    set: '你的游戏模式已设置为&a%gamemode%'
+    type:
+      SURVIVAL: '生存模式'
+      CREATIVE: '创造模式'
+      ADVENTURE: '冒险模式'
+      SPECTATOR: '旁观模式'
+    usage:
+    - '切换游戏模式， /gamemode <模式>'
+    - '可用的游戏模式有 0, survival, 生存, 1, creative, 创造, 2, adventure, 冒险, 3, spectator, 旁观'

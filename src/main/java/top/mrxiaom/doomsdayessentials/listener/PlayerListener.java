@@ -6,19 +6,22 @@ import com.bekvon.bukkit.residence.event.ResidenceTPEvent;
 import com.bekvon.bukkit.residence.protection.ClaimedResidence;
 import com.gmail.nossr50.datatypes.skills.PrimarySkillType;
 import com.gmail.nossr50.events.experience.McMMOPlayerExperienceEvent;
+import com.google.common.eventbus.Subscribe;
+import com.plotsquared.core.PlotSquared;
 import com.plotsquared.core.events.PlayerTeleportToPlotEvent;
+import fr.xephi.authme.api.v3.AuthMeApi;
+import net.Zrips.CMILib.Container.CMIWorld;
 import org.bukkit.*;
 import org.bukkit.World.Environment;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.entity.Damageable;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -72,16 +75,7 @@ public class  PlayerListener implements Listener {
 			}
 		}
 	}
-	
-	@EventHandler(priority=EventPriority.LOWEST, ignoreCancelled = true)
-	public void mvFix(PlayerCommandPreprocessEvent event) {
-		if(!event.getPlayer().isOp()) {
-			if(event.getMessage().contains("mv") || event.getMessage().contains("multiverse")) {
-				event.setCancelled(true);
-			}
-		}
-	}
-	
+
 	@EventHandler
 	public void ban1(InventoryClickEvent event) {
 		if(!(event.getWhoClicked() instanceof Player)) return;
@@ -91,14 +85,6 @@ public class  PlayerListener implements Listener {
 	@EventHandler
 	public void ban2(PlayerInteractEvent event) {
 		this.handleBannedItem(event.getPlayer(), event.getItem());
-	}
-	
-	@EventHandler
-	public void onPlayerTeleportToPlot(PlayerTeleportToPlotEvent event) {
-		String player = event.getPlotPlayer().getName();
-		Location loc = new Location(Bukkit.getWorld(event.getFrom().getWorld()), event.getFrom().getX(),
-				event.getFrom().getY(), event.getFrom().getZ());
-		plugin.getBackConfig().addBackPoint(player, loc);
 	}
 
 	@EventHandler
@@ -232,6 +218,14 @@ public class  PlayerListener implements Listener {
 	}
 
 	@EventHandler
+	public void onPlayerHurt(EntityDamageEvent event) {
+		if (event.getEntity() instanceof Player
+		    && AuthMeApi.getInstance().isAuthenticated((Player)event.getEntity())) {
+			event.setCancelled(true);
+		}
+	}
+
+	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent event) {
 		boolean isRightClicked = event.getAction().equals(Action.RIGHT_CLICK_AIR)
 				|| event.getAction().equals(Action.RIGHT_CLICK_BLOCK);
@@ -302,26 +296,21 @@ public class  PlayerListener implements Listener {
 					|| event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
 
 				event.setCancelled(true);
-				String[] args = s.substring(6).contains(";") ? s.substring(6).split(";")
-						: new String[] { s.substring(6) };
-				String id = args[0].replace("§", "");
+				String id = s.replace("§", "").substring(3);
 				
 				NMSItemStack nms = NMSItemStack.fromBukkitItemStack(item);
-				if(nms == null) return;
+				if (nms == null) return;
 				int bullets = nms.getNBTTagInt("bullets", 0);
 				if (bullets < 1) {
 					player.sendMessage("§7[§9末日社团§7]§c 你的枪里没有子弹了 §7(Shift+左键填充子弹)");
 					return;
 				}
-
-				GunConfig config = plugin.getGunConfig();
-				if (!config.contains(id)) {
+				Gun gun = plugin.getGunConfig().get(id);
+				if (gun == null) {
+					player.sendMessage("§7[§9末日社团§7]§c 错误的枪械");
 					return;
 				}
-				Gun gun = config.get(id);
-				if (gun == null || plugin.getPlayerCooldownManager().isGunCooldown(player.getName(), id)) {
-					return;
-				}
+				if (plugin.getPlayerCooldownManager().isGunCooldown(player.getName(), id)) return;
 				plugin.getPlayerCooldownManager().setGunCooldown(player.getName(), id, gun.getDelay());
 				bullets--;
 				nms.setNBTTagInt("bullets", bullets);
@@ -334,10 +323,25 @@ public class  PlayerListener implements Listener {
 		}
 	}
 
+	public void shoot(Player player, float speed, float damage, float spread, String sound, float volume, float pitch) {
+		Location loc = player.getEyeLocation();
+		Vector velocity = loc.getDirection();
+		Arrow arrow = player.getWorld().spawnArrow(player.getEyeLocation(), velocity, speed, spread);
+		arrow.setDamage(damage);
+		arrow.addAttachment(plugin);
+		arrow.setShooter(player);
+		arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+		arrow.setColor(Color.RED);
+		if (sound != null) {
+			player.getWorld().playSound(loc, Sound.valueOf(sound), volume, pitch);
+		}
+	}
+
 	// 枪械射击 主要代码
 	// Author: 懒怠的小猫
 	// 已 NMS 化
-	public void shoot(Player player, float speed, float damage, float spread, String sound, float volume, float pitch) {
+	@Deprecated
+	public void shoot_OLD(Player player, float speed, float damage, float spread, String sound, float volume, float pitch) {
 		try {
 			String nms = NMSUtil.getNMSVersion();
 			Class<?> classCraftServer = Class.forName("org.bukkit.craftbukkit." + nms + ".CraftWorld");
@@ -361,27 +365,37 @@ public class  PlayerListener implements Listener {
 			Method addScoreboardTag = classEntity.getDeclaredMethod("addScoreboardTag", String.class);
 			Method shoot = classEntityArrow.getDeclaredMethod("shoot", 
 					double.class, double.class, double.class, float.class, float.class);
-			
+			// EntityTypes.ARROW
 			Object typeArrow = fieldArrow.get(null);
+			// ((CraftWorld) player.getWorld()).getHandle()
 			Object nmsWorld = getHandleWorld.invoke(player.getWorld());
+			// ((Player) player).getHandle()
 			Object nmsPlayer = getHandlePlayer.invoke(player);
+			// nmsWorld.a(EntityTypes.ARROW)
 			Object arrow = spawnEntity.invoke(typeArrow, nmsWorld);
+			// PickupStatus.DISALLOWED
 			Object enumDisAllowed = Util.valueOfForce(classPickupStatus, "DISALLOWED");
-			
+
 			Location loc = player.getEyeLocation();
 			Vector velocity = loc.getDirection();
-			
+
+			// arrow.setPositionRotation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
 			setPositionRotation.invoke(arrow, loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
+			// arrow.setShooter(nmsPlayer);
 			setShooter.invoke(arrow, nmsPlayer);
+			// arrow.setDamage(damage);
 			setDamage.invoke(arrow, damage);
-			// arrow.setSprinting(true);
+			// arrow.fromPlayer = PickupStatus.DISALLOWED;
 			fieldFromPlayer.set(arrow, enumDisAllowed);
+			// arrow.addScoreboardTag("DoomsdayGuns");
 			addScoreboardTag.invoke(arrow, "DoomsdayGuns");
+			// arrow.shoot(velocity.getX, velocity.getY() + 0.1F, velocity.getZ(), seed, spread);
 			shoot.invoke(arrow, velocity.getX(), velocity.getY() + 0.1F, velocity.getZ(), speed, spread);
-			// ENTITY_ZOMBIE_BREAK_WOODEN_DOOR
+			// 默认音效: ENTITY_ZOMBIE_BREAK_WOODEN_DOOR
 			if (sound != null) {
 				player.getWorld().playSound(loc, Sound.valueOf(sound), volume, pitch);
 			}
+			// nmsWorld.addEntity(arrow);
 			addEntity.invoke(nmsWorld, arrow);
 		} catch(Throwable t) {
 			t.printStackTrace();
@@ -521,10 +535,12 @@ public class  PlayerListener implements Listener {
 		Location from = event.getFrom();
 		Location to = event.getTo();
 		if(to == null) return;
+		// 虚空令牌
 		if(!player.isFlying() && to.getY() < 0) {
 			for(int i = 0; i < player.getInventory().getSize(); i++) {
 				ItemStack item = player.getInventory().getItem(i);
-				if(ItemStackUtil.hasLore(item, "§b§a§6§8§3§a掉入虚空时消耗一个道具将你传送回城")) {
+				if(ItemStackUtil.hasLore(item, "§b§a§6§8§3§a掉入虚空时消耗一个道具将你传送回城")
+					|| ItemStackUtil.hasLore(item, "§d§e§0§mvoid_token")) {
 					if (item.getAmount() - 1 <= 0) {
 						player.getInventory().setItem(i, null);
 					} else {

@@ -184,8 +184,8 @@ public class BotMsgListener implements Listener {
                 return;
             }
 
-            OfflinePlayer targetPlayer = Util.getOfflinePlayer(playerName);
-            if (targetPlayer != null && targetPlayer.isOnline()) {
+            Optional<OfflinePlayer> targetPlayer = Util.getOfflinePlayer(playerName);
+            if (targetPlayer.isPresent() && targetPlayer.get().isOnline()) {
                 if (!plugin.getUpdaterApi().getPlayerIPMap().containsKey(playerName)) {
                     event.getGroup().sendMessage(quote.plus(I18n.t("bot.online-nodata")));
                     return;
@@ -202,9 +202,9 @@ public class BotMsgListener implements Listener {
                 event.getGroup().sendMessage(
                         quote.plus(I18n.t("bot.online-time").replace("%player%", playerName).replace("%time%", time)));
                 return;
-            } else if(targetPlayer != null){
+            } else if(targetPlayer.isPresent()){
                 long now = Calendar.getInstance().getTimeInMillis();
-                long last = targetPlayer.getLastPlayed();
+                long last = targetPlayer.get().getLastPlayed();
                 String time = TimeUtil.getChineseTime_Old(now - last, "", "");
                 String result = I18n.t("bot.offline-time").replace("%player%", playerName).replace("%time%", time);
                 try {
@@ -235,8 +235,8 @@ public class BotMsgListener implements Listener {
                 event.getGroup().sendMessage(quote.plus(I18n.t("bot.usage.refresh")));
                 return;
             }
-            OfflinePlayer player = Util.getOfflinePlayer(e.getMsg().split(" ")[1]);
-            if(player == null || player.getName() == null){
+            Optional<OfflinePlayer> player = Util.getOfflinePlayer(e.getMsg().split(" ")[1]);
+            if(player.isEmpty() || player.get().getName() == null){
                 event.getGroup().sendMessage(quote.plus(I18n.t("bot.invalid-name")));
                 return;
             }
@@ -245,7 +245,7 @@ public class BotMsgListener implements Listener {
                 return;
             }
             cooldown = 15;
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> event.getGroup().sendMessage(quote.plus(Util.removeColor(plugin.checkPoints(player)))));
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> event.getGroup().sendMessage(quote.plus(Util.removeColor(plugin.checkPoints(player.get())))));
             return;
         }
         final String key = config.getString("keyword") + " ";

@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
+import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import java.util.HashMap;
 import java.util.List;
@@ -84,7 +85,8 @@ public class CommandSettings extends ICommand {
 				}
 			}
 			if (args[0].equalsIgnoreCase("list")) {
-				player.sendMessage(I18n.t("settings.list-title", true) + "is-show-bullets, show-back-message");
+				player.sendMessage(I18n.t("settings.list-title", true) + Util.listToString(cfgs.keySet()));
+				return true;
 			}
 			player.sendMessage(I18n.t("settings.no-found", true));
 			return true;

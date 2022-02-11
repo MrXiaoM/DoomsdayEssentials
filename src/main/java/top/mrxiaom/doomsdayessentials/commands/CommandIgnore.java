@@ -50,11 +50,11 @@ public class CommandIgnore extends ICommand {
 				return true;
 			}
 		}
-		// TODO 打开菜单删除自己添加的屏蔽规则
 		if(args.length >= 1 && args[0].equalsIgnoreCase("gui")){
 			GuiUnignore gui = new GuiUnignore(plugin, player, GuiUnignore.IgnoreType.PLAYER, 1);
 			if(args.length >=2 && args[1].equalsIgnoreCase("menu")) gui.isMenu = true;
 			plugin.getGuiManager().openGui(gui);
+			return true;
 		}
 		player.sendMessage(I18n.tn("ignore.help", true));
 		return true;

@@ -10,9 +10,9 @@ import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMeApi;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class CommandWarp extends ICommand {
 	public CommandWarp(Main plugin) {
@@ -21,7 +21,7 @@ public class CommandWarp extends ICommand {
 
 	@Override
 	public List<String> onTabComplete(CommandSender sender, String[] args, boolean isPlayer) {
-		List<String> result = new ArrayList<String>();
+		List<String> result = new ArrayList<>();
 		if (args.length == 1) {
 			for (String value : plugin.getWarpConfig().getAllWarps()) {
 				if (value.startsWith(args[0])) {
@@ -36,8 +36,8 @@ public class CommandWarp extends ICommand {
 	public boolean onCommand(CommandSender sender, String label, String[] args, boolean isPlayer) {
 		if (!isPlayer) {
 			if (args.length == 2) {
-				Player player = Util.getOnlinePlayer(args[0]);
-				if(player == null) {
+				Optional<Player> player = Util.getOnlinePlayer(args[0]);
+				if(player.isEmpty()) {
 					sender.sendMessage(I18n.t("not-online"));
 					return true;
 				}
@@ -50,9 +50,9 @@ public class CommandWarp extends ICommand {
 					sender.sendMessage(I18n.t("warp.nowarp", true));
 					return true;
 				}
-				plugin.getBackConfig().addBackPoint(player, player.getLocation());
-				warp.teleport(player);
-				player.sendMessage(I18n.t("warp.teleport", true).replace("%warp%", warp.getName()));
+				plugin.getBackConfig().addBackPoint(player.get(), player.get().getLocation());
+				warp.teleport(player.get());
+				player.get().sendMessage(I18n.t("warp.teleport", true).replace("%warp%", warp.getName()));
 				return true;
 			}
 			return true;

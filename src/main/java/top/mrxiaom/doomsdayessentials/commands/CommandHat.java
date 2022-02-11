@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
+import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
 public class CommandHat extends ICommand {
@@ -25,6 +26,10 @@ public class CommandHat extends ICommand {
 
 		Player user = (Player) sender;
 
+		if (plugin.getOpenWorldListener().isInOpenWorld(user)){
+			user.sendMessage(I18n.t("openworld.cmd-disallow", true));
+			return true;
+		}
 		if (user.getInventory().getItemInMainHand().getType() != Material.AIR) {
 			ItemStack hand = user.getInventory().getItemInMainHand();
 			if (hand.getType().getMaxDurability() == 0) {

@@ -406,7 +406,7 @@ public class ItemStackUtil {
 	}
 
 	public static void setRowItems(Inventory inv, int row, ItemStack item) {
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 9; i++) {
 			inv.setItem(((row - 1) * 9) + i, item);
 		}
 	}

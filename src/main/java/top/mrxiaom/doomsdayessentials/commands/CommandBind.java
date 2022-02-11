@@ -14,6 +14,7 @@ import top.mrxiaom.doomsdaycommands.ICommand;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.configs.BindConfig;
 import top.mrxiaom.doomsdayessentials.gui.GuiBindRecall;
+import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
@@ -51,6 +52,10 @@ public class CommandBind extends ICommand {
 		Player player = (Player) sender;
 		if (!player.hasPermission("doomsdayessentials.bind")) {
 			return Util.noPerm(sender);
+		}
+		if (plugin.getOpenWorldListener().isInOpenWorld(player)){
+			player.sendMessage(I18n.t("openworld.cmd-disallow", true));
+			return true;
 		}
 		if (args.length > 0) {
 			if (args[0].equalsIgnoreCase("confirm")) {
@@ -95,7 +100,7 @@ public class CommandBind extends ICommand {
 					player.sendMessage("§7[§9末日社团§7] §c你不是该物品的主人，无法解绑");
 					return true;
 				}
-				plugin.getBindConfig().removeBind(code);
+				plugin.getBindConfig().removeBind(code).saveConfig();
 				List<String> lore = ItemStackUtil.getItemLore(item);
 				int size = lore.size();
 				lore.remove(size-1);
@@ -106,7 +111,7 @@ public class CommandBind extends ICommand {
 				return true;
 			}
 			if (args[0].equalsIgnoreCase("recall")) {
-				plugin.getGuiManager().openGui(new GuiBindRecall(plugin, player, 1));
+				plugin.getGuiManager().openGui(new GuiBindRecall(plugin, player, 1, args.length > 1 && args[1].equalsIgnoreCase("menu")));
 				return true;
 			}
 		}

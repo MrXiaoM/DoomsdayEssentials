@@ -16,6 +16,7 @@ import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class CommandGun extends ICommand {
 	public CommandGun(Main plugin) {
@@ -48,6 +49,25 @@ public class CommandGun extends ICommand {
 				}
 				return true;
 			}
+			if (args[0].equalsIgnoreCase("checkId")) {
+				if (!isPlayer) {
+					return Util.noPlayer(sender);
+				}
+				Player player = (Player) sender;
+				List<String> lore = ItemStackUtil.getItemLore(player.getInventory().getItemInMainHand());
+				if (lore.isEmpty()) {
+					return true;
+				}
+				player.sendMessage(lore.get(lore.size() - 1).replace("§", "").substring(3));
+				return true;
+			}
+			if (args[0].equalsIgnoreCase("list")) {
+				if (!sender.isOp()) {
+					return Util.noPerm(sender);
+				}
+				sender.sendMessage(Util.listToString(plugin.getGunConfig().all().keySet()));
+				return true;
+			}
 			if (args[0].equalsIgnoreCase("give")) {
 				if (!sender.isOp()) {
 					return Util.noPerm(sender);
@@ -64,11 +84,12 @@ public class CommandGun extends ICommand {
 					return true;
 				}
 				if (args.length >= 3) {
-					player = Util.getOnlinePlayer(args[2]);
-					if (player == null) {
+					Optional<Player> p = Util.getOnlinePlayer(args[2]);
+					if (p.isEmpty()) {
 						sender.sendMessage(I18n.t("not-online", true));
 						return true;
 					}
+					player = p.get();
 				}
 				String gunId = args[1];
 				if (!plugin.getGunConfig().contains(gunId)) {

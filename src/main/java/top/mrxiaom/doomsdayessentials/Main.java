@@ -14,7 +14,9 @@ import com.hm.achievement.db.CacheManager;
 import com.onarandombox.MultiverseCore.MultiverseCore;
 import com.ranull.graves.Graves;
 import com.ranull.graves.manager.GraveManager;
+import fr.xephi.authme.api.v3.AuthMeApi;
 import me.albert.amazingbot.bot.Bot;
+import net.Zrips.CMILib.ActionBar.CMIActionBar;
 import net.coreprotect.CoreProtectAPI;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
@@ -24,9 +26,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -46,6 +45,7 @@ import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.TeleportMode;
 import top.mrxiaom.doomsdayessentials.configs.RandomTPConfig.Zone;
 import top.mrxiaom.doomsdayessentials.listener.*;
 import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMe;
+import top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMeApi;
 import top.mrxiaom.doomsdayessentials.placeholder.*;
 import top.mrxiaom.doomsdayessentials.skills.IAmNoob;
 import top.mrxiaom.doomsdayessentials.skills.SakuzyoBeam;
@@ -59,6 +59,8 @@ import top.mrxiaom.doomsdayessentials.utils.NMSUtil.NMSItemStack;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
+
+import static top.mrxiaom.doomsdayessentials.modules.reviveme.ReviveMeApi.isPlayerDowned;
 
 public class Main extends JavaPlugin {
 
@@ -87,6 +89,8 @@ public class Main extends JavaPlugin {
 	PlaceholderMCMMO papiMcMMO;
 	PlaceholderSettings papiSettings;
 	PlaceholderMCBBS papiMcbbs;
+	PlaceholderResidence papiResidence;
+	PlaceholderReplace papiReplace;
 	// 事件监听器
 	PlayerListener playerListener;
 	DeathListener deathListener;
@@ -134,6 +138,8 @@ public class Main extends JavaPlugin {
 	GuiManager guiManager;
 	ChapterManager chapterManager;
 	ReviveMe moduleReviveMe;
+	BlackScreenManager blackScreenManager;
+	Cleaner cleaner;
 	// 技能
 	SakuzyoBeam skillSakuzyoBeam;
 	SelfAttack skillSelfAttack;
@@ -147,9 +153,7 @@ public class Main extends JavaPlugin {
 	private List<String> tips = new ArrayList<>();
 	private int fireTime;
 	private int noticeCountdown = 300;
-	private static final long cleanTimerDefault = 900L;
-	private long cleanTimer = cleanTimerDefault;
-	private long lastActionTime = System.currentTimeMillis();
+	public static final long cleanTimerDefault = 900L;
 	private final Map<UUID, Integer> armorDamageTime = new HashMap<>();
 	private int teleportWaitTime = 3;
 	private int tpTimeout = 120;
@@ -184,6 +188,7 @@ public class Main extends JavaPlugin {
 		this.controlListener = new ControlListener(this);
 		this.botMsgListener = new BotMsgListener(this);
 		(this.moduleReviveMe = new ReviveMe(this)).onEnable();
+		this.blackScreenManager = new BlackScreenManager(this);
 	}
 	private void initSkill() {
 		this.skillSakuzyoBeam = new SakuzyoBeam(this);
@@ -199,6 +204,7 @@ public class Main extends JavaPlugin {
 		this.autoMineChecker = new AutoMineChecker(this);
 		this.guiManager = new GuiManager(this);
 		this.chapterManager = new ChapterManager(this);
+		this.cleaner = new Cleaner(this);
 		
 		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, this::everySecond, 20, 20);
 		this.getServer().getScheduler().runTaskTimer(this, this.tps::updateTps, 1L, 1L);
@@ -206,7 +212,7 @@ public class Main extends JavaPlugin {
 		// 20 秒检查一次传送点
 		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::updateRandomTPCache, 400, 400);
 		this.getServer().getScheduler().runTaskTimer(this, this::checkMarketOutdate, 7200L, 7200L);
-		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::mcbbsChecker, 6000L, 6000L);
+		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::mcbbsChecker, 2000L, 2000L);
 		this.getServer().getScheduler().runTaskTimerAsynchronously(this, this::onBotSecond, 20, 20);
 	}
 	private void hookDependPlugins() {
@@ -217,6 +223,8 @@ public class Main extends JavaPlugin {
 			Util.registerPlaceholder(getLogger(), papiTitle = new PlaceholderTitle(this), "称号");
 			Util.registerPlaceholder(getLogger(), papiKit = new PlaceholderKit(this), "工具包");
 			Util.registerPlaceholder(getLogger(), papiSettings = new PlaceholderSettings(this), "设置");
+			Util.registerPlaceholder(getLogger(), papiResidence = new PlaceholderResidence(this), "领地");
+			Util.registerPlaceholder(getLogger(), papiReplace = new PlaceholderReplace(this), "基础-替换");
 		}
 
 		if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null){
@@ -270,7 +278,9 @@ public class Main extends JavaPlugin {
 	public File getFile(String path) {
 		return new File(this.getDataFolder(), path);
 	}
-	public File getServerRoot() { return this.getDataFolder().getAbsoluteFile().getParentFile().getParentFile(); };
+	public File getServerRoot() {
+		return this.getDataFolder().getAbsoluteFile().getParentFile().getParentFile();
+	}
 	public File getServerFile(String path) { return new File(this.getServerRoot(), path); }
 
 	public void reloadConfig() {
@@ -355,11 +365,34 @@ public class Main extends JavaPlugin {
 		this.getLogger().info("配置文件已重载");
 	}
 
+	public void saveConfig() {
+		// 主配置 readonly，无需保存
+		// super.saveConfig();
+
+		this.getWhitelistConfig().saveConfig();
+		this.getBindConfig().saveConfig();
+		this.getHomeConfig().saveConfig();
+		this.getPlayerConfig().saveConfig();
+		this.getWarpConfig().saveConfig();
+		this.getGunConfig().saveConfig();
+		this.getKitConfig().saveConfig();
+		this.getOpenWorldConfig().saveConfig();
+		this.getParkoursConfig().saveConfig();
+		this.getBackConfig().saveConfig();
+		this.getRandomTPConfig().saveConfig();
+		this.getMarketConfig().saveConfig();
+		this.getMcbbsConfig().saveConfig();
+		this.getChapterManager().saveConfig();
+		this.getModuleReviveMe().saveConfig();
+	}
+
 	public void onDisable() {
 		this.disabled = true;
 		if(this.getModuleReviveMe() != null && this.getModuleReviveMe().getManager() != null) {
 			this.getModuleReviveMe().getManager().reliveAll();
 		}
+		this.saveConfig();
+		this.cleaner.getBossbar().removeAll();
 		Bukkit.getScheduler().cancelTasks(this);
 		this.playerListener.enable = false;
 		this.getRandomTPConfig().saveCache();
@@ -370,6 +403,8 @@ public class Main extends JavaPlugin {
 		if (this.papiMcMMO != null && this.papiMcMMO.isRegistered()) this.papiMcMMO.unregister();
 		if (this.papiSettings != null && this.papiSettings.isRegistered())  this.papiSettings.unregister();
 		if (this.papiMcbbs != null && this.papiMcbbs.isRegistered()) this.papiMcbbs.unregister();
+		if (this.papiResidence != null && this.papiResidence.isRegistered()) this.papiResidence.unregister();
+		if (this.papiReplace != null && this.papiReplace.isRegistered()) this.papiReplace.unregister();
 
 		instance = null;
 		this.getLogger().info("基础插件 DoomsdayEssentials 已卸载");
@@ -593,7 +628,6 @@ public class Main extends JavaPlugin {
 	
 	public void everySecond() {
 		if(Bukkit.getOnlinePlayers().size() > 0) {
-			this.onCleanSecond();
 			this.onNoticeSecond();
 		}
 		if(botMsgListener.cooldown > 0) botMsgListener.cooldown--;
@@ -605,7 +639,8 @@ public class Main extends JavaPlugin {
 					|| !(player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE)
 					|| this.isWorldNotFire(player.getWorld().getName()) || player.isSwimming()
 					|| loc.getWorld() == null || loc.getWorld().hasStorm()
-					|| loc.getWorld().getTime() > 12500 || loc.getWorld().getTime() < 1000) {
+					|| loc.getWorld().getTime() > 12500 || loc.getWorld().getTime() < 1000
+			        || !AuthMeApi.getInstance().isAuthenticated(player)) {
 				return;
 			}
 			int x = loc.getBlockX();
@@ -683,69 +718,6 @@ public class Main extends JavaPlugin {
 			}
 		}
 	}
-
-	private void onCleanSecond() {
-		if (this.tps.getAverageTPS() < 15 && lastActionTime + 60000 < System.currentTimeMillis()) {
-			lastActionTime = System.currentTimeMillis();
-			int count = 0;
-			for (World world : Bukkit.getWorlds()) {
-				for (Entity entity : world.getEntities()) {
-					if (Util.checkCustomNpc(entity)) {
-						continue;
-					}
-					if (entity instanceof Monster) {
-						if (entity.getCustomName() == null) {
-							entity.remove();
-							count++;
-						}
-					}
-				}
-			}
-			if (count > 0) {
-				Util.alert(I18n.t("cleaner.clean-monster").replace("%count%", String.valueOf(count)));
-			}
-			cleanTimer = 0;
-			System.runFinalization();
-			System.gc();
-		}
-		cleanTimer--;
-		if (cleanTimer == 60 || cleanTimer == 30 || cleanTimer == 10) {
-			Util.alert(I18n.t("cleaner.clean-pre").replace("%time%", String.valueOf(cleanTimer)));
-		}
-		if (cleanTimer <= 0) {
-			this.cleanTimer = cleanTimerDefault;
-			int count = 0;
-			int countM = 0;
-			for (World world : Bukkit.getWorlds()) {
-				for (Entity e : world.getEntities()) {
-					if (e.getType() == EntityType.DROPPED_ITEM) {
-						e.remove();
-						count++;
-					}
-					if (e.getType() == EntityType.ARROW && e.isOnGround()) {
-						e.remove();
-					}
-				}
-				for (Entity entity : world.getEntities()) {
-					if (Util.checkCustomNpc(entity) || Util.isNoClearEntities(entity)) {
-						continue;
-					}
-					if (entity instanceof Monster) {
-						if (ResidenceApi.getResidenceManager().getByLoc(entity.getLocation()) == null) {
-							if (entity.getCustomName() == null || entity.getCustomName().length() == 0) {
-								entity.remove();
-								countM++;
-							}
-						}
-					}
-				}
-				world.save();
-			}
-			Util.alert(I18n.t("cleaner.clean-done").replace("%items%", String.valueOf(count)).replace("%monsters%",
-					String.valueOf(countM)));
-		}
-	}
-
 	public boolean isPisionExtendBlackList(Material m) {
 		return this.pistonBlackList.contains(m);
 	}
@@ -906,8 +878,8 @@ public class Main extends JavaPlugin {
 		return guiManager;
 	}
 
-	public long getCleanTime() {
-		return cleanTimer;
+	public Cleaner getCleaner() {
+		return cleaner;
 	}
 
 	public IAmNoob getSkillIAmNoob() {
@@ -923,4 +895,13 @@ public class Main extends JavaPlugin {
 	public DeathListener getDeathListener(){return deathListener;}
 	public CmdManager getCmdManager() { return cmdManager;}
 	public ReviveMe getModuleReviveMe() { return this.moduleReviveMe;}
+	public BlackScreenManager getBlackScreenManager() {
+		return this.blackScreenManager;
+	}
+	public PlaceholderResidence getPapiResidence() {
+		return papiResidence;
+	}
+	public PlaceholderReplace getPapiReplace() {
+		return papiReplace;
+	}
 }

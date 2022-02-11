@@ -9,6 +9,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -99,6 +101,34 @@ public class InventoryListener implements Listener {
 		}
 	}
 
+	@EventHandler
+	public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event){
+		ItemStack mainHandItem = event.getMainHandItem();
+		ItemStack offHandItem = event.getOffHandItem();
+		if (plugin.getBindConfig().needToRecall(mainHandItem)) {
+			event.getPlayer().sendMessage("§7[§9末日社团§7] §c物品 §e" + ItemStackUtil.getItemDisplayName(mainHandItem) + " §c已被召回");
+			event.setMainHandItem(null);
+		}
+		if (plugin.getBindConfig().needToRecall(offHandItem)) {
+			event.getPlayer().sendMessage("§7[§9末日社团§7] §c物品 §e" + ItemStackUtil.getItemDisplayName(offHandItem) + " §c已被召回");
+			event.setOffHandItem(null);
+		}
+	}
+
+	@EventHandler
+	public void onPlayerItemHeld(PlayerItemHeldEvent event){
+		ItemStack oldItem = event.getPlayer().getInventory().getItem(event.getPreviousSlot());
+		ItemStack newItem = event.getPlayer().getInventory().getItem(event.getNewSlot());
+		if (plugin.getBindConfig().needToRecall(oldItem)) {
+			event.getPlayer().sendMessage("§7[§9末日社团§7] §c物品 §e" + ItemStackUtil.getItemDisplayName(oldItem) + " §c已被召回");
+			event.getPlayer().getInventory().setItem(event.getPreviousSlot(), null);
+		}
+		if (plugin.getBindConfig().needToRecall(newItem)) {
+			event.getPlayer().sendMessage("§7[§9末日社团§7] §c物品 §e" + ItemStackUtil.getItemDisplayName(newItem) + " §c已被召回");
+			event.getPlayer().getInventory().setItem(event.getNewSlot(), null);
+		}
+	}
+
 	public void checkPlayerInvBindingItems(Player player) {
 		for (int i = 0; i < player.getInventory().getSize(); i++) {
 			ItemStack item = player.getInventory().getItem(i);
@@ -109,7 +139,7 @@ public class InventoryListener implements Listener {
 		}
 	}
 
-	/*
+	/**
 	 * 检查
 	 * 
 	 * @returns 背包是否存在异常

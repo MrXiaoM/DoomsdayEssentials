@@ -1,6 +1,8 @@
 package top.mrxiaom.doomsdayessentials.utils;
 
 import com.google.gson.JsonElement;
+import net.Zrips.CMILib.ActionBar.CMIActionBar;
+import net.Zrips.CMILib.Items.CMIMaterial;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -186,18 +188,7 @@ public class NMSUtil {
 	}
 
 	public static void sendActionMsg(Player player, String msg) {
-		try {
-			Class<?> classPacket = Class.forName("net.minecraft.server." + getNMSVersion() + ".PacketPlayOutChat");
-			Class<?> classChatText = Class.forName("net.minecraft.server." + getNMSVersion() + ".ChatComponentText");
-			Class<?> classIChatBase = Class.forName("net.minecraft.server." + getNMSVersion() + ".IChatBaseComponent");
-			Constructor<?> constChatText = classChatText.getDeclaredConstructor(String.class);
-			Constructor<?> constPacket = classPacket.getDeclaredConstructor(classIChatBase, byte.class);
-			Object text = constChatText.newInstance(ChatColor.translateAlternateColorCodes('&', msg));
-			Object packet = constPacket.newInstance(text, (byte) 2);
-			sendPacket(player, packet);
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+		CMIActionBar.send(player, ChatColor.translateAlternateColorCodes('&', msg));
 	}
 
 	public static void sendPacket(Player player, Object packet) {

@@ -1,94 +1,59 @@
 package top.mrxiaom.doomsdayessentials.listener;
 
-import org.bukkit.Bukkit;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import top.mrxiaom.doomsdayessentials.Main;
 import top.mrxiaom.doomsdayessentials.configs.OpenWorldConfig.OpenWorldPlayer;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 
+import java.util.*;
+
 public class OpenWorldListener implements Listener {
 
 	final Main plugin;
-	public boolean enable = true;
 	public final String openWorldName = "openworld";
-
+	Set<String> showBorderTipsPlayers = new HashSet<>();
 	public OpenWorldListener(Main plugin) {
 		this.plugin = plugin;
 		Bukkit.getPluginManager().registerEvents(this, plugin);
+		Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::onTick, 10, 10);
 		plugin.getLogger().info("初始化开放世界");
 	}
 
+	public boolean isInOpenWorld(Player player) {
+		return player.getWorld().getName().equalsIgnoreCase(openWorldName);
+	}
+
+	private void onTick() {
+		if (Bukkit.getOnlinePlayers().size() < 1) return;
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			if (!player.getWorld().getName().equalsIgnoreCase(openWorldName)) continue;
+			WorldBorder border = player.getWorld().getWorldBorder();
+			Location center = border.getCenter();
+			Location loc = player.getLocation();
+			int warningDistance = border.getWarningDistance();
+			double x = Math.abs(center.getX() - loc.getX());
+			double z = Math.abs(center.getZ() - loc.getZ());
+			if (x > warningDistance || z > warningDistance) {
+				player.sendTitle("§c区域管制", "§e前面的区域， 以后再来探索吧",
+						showBorderTipsPlayers.contains(player.getName()) ? 0 : 10, 40, 10);
+				showBorderTipsPlayers.add(player.getName());
+			}
+			else showBorderTipsPlayers.remove(player.getName());
+		}
+	}
 	@EventHandler
-	public void onPlayerTeleport(PlayerTeleportEvent event) {
-		// debug
-		// if(!event.getPlayer().getName().equalsIgnoreCase("lazycat")) return;
-		World fromWorld = event.getFrom().getWorld();
-		World toWorld = event.getTo().getWorld();
-		// 如果来自开放世界
-		if (fromWorld.getName().equalsIgnoreCase(openWorldName) && !toWorld.getName().equalsIgnoreCase(openWorldName)) {
-			// 切换为原版背包
-			this.switchInventory(event.getPlayer(), InventoryType.vanilla);
+	public void onInventoryOpen(InventoryOpenEvent event){
+		if (!event.getPlayer().isOp() && event.getPlayer().getWorld().getName().equalsIgnoreCase(openWorldName)
+				&& !event.getView().getTitle().contains("§")){
+			event.getPlayer().sendMessage("§c禁止打开容器");
+			event.setCancelled(true);
 		}
-		// 如果来自原版世界
-		else if (toWorld.getName().equalsIgnoreCase(openWorldName)
-				&& !fromWorld.getName().equalsIgnoreCase(openWorldName)) {
-			// 切换为开放世界背包
-			this.switchInventory(event.getPlayer(), InventoryType.openworld);
-		}
-	}
-
-	public enum InventoryType {
-		vanilla, openworld
-	}
-
-	/**
-	 * 切换原版和开放世界的背包物品
-	 * 
-	 * @author MrXiaoM
-	 * 
-	 * @param player 玩家
-	 * @param type 背包类型
-	 */
-	public void switchInventory(Player player, InventoryType type) {
-		// 前往原版世界
-		if (type == InventoryType.vanilla) {
-			if (!player.getWorld().getName().equals(openWorldName)) {
-				player.sendMessage(
-						I18n.t("openworld.error.prefix", true).replace("%error%", I18n.t("openworld.error.unallow")));
-				return;
-			}
-			OpenWorldPlayer owp = plugin.getOpenWorldConfig().get(player, false);
-			// 先备份，后设置
-			owp.setItemsOpenWorldLast(player.getInventory().getContents());
-			ItemStack[] contents = owp.getItemsLast();
-			if (contents == null) {
-				player.getInventory().clear();
-			} else {
-				player.getInventory().setContents(owp.getItemsLast());
-			}
-		}
-		if (type == InventoryType.openworld) {
-			if (player.getWorld().getName().equals(openWorldName)) {
-				player.sendMessage(
-						I18n.t("openworld.error.prefix", true).replace("%error%", I18n.t("openworld.error.unallow")));
-				return;
-			}
-			OpenWorldPlayer owp = plugin.getOpenWorldConfig().get(player, false);
-			// 先备份，后设置
-			owp.setItemsLast(player.getInventory().getContents());
-			ItemStack[] contents = owp.getItemsLast();
-			if (contents == null) {
-				player.getInventory().clear();
-			} else {
-				player.getInventory().setContents(owp.getItemsOpenWorldLast());
-			}
-		}
-		player.sendMessage(I18n.t("openworld.switch-inventory", true).replace("%type%",
-				I18n.t("openworld.inv-type." + type.name())));
 	}
 }

@@ -16,6 +16,7 @@ import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class CommandRandomLocation extends ICommand {
 	public CommandRandomLocation(Main plugin) {
@@ -305,28 +306,28 @@ public class CommandRandomLocation extends ICommand {
 			return Util.noPerm(sender);
 		}
 		if (args.length == 2) {
-			Player player = Util.getOnlinePlayer(args[0]);
-			if(player == null){
+			Optional<Player> player = Util.getOnlinePlayer(args[0]);
+			if(player.isEmpty()){
 				sender.sendMessage(I18n.t("not-online", true));
 				return true;
 			}
 			String zoneName = args[0];
 			Zone zone = plugin.getRandomTPConfig().get(zoneName);
 			if (zone == null) {
-				player.sendMessage(I18n.t("randomlocation.nozone", true));
+				player.get().sendMessage(I18n.t("randomlocation.nozone", true));
 				return true;
 			}
-			if(this.plugin.getPlayerCooldownManager().isRandomTPCooldown(player.getName())) {
-				player.sendMessage(I18n.t("randomlocation.cooldown", true).replace("%cooldown%", "120"));
+			if(this.plugin.getPlayerCooldownManager().isRandomTPCooldown(player.get().getName())) {
+				player.get().sendMessage(I18n.t("randomlocation.cooldown", true).replace("%cooldown%", "120"));
 				return true;
 			}
-			TeleportResult result = zone.teleport(player, true);
+			TeleportResult result = zone.teleport(player.get(), true);
 			if (result.equals(TeleportResult.NO_LOC)) {
-				player.sendMessage(I18n.t("randomlocation.noloc", true));
+				player.get().sendMessage(I18n.t("randomlocation.noloc", true));
 				return true;
 			}
 			if (result.equals(TeleportResult.SUCCESS)) {
-				player.sendMessage(I18n.t("randomlocation.teleport", true).replace("%zone%", zoneName));
+				player.get().sendMessage(I18n.t("randomlocation.teleport", true).replace("%zone%", zoneName));
 				return true;
 			}
 		}

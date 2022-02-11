@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class GuiUnignore implements IGui{
 	public enum IgnoreType {
@@ -71,15 +70,15 @@ public class GuiUnignore implements IGui{
 		Inventory inv = Bukkit.getServer().createInventory(null, 54, "§f§a§7§0取消屏蔽§r" + "§8 第" + page + "页");
 		List<String> ignoreList = this.getPlayerIgnoreList();
 		int maxpages = (int) Math.ceil(ignoreList.size() / 45.0D);
-		AtomicInteger i = new AtomicInteger();
-		AtomicInteger j = new AtomicInteger();
+		int i = 0;
 		ignoreTexts.clear();
-		ignoreList.forEach(s -> {
-			if (j.getAndIncrement() < (page - 1) * 45) return;
-			if (i.get() >= 45) return;
+		for (int j = 0; j < ignoreList.size(); j++) {
+			if (j < (page - 1) * 45) continue;
+			if (i >= 45) break;
+			String s = ignoreList.get(j);
 			List<String> lore = new ArrayList<>();
 			lore.add("§7内容: ");
-			ignoreTexts.put(i.get(), s);
+			ignoreTexts.put(i, s);
 			if(s.length() <= 20) lore.add("§f" + s);
 			else {
 				String str = s;
@@ -91,12 +90,13 @@ public class GuiUnignore implements IGui{
 			lore.add("");
 			lore.add("&a左键 &7| &f发送到聊天栏，方便预览或复制");
 			lore.add("&eShift+左键 &7| &f删除此条目");
-			inv.setItem(i.get(),ItemStackUtil.buildItem(Material.PAPER,"§c屏蔽条目", lore));
-		});
+			inv.setItem(i, ItemStackUtil.buildItem(Material.PAPER,"§c屏蔽条目", lore));
+			i++;
+		}
 		ItemStackUtil.setRowItems(inv, 6, ItemStackUtil.buildFrameItem(Material.WHITE_STAINED_GLASS_PANE));
-		if(page >= 1) inv.setItem(45, ItemStackUtil.buildItem(Material.GREEN_STAINED_GLASS_PANE, "§a上一页"));
-		if(page < maxpages) inv.setItem(53, ItemStackUtil.buildItem(Material.GREEN_STAINED_GLASS_PANE, "§a上一页"));
-		inv.setItem(47, ItemStackUtil.buildItem(Material.NAME_TAG, "§e屏蔽类型", Lists.newArrayList(
+		if(page > 1) inv.setItem(45, ItemStackUtil.buildItem(Material.GREEN_STAINED_GLASS_PANE, "§a上一页"));
+		if(page < maxpages) inv.setItem(53, ItemStackUtil.buildItem(Material.GREEN_STAINED_GLASS_PANE, "§a下一页"));
+		inv.setItem(49, ItemStackUtil.buildItem(Material.NAME_TAG, "§e屏蔽类型", Lists.newArrayList(
 				"",
 				(type.equals(IgnoreType.PLAYER) ? "§e> §f" : "§7") + "玩家名",
 				(type.equals(IgnoreType.PLAYER_REGEX) ? "§e> §f" : "§7") + "玩家名(正则表达式)",
@@ -104,7 +104,7 @@ public class GuiUnignore implements IGui{
 				(type.equals(IgnoreType.MSG_REGEX) ? "§e> §f" : "§7") + "消息正则表达式",
 				"",
 				"§a左键 §7| §f切换显示的屏蔽类型")));
-		if(isMenu) inv.setItem(49, ItemStackUtil.buildItem(Material.RED_STAINED_GLASS_PANE, "§c返回菜单"));
+		if(isMenu) inv.setItem(51, ItemStackUtil.buildItem(Material.RED_STAINED_GLASS_PANE, "§c返回菜单"));
 		return inv;
 	}
 
@@ -148,11 +148,11 @@ public class GuiUnignore implements IGui{
 			refresh();
 		}
 		// 返回菜单
-		if(isMenu && slot == 49){
-			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "dm open 主菜单 " + player.getName());
+		if(isMenu && slot == 51){
+			Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "dm open 设置 " + player.getName());
 		}
 		// 切换类型
-		if(slot == 47 && event.isLeftClick() && !event.isShiftClick()) {
+		if(slot == 49 && event.isLeftClick() && !event.isShiftClick()) {
 			this.type = nextType();
 			player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
 			refresh();

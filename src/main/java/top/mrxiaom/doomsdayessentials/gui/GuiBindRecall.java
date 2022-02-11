@@ -28,10 +28,12 @@ public class GuiBindRecall implements IGui{
 	final Main plugin;
 	final Player player;
 	int page;
-	public GuiBindRecall(Main plugin, Player player, int page) {
+	boolean isMenu;
+	public GuiBindRecall(Main plugin, Player player, int page, boolean isMenu) {
 		this.plugin = plugin;
 		this.player = player;
 		this.page = page;
+		this.isMenu = isMenu;
 	}
 
 	@Override
@@ -64,11 +66,13 @@ public class GuiBindRecall implements IGui{
 		ItemStack itemNextPage = ItemStackUtil.buildItem(Material.GREEN_STAINED_GLASS_PANE, I18n.t("warp.gui.next-page"),
 				page >= maxPages ? Lists.newArrayList(I18n.t("warp.gui.no-next-page"), pages) : Lists.newArrayList(pages));
 
+		ItemStack menu = ItemStackUtil.buildItem(Material.RED_STAINED_GLASS_PANE, "&c返回菜单");
+
 		inv.setItem(45, page <= 1 ? itemFrame : itemPrevPage);
 		inv.setItem(46, itemFrame);
 		inv.setItem(47, itemFrame);
 		inv.setItem(48, itemFrame);
-		inv.setItem(49, itemFrame);
+		inv.setItem(49, isMenu ? menu : itemFrame);
 		inv.setItem(50, itemFrame);
 		inv.setItem(51, itemFrame);
 		inv.setItem(52, itemFrame);
@@ -121,9 +125,8 @@ public class GuiBindRecall implements IGui{
 					return;
 				}
 				page = page - 1;
-				plugin.getGuiManager().openGui(this);
+				refresh();
 				return;
-
 			}
 			// 下一页
 			if (slot == 53) {
@@ -133,7 +136,12 @@ public class GuiBindRecall implements IGui{
 					return;
 				}
 				page = page + 1;
-				plugin.getGuiManager().openGui(this);
+				refresh();
+				return;
+			}
+			if (isMenu && slot == 49){
+				Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "dm open 绑定 " + player.getName());
+				return;
 			}
 		}
 		

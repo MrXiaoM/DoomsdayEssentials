@@ -12,6 +12,7 @@ import top.mrxiaom.doomsdayessentials.utils.Util;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class CommandTpahere extends ICommand {
 	public CommandTpahere(Main plugin) {
@@ -46,12 +47,12 @@ public class CommandTpahere extends ICommand {
 				player.sendMessage(I18n.t("teleport.self", true));
 				return true;
 			}
-			Player targetPlayer = Util.getOnlinePlayer(args[0]);
-			if (targetPlayer == null) {
+			Optional<Player> targetPlayer = Util.getOnlinePlayer(args[0]);
+			if (targetPlayer.isEmpty()) {
 				player.sendMessage(I18n.t("not-online", true));
 				return true;
 			}
-			if(plugin.getChatListener().isIgnored(player, targetPlayer, null)) {
+			if(plugin.getChatListener().isIgnored(player, targetPlayer.get(), null)) {
 				player.sendMessage(I18n.t("ignore.ignored", true));
 				return true;
 			}
@@ -59,9 +60,9 @@ public class CommandTpahere extends ICommand {
 				player.sendMessage(I18n.t("teleport.has-requests"));
 				return true;
 			}
-			plugin.getPlayerCooldownManager().putTpRequest(player, targetPlayer, true);
-			player.sendMessage(I18n.t("teleport.sent", true).replace("%player%", targetPlayer.getName()));
-			targetPlayer.sendMessage(
+			plugin.getPlayerCooldownManager().putTpRequest(player, targetPlayer.get(), true);
+			player.sendMessage(I18n.t("teleport.sent", true).replace("%player%", targetPlayer.get().getName()));
+			targetPlayer.get().sendMessage(
 					I18n.tn("teleport.tpahere", false).replace("%player%", player.getName()).replace("%time%", "120"));
 			return true;
 		}

@@ -13,10 +13,7 @@ import top.mrxiaom.doomsdayessentials.configs.PlayerConfig;
 import top.mrxiaom.doomsdayessentials.configs.TagConfig;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DoomsdayApi {
     public enum PlayerGroup {
@@ -29,16 +26,16 @@ public class DoomsdayApi {
         return Main.getInstance().getPlayerConfig().getNeedle(player);
     }
     public static PlayerGroup getPlayerGroup(String player){
-        OfflinePlayer p = Util.getOfflinePlayer(player);
-        if (p == null || !AuthMeApi.getInstance().isRegistered(player)) return PlayerGroup.UNREGISTER;
-        if (p.isOp()) return PlayerGroup.OP;
-        if (Main.getInstance().getPermsApi().playerHas("", p, "servermarket.tax.svip")) return PlayerGroup.SVIP;
-        if (Main.getInstance().getPermsApi().playerHas("", p, "servermarket.tax.vip")) return PlayerGroup.VIP;
+        Optional<OfflinePlayer> p = Util.getOfflinePlayer(player);
+        if (p.isEmpty() || !AuthMeApi.getInstance().isRegistered(player)) return PlayerGroup.UNREGISTER;
+        if (p.get().isOp()) return PlayerGroup.OP;
+        if (Main.getInstance().getPermsApi().playerHas("", p.get(), "servermarket.tax.svip")) return PlayerGroup.SVIP;
+        if (Main.getInstance().getPermsApi().playerHas("", p.get(), "servermarket.tax.vip")) return PlayerGroup.VIP;
         return PlayerGroup.DEFAULT;
     }
     public static double getPlayerMoney(String player) {
-        OfflinePlayer p = Util.getOfflinePlayer(player);
-        return p == null ? 0 : Main.getInstance().getEcoApi().getBalance(p);
+        Optional<OfflinePlayer> p = Util.getOfflinePlayer(player);
+        return p.isEmpty() ? 0 : Main.getInstance().getEcoApi().getBalance(p.get());
     }
     public static boolean isPlayerRegistered(String player) {
         return AuthMeApi.getInstance().isRegistered(player);

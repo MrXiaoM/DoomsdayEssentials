@@ -139,14 +139,14 @@ public class GunConfig {
 
 	@Nullable
 	public Gun get(String gunName) {
-		if (this.contains(gunName)) {
-			return this.gunMap.get(gunName);
+		if (this.contains(gunName.toLowerCase())) {
+			return this.gunMap.get(gunName.toLowerCase());
 		}
 		return null;
 	}
 
-	public void set(String gunName, Gun warp) {
-		this.gunMap.put(gunName, warp);
+	public void set(String gunName, Gun gun) {
+		this.gunMap.put(gunName, gun);
 		this.saveConfig();
 	}
 
@@ -169,7 +169,7 @@ public class GunConfig {
 			for (File file : files) {
 				try {
 					YamlConfiguration gunConfig = YamlConfiguration.loadConfiguration(file);
-					String id = file.getName().substring(0, file.getName().length() - 4);
+					String id = gunConfig.getString("id").toLowerCase();
 					// System.out.println("正在载入 " + id + " : " + gunConfig.getString("material"));
 					Material material = Material.getMaterial(gunConfig.getString("material").toUpperCase());
 					if (material == null || material == Material.AIR) {
@@ -229,8 +229,8 @@ public class GunConfig {
 						gunConfig.set("volume", gun.getVolume());
 						gunConfig.set("pitch", gun.getPitch());
 					}
-					gunConfig.save(new File(configFile, gun.getName() + ".yml"));
-					files.add(gun.getName() + ".yml");
+					gunConfig.save(new File(configFile, gun.getGunId() + ".yml"));
+					files.add(gun.getGunId() + ".yml");
 				} catch (Throwable t) {
 					// 收声
 				}

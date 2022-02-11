@@ -21,20 +21,31 @@ import top.mrxiaom.doomsdayessentials.configs.TagConfig;
 import top.mrxiaom.doomsdayessentials.configs.WarpConfig.Warp;
 import top.mrxiaom.doomsdayessentials.utils.I18n;
 import top.mrxiaom.doomsdayessentials.utils.ItemStackUtil;
+import top.mrxiaom.doomsdayessentials.utils.Pair;
 import top.mrxiaom.doomsdayessentials.utils.Util;
 
 import java.util.*;
 
+/**
+ * 屎山重灾区
+ * @author MrXiaoM
+ **/
 public class CommandLC extends ICommand {
 	public CommandLC(Main plugin) {
 		super(plugin, "lazycat", new String[] {});
+		faceMap.put("+x", Pair.of(270.0F, 0.0F));
+		faceMap.put("-x", Pair.of(90.0F, 0.0F));
+		faceMap.put("+y", Pair.of(0.0F, -90.0F));
+		faceMap.put("-y", Pair.of(0.0F, 90.0F));
+		faceMap.put("+z", Pair.of(0.0F, 0.0F));
+		faceMap.put("-z", Pair.of(180.0F, 0.0F));
 	}
 
 	@Override
 	public List<String> onTabComplete(CommandSender sender, String[] args, boolean isPlayer) {
 		return new ArrayList<>();
 	}
-
+	Map<String, Pair<Float, Float>> faceMap = new HashMap<>();
 	@Override
 	public boolean onCommand(CommandSender sender, String label, String[] args, boolean isPlayer) {
 		if (sender.isOp()) {
@@ -45,6 +56,27 @@ public class CommandLC extends ICommand {
 				sender.sendMessage(I18n.t("respawnneedle.reloaded"));
 				return true;
 			}
+			if(args.length == 3 && args[1].equalsIgnoreCase("faceto")){
+				Optional<Player> player = Util.getOnlinePlayer(args[0]);
+				if (player.isPresent() && faceMap.containsKey(args[2])) {
+					double x = player.get().getLocation().getX();
+					double y = player.get().getLocation().getY();
+					double z = player.get().getLocation().getZ();
+					Pair<Float, Float> face = faceMap.get(args[2]);
+					player.get().teleport(new Location(player.get().getWorld(), x, y, z, face.getKey(), face.getValue()));
+				}
+				return true;
+			}
+			if (args.length == 2 && args[0].equalsIgnoreCase("cleantimer")){
+				int i = Util.strToInt(args[1], -1);
+				if (i < 0) {
+					sender.sendMessage(I18n.t("mot-integer", true));
+					return true;
+				}
+				plugin.getCleaner().setCleanTime(i);
+				sender.sendMessage(I18n.prefix() + "已设置清道夫倒计时为 §c" + i + " §6秒");
+				return true;
+			}
 			World world = isPlayer ? ((Player)sender).getLocation().getWorld() : null;
 			if(isPlayer) {
 				Player player = (Player) sender;
@@ -52,6 +84,11 @@ public class CommandLC extends ICommand {
 					if(args[0].equalsIgnoreCase("sleep")) {
 						((org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer)player).getHandle().a(StatisticList.SLEEP_IN_BED);
 			            CriterionTriggers.q.a(((org.bukkit.craftbukkit.v1_15_R1.entity.CraftPlayer)player).getHandle());
+						return true;
+					}
+					if (args[0].equalsIgnoreCase("hasrespawntoken")) {
+						player.sendMessage(plugin.getLifeListener().hasRespawnToken(player) ? "true" : "false");
+						return true;
 					}
 				}
 			}
@@ -72,7 +109,7 @@ public class CommandLC extends ICommand {
 					player.sendMessage("输入 音调不正确");
 					return true;
 				}
-				player.playNote(player.getLocation(), instrument, new Note(1));
+				player.playNote(player.getLocation(), instrument, new Note(note));
 				player.sendMessage("已播放 " + instrument.name().toUpperCase() + ":" + note);
 				return true;
 			}
@@ -265,13 +302,7 @@ public class CommandLC extends ICommand {
 					} else if (args[0].equalsIgnoreCase("openworld")) {
 						if (args.length >= 2) {
 							String p = args[1];
-							OpenWorldPlayer owp = plugin.getOpenWorldConfig().get(p);
-							if (owp != null) {
-								Inventory inv = Bukkit.createInventory(null, 54,
-										p + " 的" + (args.length == 3 ? "开放世界" : "") + "背包");
-								inv.addItem(args.length == 3 ? owp.getItemsOpenWorldLast() : owp.getItemsLast());
-								player.openInventory(inv);
-							}
+							
 						}
 					} else if (args[0].equalsIgnoreCase("ench")) {
 						ItemStack item = player.getInventory().getItemInMainHand();
@@ -293,4 +324,5 @@ public class CommandLC extends ICommand {
 		}
 		return true;
 	}
+
 }

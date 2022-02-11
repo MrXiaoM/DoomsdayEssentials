@@ -29,13 +29,17 @@ public class TPSMonitor {
 
 	// 求上个 10 秒内服务器的平均TPS
 	public double getAverageTPS() {
-		double avg = 0.0D;
-		for (Double tps : this.history) {
-			if (tps != null) {
-				avg += tps;
+		try {
+			double avg = 0.0D;
+			for (Double tps : this.history) {
+				if (tps != null) {
+					avg += tps;
+				}
 			}
+			return avg / history.size();
+		} catch(Throwable ignored){
+			return 20.0D;
 		}
-		return avg / history.size();
 	}
 
 	public double getTps() {
