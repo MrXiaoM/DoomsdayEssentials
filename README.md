@@ -1,19 +1,9 @@
 # DoomsdayEssentials
 
- [![](https://img.shields.io/badge/Minecraft-1.15-blue)]()
+[![](https://img.shields.io/badge/Minecraft-1.15-blue)]()
+> 再会，末日社团！
 
-> 这份文档我是做给谁看呢…
-
-末日社团基础插件源代码，整合了多个插件在内，由于是闭源不发布的插件所以没有考虑协议。
-
-## License
-```
-NOT OPEN SOURCE AND NOT PUBLISH LICENSE
-DoomsdaySociety 2021
-
-Over here. Anyone except Minecraft DoomsdaySociety Server Developers Group 
-HAVE NO PERMISSION to use any source code and binary files here or make them public.
-```
+末日社团基础插件源代码，整合了多个插件在内。这是我的早期作品，仅作参考。
 
 ## Dependences
 
